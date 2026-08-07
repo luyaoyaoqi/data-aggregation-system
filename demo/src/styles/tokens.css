@@ -1,0 +1,101 @@
+/* ==========================================================================
+   设计 Token —— 与 uno.config.js theme 保持一致
+   ========================================================================== */
+:root {
+  /* 主色 */
+  --c-primary: #4a90e2;
+  --c-primary-hover: #3a7bc8;
+  --c-primary-active: #2f6bb0;
+  --c-primary-light: #eaf2fc;
+  --c-primary-border: #b9d4f3;
+
+  /* 顶部导航（深蓝） */
+  --c-nav: #1b3a6b;
+  --c-nav-hover: #264c87;
+
+  /* 中性色 */
+  --c-page: #f5f7fa;
+  --c-panel: #ffffff;
+  --c-line: #e4e7ed;
+  --c-line-light: #f0f2f5;
+  --c-fill: #f7f8fa;
+
+  /* 文本 */
+  --c-text: #1f2329;
+  --c-text-regular: #4e5969;
+  --c-text-secondary: #86909c;
+  --c-text-placeholder: #c0c4cc;
+
+  /* 语义色 */
+  --c-danger: #f56c6c;
+  --c-success: #52c41a;
+
+  /* 字号档 */
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+
+  /* 间距 */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-2xl: 32px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* 阴影 */
+  --shadow-card: 0 1px 3px rgba(31, 35, 41, 0.06);
+  --shadow-float: 0 6px 24px rgba(31, 35, 41, 0.12);
+
+  /* 布局尺寸 */
+  --h-nav: 56px;
+  --w-library: 240px;
+  --w-property: 320px;
+  --h-footer: 56px;
+}
+
+/* 全局基础 */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: var(--fs-14);
+  color: var(--c-text);
+  background: var(--c-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d7de;
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b8bcc4;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

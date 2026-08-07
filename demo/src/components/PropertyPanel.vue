@@ -1,0 +1,201 @@
+<script setup>
+import {
+  TYPE_GROUPS,
+  OPTION_TYPES,
+  getTypeLabel,
+  createOption
+} from './ComponentLibrary.vue'
+
+const props = defineProps({
+  question: { type: Object, default: null }
+})
+
+const groups = TYPE_GROUPS
+const hasOptions = computed(
+  () => !!props.question && OPTION_TYPES.includes(props.question.type)
+)
+const typeLabel = computed(() =>
+  props.question ? getTypeLabel(props.question.type) : ''
+)
+const groupName = computed(() => {
+  if (!props.question) return ''
+  const g = TYPE_GROUPS.find((x) =>
+    x.items.some((i) => i.type === props.question.type)
+  )
+  return g ? g.name : ''
+})
+
+// 在属性面板切换题型：切到选项类且尚无选项时补齐默认三项
+watch(
+  () => props.question?.type,
+  (type) => {
+    if (!type || !props.question) return
+    if (OPTION_TYPES.includes(type) && props.question.options.length === 0) {
+      props.question.options = [1, 2, 3].map((i) => createOption(i))
+    }
+  }
+)
+</script>
+
+<template>
+  <aside class="property-panel">
+    <div class="panel-head">
+      <template v-if="question">
+        {{ groupName }} · {{ typeLabel }}
+      </template>
+      <template v-else>属性设置</template>
+    </div>
+
+    <div v-if="!question" class="panel-empty">
+      <p>请先在中间区域选中一道题目</p>
+    </div>
+
+    <el-scrollbar v-else class="panel-body">
+      <el-form label-position="top" class="panel-form">
+        <el-form-item label="题干">
+          <el-input v-model="question.title" placeholder="请输入题目标题" />
+        </el-form-item>
+
+        <el-form-item label="题目说明（选填，填写者可见）">
+          <el-input
+            v-model="question.desc"
+            type="textarea"
+            :rows="3"
+            resize="none"
+            placeholder="请输入题目说明"
+          />
+        </el-form-item>
+
+        <el-form-item label="题型">
+          <el-select v-model="question.type" placeholder="请选择题型" class="w-full">
+            <el-option-group
+              v-for="g in groups"
+              :key="g.name"
+              :label="g.name"
+            >
+              <el-option
+                v-for="item in g.items"
+                :key="item.type"
+                :label="item.label"
+                :value="item.type"
+              />
+            </el-option-group>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item v-if="hasOptions" label="选项排列">
+          <el-radio-group v-model="question.columns" size="small">
+            <el-radio-button value="single">单列</el-radio-button>
+            <el-radio-button value="double">双列</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+
+      <div class="panel-section">
+        <p class="section-title">属性</p>
+        <div class="switch-row">
+          <span class="switch-label">必填</span>
+          <el-switch v-model="question.required" />
+        </div>
+        <div class="switch-row">
+          <span class="switch-label">允许清空</span>
+          <el-switch v-model="question.allowClear" />
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <p class="section-title">查询条件</p>
+        <div class="switch-row">
+          <span class="switch-label">设为查询条件</span>
+          <el-switch v-model="question.asQuery" />
+        </div>
+        <p class="section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
+      </div>
+
+      <div class="panel-section">
+        <p class="section-title">数据列表</p>
+        <div class="switch-row">
+          <span class="switch-label">在列表中显示</span>
+          <el-switch v-model="question.showInList" />
+        </div>
+        <p class="section-tip">关闭后该题目仅在详情页展示</p>
+      </div>
+    </el-scrollbar>
+  </aside>
+</template>
+
+<style scoped>
+.property-panel {
+  width: var(--w-property);
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--c-panel);
+  border-left: 1px solid var(--c-line);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-head {
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-lg);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--c-text);
+  border-bottom: 1px solid var(--c-line-light);
+}
+
+.panel-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-12);
+  color: var(--c-text-placeholder);
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-form {
+  padding: var(--sp-lg) var(--sp-lg) 0;
+}
+
+.panel-section {
+  padding: var(--sp-lg);
+  border-top: 1px solid var(--c-line-light);
+}
+
+.section-title {
+  margin: 0 0 var(--sp-md);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+}
+
+.switch-label {
+  font-size: var(--fs-14);
+  color: var(--c-text-regular);
+}
+
+.section-tip {
+  margin: var(--sp-sm) 0 0;
+  font-size: var(--fs-12);
+  color: var(--c-text-placeholder);
+  line-height: 18px;
+}
+
+.w-full {
+  width: 100%;
+}
+</style>
