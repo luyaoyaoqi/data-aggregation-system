@@ -1,7 +1,10 @@
 <script setup>
 import { Delete, Plus, Setting } from '@element-plus/icons-vue'
+import { reactive } from 'vue'
+import { TYPE_GROUPS } from './ComponentLibrary.vue'
 import CardTabs from './CardTabs.vue'
 import QuestionCard from './QuestionCard.vue'
+import TypeChipGrid from './TypeChipGrid.vue'
 
 defineProps({
   form: { type: Object, required: true },
@@ -16,7 +19,7 @@ const emit = defineEmits([
   'remove-page',
   'add-card',
   'remove-card',
-  'add-question',
+  'pick-type',
   'select-question',
   'remove-question',
   'duplicate-question',
@@ -24,6 +27,16 @@ const emit = defineEmits([
   'reset',
   'preview'
 ])
+
+const groups = TYPE_GROUPS
+
+/** 每个卡片维护自己的 popover 显隐状态 */
+const popoverVisible = reactive({})
+
+function handlePick(cardId, type) {
+  emit('pick-type', { cardId, type })
+  popoverVisible[cardId] = false
+}
 </script>
 
 <template>
@@ -95,14 +108,27 @@ const emit = defineEmits([
                 @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
               />
 
-              <button
-                type="button"
-                class="dashed-btn"
-                @click="emit('add-question', card.id)"
+              <el-popover
+                :model-value="popoverVisible[card.id] || false"
+                @update:model-value="popoverVisible[card.id] = $event"
+                :width="640"
+                placement="bottom-start"
+                trigger="click"
+                :show-arrow="false"
+                popper-class="add-question-popover"
               >
-                <el-icon><Plus /></el-icon>
-                <span>添加题目</span>
-              </button>
+                <template #reference>
+                  <button type="button" class="dashed-btn">
+                    <el-icon><Plus /></el-icon>
+                    <span>添加题目</span>
+                  </button>
+                </template>
+                <p class="popover-tip">选择一个题型，插入到当前卡片末尾</p>
+                <TypeChipGrid
+                  :groups="groups"
+                  @pick="(type) => handlePick(card.id, type)"
+                />
+              </el-popover>
             </div>
           </section>
 
@@ -311,6 +337,19 @@ const emit = defineEmits([
 }
 
 .save-time {
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+}
+</style>
+
+<style>
+/* el-popover portal 到 body，scoped 样式进不去，写到全局 */
+.add-question-popover .el-popover__content {
+  padding: var(--sp-lg);
+}
+
+.add-question-popover .popover-tip {
+  margin: 0 0 var(--sp-lg);
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
 }

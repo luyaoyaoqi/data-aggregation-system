@@ -1,33 +1,34 @@
 <script>
 /**
  * 题型元数据 —— 左侧组件库与底部「添加题目」抽屉共用
+ * icon: 16x16 viewBox，stroke 风格（1.5px），用 currentColor 自适配颜色
  */
 export const TYPE_GROUPS = [
   {
     name: '选择',
     items: [
-      { type: 'radio', label: '单选' },
-      { type: 'checkbox', label: '多选' },
-      { type: 'radio-rate', label: '单选打分' },
-      { type: 'checkbox-rate', label: '多选打分' }
+      { type: 'radio', label: '单选', icon: '<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/>' },
+      { type: 'checkbox', label: '多选', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5 8l2 2 4-4"/>' },
+      { type: 'radio-rate', label: '单选打分', icon: '<circle cx="8" cy="8" r="6"/><path d="M8 4.5l1 2 2.2.3-1.6 1.5.4 2.2L8 9.3l-2 1.2.4-2.2L4.8 6.8 7 6.5z" fill="currentColor" stroke="none"/>' },
+      { type: 'checkbox-rate', label: '多选打分', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M8 5l.9 1.8 2 .3-1.45 1.4.35 2L8 9.7l-1.8 1 .35-2L5.1 7.1l2-.3z" fill="currentColor" stroke="none"/>' }
     ]
   },
   {
     name: '填空',
     items: [
-      { type: 'text', label: '单行文本' },
-      { type: 'textarea', label: '多行文本' },
-      { type: 'number', label: '数字' },
-      { type: 'datetime', label: '日期时间' }
+      { type: 'text', label: '单行文本', icon: '<path d="M2.5 8h11"/>' },
+      { type: 'textarea', label: '多行文本', icon: '<path d="M2.5 5h11M2.5 8h11M2.5 11h7"/>' },
+      { type: 'number', label: '数字', icon: '<path d="M5.5 3l-1.5 10M11.5 3l-1.5 10M3.5 6.5h9M3 9.5h9"/>' },
+      { type: 'datetime', label: '日期时间', icon: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/><circle cx="8" cy="10" r="0.8" fill="currentColor"/>' }
     ]
   },
   {
     name: '采集',
     items: [
-      { type: 'image', label: '图片' },
-      { type: 'tag', label: '标签文本' },
-      { type: 'list', label: '列表' },
-      { type: 'richtext', label: '富文本' }
+      { type: 'image', label: '图片', icon: '<rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1"/><path d="M2.5 11.5l3-3 2.5 2.5 2-2 3.5 3.5"/>' },
+      { type: 'tag', label: '标签文本', icon: '<path d="M5 3.5h6.4a1.2 1.2 0 0 1 .85.35l2.4 2.4a1.2 1.2 0 0 1 0 1.7l-2.4 2.4a1.2 1.2 0 0 1-.85.35H5L2 7l3-3.5z"/><circle cx="4.5" cy="7" r="0.9" fill="currentColor" stroke="none"/>' },
+      { type: 'list', label: '列表', icon: '<circle cx="3.5" cy="4.5" r="0.9" fill="currentColor"/><circle cx="3.5" cy="8" r="0.9" fill="currentColor"/><circle cx="3.5" cy="11.5" r="0.9" fill="currentColor"/><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h5"/>' },
+      { type: 'richtext', label: '富文本', icon: '<path d="M3 13l3-9 3 9M4.5 10h3"/><path d="M11.5 6h2M11.5 9h2M11.5 12h1.5"/>' }
     ]
   }
 ]
@@ -89,7 +90,8 @@ export function createPage(index) {
 </script>
 
 <script setup>
-// 普通 script 中的绑定不会自动暴露给模板，这里显式转发
+import TypeChipGrid from './TypeChipGrid.vue'
+
 const groups = TYPE_GROUPS
 
 defineEmits(['pick'])
@@ -100,20 +102,7 @@ defineEmits(['pick'])
     <div class="lib-head">组件库</div>
 
     <div class="lib-body">
-      <div v-for="group in groups" :key="group.name" class="lib-group">
-        <p class="group-title">{{ group.name }}</p>
-        <div class="chip-grid">
-          <button
-            v-for="item in group.items"
-            :key="item.type"
-            type="button"
-            class="type-chip"
-            @click="$emit('pick', item.type)"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-      </div>
+      <TypeChipGrid :groups="groups" @pick="$emit('pick', $event)" />
     </div>
 
     <p class="lib-tip">点击题型即可插入到当前卡片</p>
@@ -146,48 +135,6 @@ defineEmits(['pick'])
   flex: 1;
   overflow-y: auto;
   padding: var(--sp-lg);
-}
-
-.lib-group + .lib-group {
-  margin-top: var(--sp-xl);
-}
-
-.group-title {
-  margin: 0 0 var(--sp-md);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
-
-.chip-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-sm);
-}
-
-.type-chip {
-  height: 32px;
-  padding: 0 var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-text-regular);
-  background: var(--c-panel);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.type-chip:hover {
-  color: var(--c-primary);
-  border-color: var(--c-primary-border);
-  background: var(--c-primary-light);
-}
-
-.type-chip:active {
-  transform: translateY(1px);
 }
 
 .lib-tip {

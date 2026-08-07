@@ -7,7 +7,6 @@ import ComponentLibrary, {
 } from '../components/ComponentLibrary.vue'
 import EditorArea from '../components/EditorArea.vue'
 import PropertyPanel from '../components/PropertyPanel.vue'
-import AddQuestionDrawer from '../components/AddQuestionDrawer.vue'
 import PreviewDialog from '../components/PreviewDialog.vue'
 
 /* ------------------------------ 表单数据 ------------------------------ */
@@ -23,9 +22,6 @@ const activePageId = ref(form.value.pages[0].id)
 const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id)
 const lastSavedAt = ref('2026-07-22 18:15')
 
-/** 「+ 添加题目」时记录目标卡片，抽屉选完题型后插入到这里 */
-const pendingCardId = ref('')
-const drawerVisible = ref(false)
 const previewVisible = ref(false)
 
 const activePage = computed(
@@ -107,26 +103,17 @@ async function handleRemoveCard(cardId) {
 /** 左侧组件库点击：插入到当前页最后一张卡片 */
 function handlePickFromLibrary(type) {
   if (!activePage.value) return
-  const card =
-    activePage.value.cards.find((c) => c.id === pendingCardId.value) ||
-    activePage.value.cards[activePage.value.cards.length - 1]
+  const card = activePage.value.cards[activePage.value.cards.length - 1]
   insertQuestion(card, type)
 }
 
-/** 中间「+ 添加题目」：记录卡片并拉起抽屉 */
-function handleOpenDrawer(cardId) {
-  pendingCardId.value = cardId
-  drawerVisible.value = true
-}
-
-/** 抽屉里选中题型 */
-function handlePickFromDrawer(type) {
+/** 中间「+ 添加题目」popover 选中题型：插入到指定卡片 */
+function handlePickType({ cardId, type }) {
   if (!activePage.value) return
   const card =
-    activePage.value.cards.find((c) => c.id === pendingCardId.value) ||
+    activePage.value.cards.find((c) => c.id === cardId) ||
     activePage.value.cards[activePage.value.cards.length - 1]
   insertQuestion(card, type)
-  pendingCardId.value = ''
 }
 
 function insertQuestion(card, type) {
@@ -217,7 +204,7 @@ function handlePreview() {
         @remove-page="handleRemovePage"
         @add-card="handleAddCard"
         @remove-card="handleRemoveCard"
-        @add-question="handleOpenDrawer"
+        @pick-type="handlePickType"
         @select-question="handleSelectQuestion"
         @remove-question="handleRemoveQuestion"
         @duplicate-question="handleDuplicateQuestion"
@@ -228,8 +215,6 @@ function handlePreview() {
 
       <PropertyPanel :question="activeQuestion" />
     </div>
-
-    <AddQuestionDrawer v-model="drawerVisible" @pick="handlePickFromDrawer" />
 
     <PreviewDialog v-model="previewVisible" :form="form" :page="activePage" />
   </div>
