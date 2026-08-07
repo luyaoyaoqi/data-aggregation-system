@@ -7,28 +7,28 @@ export const TYPE_GROUPS = [
   {
     name: '选择',
     items: [
-      { type: 'radio', label: '单选', icon: '<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/>' },
-      { type: 'checkbox', label: '多选', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5 8l2 2 4-4"/>' },
-      { type: 'radio-rate', label: '单选打分', icon: '<circle cx="8" cy="8" r="6"/><path d="M8 4.5l1 2 2.2.3-1.6 1.5.4 2.2L8 9.3l-2 1.2.4-2.2L4.8 6.8 7 6.5z" fill="currentColor" stroke="none"/>' },
-      { type: 'checkbox-rate', label: '多选打分', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M8 5l.9 1.8 2 .3-1.45 1.4.35 2L8 9.7l-1.8 1 .35-2L5.1 7.1l2-.3z" fill="currentColor" stroke="none"/>' }
+      { type: 'radio', label: '单选', icon: '<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.4" fill="currentColor" stroke="none"/>' },
+      { type: 'checkbox', label: '多选', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5 8.2l2 2 4-4.4"/>' },
+      { type: 'radio-rate', label: '单选打分', icon: '<circle cx="8" cy="8" r="6"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' },
+      { type: 'checkbox-rate', label: '多选打分', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' }
     ]
   },
   {
     name: '填空',
     items: [
-      { type: 'text', label: '单行文本', icon: '<path d="M2.5 8h11"/>' },
-      { type: 'textarea', label: '多行文本', icon: '<path d="M2.5 5h11M2.5 8h11M2.5 11h7"/>' },
-      { type: 'number', label: '数字', icon: '<path d="M5.5 3l-1.5 10M11.5 3l-1.5 10M3.5 6.5h9M3 9.5h9"/>' },
-      { type: 'datetime', label: '日期时间', icon: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/><circle cx="8" cy="10" r="0.8" fill="currentColor"/>' }
+      { type: 'text', label: '单行文本', icon: '<circle cx="3" cy="8" r="0.7" fill="currentColor" stroke="none"/><path d="M3.5 8h9"/>' },
+      { type: 'textarea', label: '多行文本', icon: '<circle cx="3" cy="5" r="0.6" fill="currentColor" stroke="none"/><path d="M3.5 5h9M3.5 8h9M3.5 11h6"/>' },
+      { type: 'number', label: '数字', icon: '<path d="M6 3v10M10 3v10"/><path d="M3.5 6.5h9M3 9.5h9"/>' },
+      { type: 'datetime', label: '日期时间', icon: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/><circle cx="8" cy="10" r="0.9" fill="currentColor" stroke="none"/>' }
     ]
   },
   {
     name: '采集',
     items: [
-      { type: 'image', label: '图片', icon: '<rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1"/><path d="M2.5 11.5l3-3 2.5 2.5 2-2 3.5 3.5"/>' },
-      { type: 'tag', label: '标签文本', icon: '<path d="M5 3.5h6.4a1.2 1.2 0 0 1 .85.35l2.4 2.4a1.2 1.2 0 0 1 0 1.7l-2.4 2.4a1.2 1.2 0 0 1-.85.35H5L2 7l3-3.5z"/><circle cx="4.5" cy="7" r="0.9" fill="currentColor" stroke="none"/>' },
-      { type: 'list', label: '列表', icon: '<circle cx="3.5" cy="4.5" r="0.9" fill="currentColor"/><circle cx="3.5" cy="8" r="0.9" fill="currentColor"/><circle cx="3.5" cy="11.5" r="0.9" fill="currentColor"/><path d="M6.5 4.5h7M6.5 8h7M6.5 11.5h5"/>' },
-      { type: 'richtext', label: '富文本', icon: '<path d="M3 13l3-9 3 9M4.5 10h3"/><path d="M11.5 6h2M11.5 9h2M11.5 12h1.5"/>' }
+      { type: 'image', label: '图片', icon: '<rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="5.8" cy="6.8" r="0.9" fill="currentColor" stroke="none"/><path d="M2.4 11.4l3-3 2.5 2.5 2-2 3.7 3.5"/>' },
+      { type: 'tag', label: '标签文本', icon: '<path d="M5 3.4h6.3a1.2 1.2 0 0 1 0.85 0.35l2.5 2.5a1.2 1.2 0 0 1 0 1.7l-2.5 2.5a1.2 1.2 0 0 1-.85 0.35H5L2 7z"/><circle cx="4.6" cy="7" r="0.9" fill="currentColor" stroke="none"/>' },
+      { type: 'list', label: '列表', icon: '<circle cx="3.5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="3.5" cy="8" r="0.8" fill="currentColor" stroke="none"/><circle cx="3.5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/><path d="M6 4.5h7M6 8h7M6 11.5h5"/>' },
+      { type: 'richtext', label: '富文本', icon: '<path d="M3.8 12l2.7-7.6 2.7 7.6"/><path d="M4.7 10h3.6"/><path d="M11 6h2.5M11 9h2.5M11 12h1.5"/>' }
     ]
   }
 ]
