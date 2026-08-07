@@ -155,13 +155,13 @@ function removeOption(id) {
 }
 
 .question-card:hover {
-  background: #fafbfc;
+  background: var(--c-fill);
 }
 
 .question-card.is-active {
   border-color: var(--c-primary);
   background: var(--c-panel);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px var(--c-primary-bg);
 }
 
 /* ---------- 题干 ---------- */

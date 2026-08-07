@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>D5 · 工业克制 · Instrument Sans + Satoshi + Indigo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Satoshi:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Design Tokens — D5 · 工业克制
+   与 d3 的差异在 token 替换，不改布局
+   ============================================================ */
+:root{
+  /* Brand */
+  --c-primary:#2563EB;
+  --c-primary-hover:#1D4ED8;
+  --c-primary-active:#1E40AF;
+  --c-primary-bg:#EFF6FF;
+  --c-primary-border:#BFDBFE;
+
+  /* Neutrals — Slate */
+  --c-page:#F8FAFC;
+  --c-panel:#FFFFFF;
+  --c-line:#E2E8F0;
+  --c-line-light:#F1F5F9;
+  --c-fill:#F1F5F9;
+
+  /* Text */
+  --c-text-strong:#0F172A;
+  --c-text:#1E293B;
+  --c-text-regular:#475569;
+  --c-text-secondary:#64748B;
+  --c-text-placeholder:#94A3B8;
+
+  /* Semantic */
+  --c-success:#10B981;
+  --c-warning:#F59E0B;
+  --c-danger:#EF4444;
+  --c-info:#3B82F6;
+
+  /* Nav */
+  --c-nav:#FFFFFF;
+  --c-nav-text:#0F172A;
+
+  /* Spacing — 4px 基准 */
+  --sp-2xs:2px; --sp-xs:4px; --sp-sm:8px; --sp-md:12px;
+  --sp-lg:16px; --sp-xl:24px; --sp-2xl:32px; --sp-3xl:48px;
+
+  /* Radius */
+  --radius-sm:4px;
+  --radius:8px;
+  --radius-lg:12px;
+
+  /* Shadow — 极轻三层 */
+  --shadow-card:0 1px 2px rgba(15,23,42,.04);
+  --shadow-hover:0 2px 6px rgba(15,23,42,.06);
+  --shadow-modal:0 12px 32px rgba(15,23,42,.10);
+
+  /* Type scale */
+  --fs-12:12px; --fs-14:14px; --fs-16:16px; --fs-18:18px;
+  --fs-20:20px; --fs-24:24px; --fs-32:32px;
+
+  /* Fonts */
+  --ff-display:'Instrument Sans', 'Satoshi', -apple-system, sans-serif;
+  --ff-body:'Satoshi', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --ff-mono:'JetBrains Mono', ui-monospace, monospace;
+
+  --ease:cubic-bezier(0.4,0,0.2,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:var(--ff-body);
+  background:var(--c-page);
+  color:var(--c-text);
+  font-size:var(--fs-14);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'ss01','cv11';
+}
+
+/* Display 字体工具 */
+.t-disp{font-family:var(--ff-display);font-weight:600;letter-spacing:-.01em;}
+.t-mono{font-family:var(--ff-mono);font-variant-numeric:tabular-nums;}
+
+/* ============================================================
+   顶部导航
+   ============================================================ */
+.topnav{
+  height:56px;
+  background:var(--c-nav);
+  border-bottom:1px solid var(--c-line);
+  display:flex;
+  align-items:center;
+  padding:0 var(--sp-2xl);
+  flex-shrink:0;
+  gap:var(--sp-2xl);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-sm);
+  font-family:var(--ff-display);
+  font-weight:700;
+  font-size:var(--fs-16);
+  color:var(--c-text-strong);
+  letter-spacing:-.01em;
+}
+.brand-dot{
+  width:8px;
+  height:8px;
+  border-radius:2px;
+  background:var(--c-primary);
+}
+.subnav{display:flex;gap:var(--sp-xs);margin-left:var(--sp-lg);}
+.subnav-item{
+  height:32px;
+  padding:0 var(--sp-lg);
+  display:flex;
+  align-items:center;
+  font-size:var(--fs-14);
+  color:var(--c-text-secondary);
+  background:transparent;
+  border:none;
+  border-radius:var(--radius);
+  cursor:pointer;
+  transition:all .15s var(--ease);
+  font-family:inherit;
+}
+.subnav-item:hover{color:var(--c-text);background:var(--c-fill);}
+.subnav-item.active{
+  color:var(--c-primary);
+  background:var(--c-primary-bg);
+  font-weight:500;
+}
+.user{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:var(--sp-sm);
+  font-size:var(--fs-14);
+}
+.avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--c-primary);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--ff-display);
+  font-weight:600;
+  font-size:var(--fs-14);
+}
+
+/* ============================================================
+   Main 三栏（视口内，固定高度，独立滚动）
+   ============================================================ */
+.main{
+  display:flex;
+  height:calc(100vh - 56px);
+  overflow:hidden;
+}
+
+/* ---------- Left · 控件库 ---------- */
+.left{
+  width:240px;
+  background:var(--c-panel);
+  border-right:1px solid var(--c-line);
+  padding:var(--sp-lg);
+  overflow-y:auto;
+  flex-shrink:0;
+}
+.left-group{margin-bottom:var(--sp-xl);}
+.left-title{
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+  font-weight:500;
+  margin-bottom:var(--sp-sm);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-family:var(--ff-display);
+}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-sm);}
+.chip{
+  height:36px;
+  border:1px solid var(--c-line);
+  background:var(--c-panel);
+  border-radius:var(--radius);
+  font-size:var(--fs-12);
+  color:var(--c-text-regular);
+  cursor:pointer;
+  transition:all .15s var(--ease);
+  font-family:inherit;
+  font-weight:500;
+}
+.chip:hover{
+  border-color:var(--c-primary);
+  color:var(--c-primary);
+  background:var(--c-primary-bg);
+}
+
+/* ---------- Center · 画布 ---------- */
+.center{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:var(--c-page);
+  overflow:hidden;
+  min-width:0;
+}
+.center-body{
+  flex:1;
+  padding:var(--sp-2xl) var(--sp-xl);
+  overflow-y:auto;
+  max-width:880px;
+  margin:0 auto;
+  width:100%;
+}
+.tabs{
+  display:flex;
+  gap:var(--sp-xs);
+  margin-bottom:var(--sp-lg);
+  align-items:center;
+  border-bottom:1px solid var(--c-line);
+  padding-bottom:0;
+}
+.tab{
+  height:36px;
+  padding:0 var(--sp-lg);
+  border:none;
+  background:transparent;
+  font-size:var(--fs-14);
+  color:var(--c-text-regular);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  font-family:inherit;
+  transition:all .15s var(--ease);
+}
+.tab.active{
+  color:var(--c-text-strong);
+  border-bottom-color:var(--c-primary);
+  font-weight:500;
+}
+.tab-add{
+  height:32px;
+  width:32px;
+  border:none;
+  background:transparent;
+  color:var(--c-text-secondary);
+  cursor:pointer;
+  font-size:var(--fs-20);
+  border-radius:var(--radius);
+  font-family:inherit;
+  line-height:1;
+}
+.tab-add:hover{background:var(--c-fill);color:var(--c-text);}
+
+.form-title{
+  display:block;
+  width:100%;
+  padding:var(--sp-sm) 0;
+  border:none;
+  background:transparent;
+  font-family:var(--ff-display);
+  font-size:var(--fs-24);
+  font-weight:600;
+  color:var(--c-text-strong);
+  margin-bottom:var(--sp-xl);
+  border-bottom:1px solid var(--c-line);
+  letter-spacing:-.015em;
+}
+.form-title:focus{outline:none;border-bottom-color:var(--c-primary);}
+
+.page-theme{
+  width:100%;
+  padding:var(--sp-sm) 0;
+  border:none;
+  background:transparent;
+  font-family:var(--ff-display);
+  font-size:var(--fs-16);
+  font-weight:500;
+  color:var(--c-text);
+  margin-bottom:var(--sp-lg);
+  text-align:center;
+}
+.page-theme:focus{outline:none;color:var(--c-primary);}
+
+/* 题目卡片 */
+.card{
+  background:var(--c-panel);
+  border:1px solid var(--c-line);
+  border-radius:var(--radius);
+  padding:var(--sp-lg);
+  margin-bottom:var(--sp-md);
+  transition:all .15s var(--ease);
+}
+.card:hover{border-color:var(--c-line);box-shadow:var(--shadow-hover);}
+.card.active{
+  border-color:var(--c-primary);
+  box-shadow:0 0 0 3px var(--c-primary-bg);
+}
+.card-head{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-sm);
+  margin-bottom:var(--sp-md);
+}
+.card-num{
+  color:var(--c-text-secondary);
+  font-family:var(--ff-display);
+  font-weight:500;
+  font-size:var(--fs-14);
+  font-variant-numeric:tabular-nums;
+}
+.card-title{
+  flex:1;
+  height:32px;
+  padding:0 var(--sp-sm);
+  border:none;
+  background:transparent;
+  font-family:inherit;
+  font-size:var(--fs-16);
+  font-weight:500;
+  color:var(--c-text-strong);
+  border-radius:var(--radius-sm);
+}
+.card-title:hover{background:var(--c-fill);}
+.card-title:focus{outline:none;background:var(--c-primary-bg);color:var(--c-primary);}
+.required{color:var(--c-danger);font-size:var(--fs-16);font-weight:600;}
+
+.type-tag{
+  font-family:var(--ff-display);
+  font-size:11px;
+  font-weight:500;
+  padding:2px var(--sp-sm);
+  background:var(--c-fill);
+  color:var(--c-text-secondary);
+  border-radius:var(--radius-sm);
+  letter-spacing:.03em;
+}
+
+.card-options{display:flex;flex-direction:column;gap:var(--sp-sm);padding:var(--sp-sm) 0;}
+.opt{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-sm);
+  font-size:var(--fs-14);
+  color:var(--c-text-regular);
+  cursor:pointer;
+  padding:var(--sp-xs) 0;
+}
+.opt input{accent-color:var(--c-primary);width:14px;height:14px;}
+
+.card-tools{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-lg);
+  padding-top:var(--sp-sm);
+  margin-top:var(--sp-sm);
+  border-top:1px dashed var(--c-line-light);
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+}
+.tool-check{display:flex;align-items:center;gap:var(--sp-xs);cursor:pointer;}
+.tool-check input{accent-color:var(--c-primary);}
+.tool-btn{
+  padding:var(--sp-xs) var(--sp-sm);
+  background:transparent;
+  border:none;
+  color:var(--c-text-secondary);
+  cursor:pointer;
+  border-radius:var(--radius-sm);
+  font-family:inherit;
+  font-size:var(--fs-12);
+  transition:all .15s var(--ease);
+}
+.tool-btn:hover{color:var(--c-text);background:var(--c-fill);}
+.tool-btn.tool-danger:hover{color:var(--c-danger);background:#FEF2F2;}
+
+/* 填空 / 文本预览 */
+.text-preview{
+  width:100%;
+  height:36px;
+  padding:0 var(--sp-md);
+  border:1px solid var(--c-line);
+  border-radius:var(--radius);
+  background:var(--c-page);
+  font-size:var(--fs-14);
+  color:var(--c-text-placeholder);
+  display:flex;
+  align-items:center;
+  font-family:inherit;
+}
+.textarea-preview{
+  width:100%;
+  min-height:80px;
+  padding:var(--sp-sm) var(--sp-md);
+  border:1px solid var(--c-line);
+  border-radius:var(--radius);
+  background:var(--c-page);
+  font-size:var(--fs-14);
+  color:var(--c-text-placeholder);
+  font-family:inherit;
+}
+
+/* 添加按钮 */
+.add-q,
+.add-card{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:44px;
+  border:1px dashed var(--c-line);
+  background:transparent;
+  border-radius:var(--radius);
+  color:var(--c-text-secondary);
+  font-size:var(--fs-14);
+  font-family:inherit;
+  cursor:pointer;
+  margin-bottom:var(--sp-sm);
+  transition:all .15s var(--ease);
+  font-weight:500;
+}
+.add-q:hover,
+.add-card:hover{
+  border-color:var(--c-primary);
+  color:var(--c-primary);
+  background:var(--c-primary-bg);
+}
+.add-card{margin-top:var(--sp-xs);}
+
+/* 底部条 */
+.center-foot{
+  height:56px;
+  background:var(--c-panel);
+  border-top:1px solid var(--c-line);
+  display:flex;
+  align-items:center;
+  padding:0 var(--sp-xl);
+  flex-shrink:0;
+  gap:var(--sp-md);
+}
+.save-hint{
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+  font-family:var(--ff-mono);
+}
+.actions{margin-left:auto;display:flex;gap:var(--sp-sm);align-items:center;}
+
+/* 按钮 */
+.btn{
+  height:36px;
+  padding:0 var(--sp-lg);
+  border-radius:var(--radius);
+  font-size:var(--fs-14);
+  font-family:inherit;
+  font-weight:500;
+  cursor:pointer;
+  border:1px solid transparent;
+  display:inline-flex;
+  align-items:center;
+  gap:var(--sp-xs);
+  transition:all .15s var(--ease);
+}
+.btn-ghost{background:transparent;color:var(--c-text-secondary);}
+.btn-ghost:hover{color:var(--c-text);background:var(--c-fill);}
+.btn-secondary{background:var(--c-panel);color:var(--c-text-regular);border-color:var(--c-line);}
+.btn-secondary:hover{color:var(--c-primary);border-color:var(--c-primary);background:var(--c-primary-bg);}
+.btn-primary{background:var(--c-primary);color:#fff;border-color:var(--c-primary);}
+.btn-primary:hover{background:var(--c-primary-hover);border-color:var(--c-primary-hover);}
+.btn-icon{
+  width:36px;
+  height:36px;
+  padding:0;
+  border-radius:var(--radius);
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--c-text-secondary);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-family:inherit;
+}
+.btn-icon:hover{background:var(--c-fill);color:var(--c-text);}
+
+/* ---------- Right · 属性面板 ---------- */
+.right{
+  width:320px;
+  background:var(--c-panel);
+  border-left:1px solid var(--c-line);
+  padding:var(--sp-lg);
+  overflow-y:auto;
+  flex-shrink:0;
+}
+.panel-title{
+  font-family:var(--ff-display);
+  font-size:var(--fs-14);
+  font-weight:600;
+  color:var(--c-text-strong);
+  margin-bottom:var(--sp-lg);
+  padding-bottom:var(--sp-sm);
+  border-bottom:1px solid var(--c-line);
+  letter-spacing:-.01em;
+}
+.panel-row{margin-bottom:var(--sp-md);}
+.panel-row>label{
+  display:block;
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+  margin-bottom:var(--sp-xs);
+  font-weight:500;
+}
+.panel-input,
+.panel-select,
+.panel-textarea{
+  width:100%;
+  padding:var(--sp-sm) 0;
+  border:none;
+  background:transparent;
+  font-size:var(--fs-14);
+  color:var(--c-text);
+  border-bottom:1px solid var(--c-line);
+  font-family:inherit;
+  border-radius:0;
+}
+.panel-textarea{resize:vertical;min-height:64px;}
+.panel-input:focus,
+.panel-select:focus,
+.panel-textarea:focus{outline:none;border-bottom-color:var(--c-primary);}
+
+.seg{
+  display:flex;
+  background:var(--c-fill);
+  border-radius:var(--radius);
+  padding:3px;
+  gap:2px;
+}
+.seg-item{
+  flex:1;
+  height:30px;
+  background:transparent;
+  border:none;
+  font-size:var(--fs-12);
+  color:var(--c-text-regular);
+  cursor:pointer;
+  border-radius:6px;
+  font-family:inherit;
+  font-weight:500;
+  transition:all .15s var(--ease);
+}
+.seg-item.active{
+  background:var(--c-panel);
+  color:var(--c-text-strong);
+  box-shadow:var(--shadow-card);
+}
+
+.switch{
+  width:36px;
+  height:20px;
+  background:var(--c-line);
+  border-radius:10px;
+  position:relative;
+  cursor:pointer;
+  transition:background .15s var(--ease);
+}
+.switch::after{
+  content:'';
+  position:absolute;
+  top:2px;
+  left:2px;
+  width:16px;
+  height:16px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s var(--ease);
+  box-shadow:0 1px 2px rgba(0,0,0,.1);
+}
+.switch.on{background:var(--c-primary);}
+.switch.on::after{left:18px;}
+
+.panel-section{
+  margin-top:var(--sp-xl);
+  padding-top:var(--sp-lg);
+  border-top:1px solid var(--c-line);
+}
+.panel-section-title{
+  font-family:var(--ff-display);
+  font-size:var(--fs-12);
+  font-weight:600;
+  color:var(--c-text-secondary);
+  margin-bottom:var(--sp-md);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.check{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-sm);
+  font-size:var(--fs-14);
+  color:var(--c-text-regular);
+  padding:var(--sp-xs) 0;
+  cursor:pointer;
+}
+.check input{accent-color:var(--c-primary);}
+
+/* ============================================================
+   设计系统展示区（预览页底部）
+   ============================================================ */
+.specimen{
+  padding:var(--sp-3xl) var(--sp-2xl);
+  background:var(--c-page);
+  border-top:1px solid var(--c-line);
+}
+.specimen-inner{
+  max-width:1080px;
+  margin:0 auto;
+}
+.specimen-title{
+  font-family:var(--ff-display);
+  font-size:var(--fs-32);
+  font-weight:600;
+  color:var(--c-text-strong);
+  letter-spacing:-.02em;
+  margin-bottom:var(--sp-sm);
+}
+.specimen-sub{
+  font-size:var(--fs-16);
+  color:var(--c-text-secondary);
+  margin-bottom:var(--sp-2xl);
+}
+
+/* 字体 specimen */
+.font-row{
+  display:grid;
+  grid-template-columns:140px 1fr;
+  gap:var(--sp-xl);
+  padding:var(--sp-lg) 0;
+  border-bottom:1px solid var(--c-line-light);
+  align-items:baseline;
+}
+.font-meta{
+  font-family:var(--ff-mono);
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.font-sample{
+  font-size:var(--fs-24);
+  color:var(--c-text-strong);
+  line-height:1.3;
+}
+.font-sample.is-display{font-family:var(--ff-display);font-weight:600;letter-spacing:-.015em;}
+.font-sample.is-body{font-family:var(--ff-body);font-size:var(--fs-16);font-weight:400;color:var(--c-text-regular);}
+.font-sample.is-mono{font-family:var(--ff-mono);font-size:var(--fs-16);font-variant-numeric:tabular-nums;}
+
+/* 颜色 specimen */
+.swatch-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:var(--sp-md);
+  margin-bottom:var(--sp-2xl);
+}
+.swatch{
+  border:1px solid var(--c-line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:var(--c-panel);
+}
+.swatch-color{height:80px;}
+.swatch-meta{padding:var(--sp-sm);font-family:var(--ff-mono);font-size:var(--fs-12);}
+.swatch-name{color:var(--c-text-strong);font-weight:500;margin-bottom:2px;font-family:var(--ff-display);font-size:var(--fs-12);text-transform:uppercase;letter-spacing:.04em;}
+.swatch-hex{color:var(--c-text-secondary);}
+
+/* 组件 specimen */
+.comp-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:var(--sp-lg);
+  margin-bottom:var(--sp-2xl);
+}
+.comp-card{
+  background:var(--c-panel);
+  border:1px solid var(--c-line);
+  border-radius:var(--radius);
+  padding:var(--sp-lg);
+}
+.comp-title{
+  font-family:var(--ff-display);
+  font-size:var(--fs-12);
+  font-weight:600;
+  color:var(--c-text-secondary);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  margin-bottom:var(--sp-md);
+}
+.comp-demo{display:flex;flex-wrap:wrap;gap:var(--sp-sm);align-items:center;}
+
+/* 标签 / 提示 */
+.tag{
+  display:inline-flex;
+  align-items:center;
+  height:24px;
+  padding:0 var(--sp-sm);
+  border-radius:var(--radius-sm);
+  font-size:var(--fs-12);
+  font-weight:500;
+  font-family:inherit;
+}
+.tag-primary{background:var(--c-primary-bg);color:var(--c-primary);}
+.tag-success{background:#ECFDF5;color:var(--c-success);}
+.tag-warning{background:#FFFBEB;color:var(--c-warning);}
+.tag-danger{background:#FEF2F2;color:var(--c-danger);}
+.tag-neutral{background:var(--c-fill);color:var(--c-text-regular);}
+
+/* 数字 / 统计 */
+.stat{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-xs);
+}
+.stat-value{
+  font-family:var(--ff-mono);
+  font-variant-numeric:tabular-nums;
+  font-size:var(--fs-32);
+  font-weight:500;
+  color:var(--c-text-strong);
+  letter-spacing:-.02em;
+}
+.stat-label{
+  font-size:var(--fs-12);
+  color:var(--c-text-secondary);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-family:var(--ff-display);
+  font-weight:500;
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 顶部导航 ============ -->
+<header class="topnav">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span>采集通</span>
+  </div>
+  <nav class="subnav">
+    <button class="subnav-item active">表单设置</button>
+    <button class="subnav-item">应用端数据</button>
+  </nav>
+  <div class="user">
+    <div class="avatar">张</div>
+    <span>张三</span>
+  </div>
+</header>
+
+<!-- ============ Main 三栏 ============ -->
+<div class="main">
+
+  <!-- 左侧 · 控件库 -->
+  <aside class="left">
+    <div class="left-group">
+      <div class="left-title">选择</div>
+      <div class="chips">
+        <button class="chip">单选</button>
+        <button class="chip">多选</button>
+        <button class="chip">单选打分</button>
+        <button class="chip">多选打分</button>
+      </div>
+    </div>
+    <div class="left-group">
+      <div class="left-title">填空</div>
+      <div class="chips">
+        <button class="chip">单行文本</button>
+        <button class="chip">多行文本</button>
+        <button class="chip">数字</button>
+        <button class="chip">日期时间</button>
+      </div>
+    </div>
+    <div class="left-group">
+      <div class="left-title">采集</div>
+      <div class="chips">
+        <button class="chip">图片</button>
+        <button class="chip">标签文本</button>
+        <button class="chip">列表</button>
+        <button class="chip">富文本</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 中间 · 画布 -->
+  <main class="center">
+    <div class="center-body">
+      <div class="tabs">
+        <button class="tab active">第 1 页</button>
+        <button class="tab">第 2 页</button>
+        <button class="tab-add">+</button>
+      </div>
+
+      <input class="form-title" value="客户满意度调研问卷" />
+
+      <input class="page-theme" value="关于您本次的咨询体验" />
+
+      <!-- 卡片 1 · 单选 -->
+      <section class="card active">
+        <div class="card-head">
+          <span class="card-num">1.</span>
+          <input class="card-title" value="请问您对本次服务总体满意程度" />
+          <span class="required">*</span>
+          <span class="type-tag">单选</span>
+        </div>
+        <div class="card-options">
+          <label class="opt"><input type="radio" name="q1"><span>非常满意</span></label>
+          <label class="opt"><input type="radio" name="q1" checked><span>满意</span></label>
+          <label class="opt"><input type="radio" name="q1"><span>一般</span></label>
+          <label class="opt"><input type="radio" name="q1"><span>不满意</span></label>
+        </div>
+        <div class="card-tools">
+          <label class="tool-check"><input type="checkbox" checked>必填</label>
+          <button class="tool-btn">复制</button>
+          <button class="tool-btn">移动</button>
+          <button class="tool-btn tool-danger">删除</button>
+        </div>
+      </section>
+
+      <!-- 卡片 2 · 填空 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="card-num">2.</span>
+          <input class="card-title" value="请提供您的联系方式" />
+          <span class="required">*</span>
+          <span class="type-tag">单行文本</span>
+        </div>
+        <div class="card-options">
+          <div class="text-preview">请输入内容</div>
+        </div>
+        <div class="card-tools">
+          <label class="tool-check"><input type="checkbox" checked>必填</label>
+          <button class="tool-btn">复制</button>
+          <button class="tool-btn">移动</button>
+          <button class="tool-btn tool-danger">删除</button>
+        </div>
+      </section>
+
+      <!-- 卡片 3 · 多选 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="card-num">3.</span>
+          <input class="card-title" value="您通过哪些渠道了解过我们（多选）" />
+          <span class="type-tag">多选</span>
+        </div>
+        <div class="card-options">
+          <label class="opt"><input type="checkbox" checked><span>朋友推荐</span></label>
+          <label class="opt"><input type="checkbox"><span>搜索引擎</span></label>
+          <label class="opt"><input type="checkbox"><span>社交媒体</span></label>
+          <label class="opt"><input type="checkbox"><span>线下活动</span></label>
+        </div>
+        <div class="card-tools">
+          <label class="tool-check"><input type="checkbox">必填</label>
+          <button class="tool-btn">复制</button>
+          <button class="tool-btn">移动</button>
+          <button class="tool-btn tool-danger">删除</button>
+        </div>
+      </section>
+
+      <button class="add-q">+ 添加题目</button>
+      <button class="add-card">+ 添加卡片</button>
+    </div>
+
+    <!-- 底部条 -->
+    <footer class="center-foot">
+      <span class="save-hint">最近保存：2026-08-07 16:42</span>
+      <div class="actions">
+        <button class="btn btn-ghost">重置</button>
+        <button class="btn btn-secondary">预览</button>
+        <button class="btn btn-primary">保存</button>
+      </div>
+    </footer>
+  </main>
+
+  <!-- 右侧 · 属性面板 -->
+  <aside class="right">
+    <div class="panel-title">基础 · 单选</div>
+
+    <div class="panel-row">
+      <label>题干</label>
+      <input class="panel-input" value="请问您对本次服务总体满意程度" />
+    </div>
+    <div class="panel-row">
+      <label>题目说明</label>
+      <textarea class="panel-textarea" placeholder="选填，补充说明"></textarea>
+    </div>
+    <div class="panel-row">
+      <label>题型</label>
+      <select class="panel-select">
+        <option>单选</option>
+        <option>多选</option>
+      </select>
+    </div>
+    <div class="panel-row">
+      <label>选项排列</label>
+      <div class="seg">
+        <button class="seg-item active">单列</button>
+        <button class="seg-item">双列</button>
+      </div>
+    </div>
+    <div class="panel-row">
+      <label>必填</label>
+      <div class="switch on"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">数据源</div>
+      <label class="check"><input type="checkbox">允许清空</label>
+      <label class="check"><input type="checkbox" checked>设为查询条件</label>
+      <label class="check"><input type="checkbox" checked>在列表中显示</label>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">校验</div>
+      <label class="check"><input type="checkbox">启用字数限制</label>
+      <label class="check"><input type="checkbox">启用格式校验</label>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ============ 设计系统展示 ============ -->
+<section class="specimen">
+  <div class="specimen-inner">
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--sp-2xl);gap:var(--sp-lg);flex-wrap:wrap;">
+      <div class="t-disp">
+        <div class="specimen-title">Design System</div>
+        <div class="specimen-sub">采集通 · 工业克制 · 5 分钟搭出专业表单 · 向上滚动查看编辑器主界面</div>
+      </div>
+      <a href="#top" style="font-size:var(--fs-12);color:var(--c-primary);text-decoration:none;font-weight:500;padding:var(--sp-sm) var(--sp-md);border:1px solid var(--c-primary-border);border-radius:var(--radius);background:var(--c-panel);">↑ 回到编辑器</a>
+    </div>
+
+    <!-- 字体 specimen -->
+    <div class="font-row">
+      <div class="font-meta">Display<br>Instrument Sans</div>
+      <div class="font-sample is-display">表单标题 · 24/600</div>
+    </div>
+    <div class="font-row">
+      <div class="font-meta">Body<br>Satoshi</div>
+      <div class="font-sample is-body">正文 · 14/400 · 客户满意度调研问卷，请如实填写。本表单匿名收集，仅用于服务改进。</div>
+    </div>
+    <div class="font-row">
+      <div class="font-meta">Mono<br>JetBrains Mono</div>
+      <div class="font-sample is-mono">2026-08-07 16:42 · 1,287 份 · 78.5% 完成率</div>
+    </div>
+
+    <!-- 颜色 specimen -->
+    <div style="margin-top:var(--sp-2xl);margin-bottom:var(--sp-md);">
+      <div class="left-title">Brand</div>
+    </div>
+    <div class="swatch-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#2563EB;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Primary</div><div class="swatch-hex">#2563EB</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1D4ED8;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Hover</div><div class="swatch-hex">#1D4ED8</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1E40AF;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Active</div><div class="swatch-hex">#1E40AF</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EFF6FF;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Bg</div><div class="swatch-hex">#EFF6FF</div></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:var(--sp-md);">
+      <div class="left-title">Neutrals</div>
+    </div>
+    <div class="swatch-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0F172A;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Text</div><div class="swatch-hex">#0F172A</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#475569;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Regular</div><div class="swatch-hex">#475569</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#64748B;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Secondary</div><div class="swatch-hex">#64748B</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#94A3B8;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Placeholder</div><div class="swatch-hex">#94A3B8</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E2E8F0;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Border</div><div class="swatch-hex">#E2E8F0</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F1F5F9;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Light</div><div class="swatch-hex">#F1F5F9</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F8FAFC;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Page</div><div class="swatch-hex">#F8FAFC</div></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:var(--sp-md);">
+      <div class="left-title">Semantic</div>
+    </div>
+    <div class="swatch-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#10B981;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Success</div><div class="swatch-hex">#10B981</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F59E0B;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Warning</div><div class="swatch-hex">#F59E0B</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EF4444;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Danger</div><div class="swatch-hex">#EF4444</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3B82F6;"></div>
+        <div class="swatch-meta"><div class="swatch-name">Info</div><div class="swatch-hex">#3B82F6</div></div>
+      </div>
+    </div>
+
+    <!-- 组件 specimen -->
+    <div style="margin-top:var(--sp-2xl);margin-bottom:var(--sp-md);">
+      <div class="left-title">Buttons</div>
+    </div>
+    <div class="comp-grid">
+      <div class="comp-card">
+        <div class="comp-title">Solid</div>
+        <div class="comp-demo">
+          <button class="btn btn-primary">保存</button>
+          <button class="btn btn-secondary">预览</button>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-title">Ghost</div>
+        <div class="comp-demo">
+          <button class="btn btn-ghost">重置</button>
+          <button class="btn-icon">⚙</button>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-title">Tags</div>
+        <div class="comp-demo">
+          <span class="tag tag-primary">已发布</span>
+          <span class="tag tag-success">已收集 1,287</span>
+          <span class="tag tag-warning">待审核</span>
+          <span class="tag tag-danger">已停止</span>
+          <span class="tag tag-neutral">草稿</span>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-title">Stats · mono</div>
+        <div class="comp-demo" style="gap:var(--sp-xl);">
+          <div class="stat">
+            <div class="stat-value">1,287</div>
+            <div class="stat-label">Collected</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">78.5%</div>
+            <div class="stat-label">Done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>

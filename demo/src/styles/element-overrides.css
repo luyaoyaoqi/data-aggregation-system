@@ -1,6 +1,7 @@
 /* ==========================================================================
    Element Plus 主题覆盖
-   1) 主色改为 #4A90E2   2) 圆角由 4px 统一改为 8px
+   详见 ../../../DESIGN.md
+   1) 主色 #2563EB  2) 字体 Satoshi/Instrument Sans  3) 圆角 8px
    ========================================================================== */
 :root {
   /* ---------- 主色（联动 tokens.css，改 --c-primary 自动全变） ---------- */
@@ -9,7 +10,7 @@
   --el-color-primary-light-5: color-mix(in srgb, var(--c-primary) 80%, white);
   --el-color-primary-light-7: color-mix(in srgb, var(--c-primary) 90%, white);
   --el-color-primary-light-8: color-mix(in srgb, var(--c-primary) 95%, white);
-  --el-color-primary-light-9: var(--c-primary-light);
+  --el-color-primary-light-9: var(--c-primary-bg);
   --el-color-primary-dark-2: var(--c-primary-hover);
 
   /* ---------- 圆角 ---------- */
@@ -17,18 +18,20 @@
   --el-border-radius-small: 6px;
   --el-border-radius-round: 999px;
 
-  /* ---------- 字体 ---------- */
-  --el-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC',
-    'Microsoft YaHei', sans-serif;
+  /* ---------- 字体（Satoshi 正文 + Instrument Sans 标题） ---------- */
+  --el-font-family: var(--ff-body);
   --el-font-size-base: 14px;
 
-  /* ---------- 文本色 ---------- */
-  --el-text-color-primary: #1f2329;
-  --el-text-color-regular: #4e5969;
-  --el-text-color-secondary: #86909c;
-  --el-text-color-placeholder: #c0c4cc;
-  --el-border-color: #e4e7ed;
-  --el-border-color-lighter: #f0f2f5;
+  /* ---------- 文本色（联动 tokens.css Slate） ---------- */
+  --el-text-color-primary: var(--c-text-strong);
+  --el-text-color-regular: var(--c-text-regular);
+  --el-text-color-secondary: var(--c-text-secondary);
+  --el-text-color-placeholder: var(--c-text-placeholder);
+  --el-border-color: var(--c-line);
+  --el-border-color-lighter: var(--c-line-light);
+  --el-fill-color-blank: var(--c-panel);
+  --el-fill-color-light: var(--c-fill);
+  --el-fill-color: var(--c-line-light);
 }
 
 /* 输入框 / 选择器 / 文本域 */
@@ -62,6 +65,7 @@
   color: var(--c-text);
   font-size: var(--fs-16);
   font-weight: 600;
+  font-family: var(--ff-display);
 }
 .el-drawer__body {
   padding: var(--sp-xl);

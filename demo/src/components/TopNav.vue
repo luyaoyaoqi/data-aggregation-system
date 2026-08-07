@@ -13,7 +13,7 @@ const active = ref('form')
     <div class="nav-left">
       <button type="button" class="back-btn">
         <el-icon><ArrowLeft /></el-icon>
-        <span>表单中台</span>
+        <span>采集通</span>
       </button>
 
       <nav class="nav-menu">
@@ -42,11 +42,12 @@ const active = ref('form')
   height: var(--h-nav);
   flex-shrink: 0;
   background: var(--c-nav);
-  color: #fff;
+  color: var(--c-nav-text);
+  border-bottom: 1px solid var(--c-line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--sp-xl);
+  padding: 0 var(--sp-2xl);
 }
 
 .nav-left {
@@ -60,16 +61,17 @@ const active = ref('form')
   align-items: center;
   gap: var(--sp-xs);
   height: 32px;
-  padding: 0 var(--sp-sm) 0 var(--sp-xs);
-  font-family: inherit;
+  padding: 0 var(--sp-sm);
+  font-family: var(--ff-display);
   font-size: var(--fs-16);
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: var(--c-nav-text);
   background: transparent;
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.15s ease;
+  letter-spacing: -0.01em;
+  transition: background 0.15s var(--ease);
 }
 
 .back-btn:hover {
@@ -79,7 +81,7 @@ const active = ref('form')
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: var(--sp-sm);
+  gap: var(--sp-xs);
 }
 
 .nav-item {
@@ -87,22 +89,23 @@ const active = ref('form')
   padding: 0 var(--sp-lg);
   font-family: inherit;
   font-size: var(--fs-14);
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--c-text-secondary);
   background: transparent;
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s var(--ease);
 }
 
 .nav-item:hover {
-  color: #fff;
+  color: var(--c-text-strong);
   background: var(--c-nav-hover);
 }
 
 .nav-item.is-active {
-  color: #fff;
-  background: var(--c-primary);
+  color: var(--c-primary);
+  background: var(--c-primary-bg);
+  font-weight: 500;
 }
 
 .nav-right {
@@ -112,12 +115,16 @@ const active = ref('form')
 }
 
 .nav-avatar {
-  background: var(--c-primary);
+  background: var(--c-primary) !important;
+  color: #fff;
+  font-family: var(--ff-display);
+  font-weight: 600;
   font-size: var(--fs-12);
 }
 
 .nav-user {
   font-size: var(--fs-14);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--c-text-strong);
+  font-weight: 500;
 }
 </style>
