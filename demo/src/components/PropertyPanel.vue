@@ -14,6 +14,18 @@ const groups = TYPE_GROUPS
 const hasOptions = computed(
   () => !!props.question && OPTION_TYPES.includes(props.question.type)
 )
+const isMultiSelect = computed(
+  () =>
+    !!props.question &&
+    (props.question.type === 'checkbox' ||
+      props.question.type === 'checkbox-rate')
+)
+/** 仅多选题 + 必填 时展示 最少/最多选择数 */
+const showSelectLimit = computed(
+  () => isMultiSelect.value && !!props.question?.required
+)
+/** 选项总数，用于限定输入框 max */
+const optionCount = computed(() => props.question?.options?.length ?? 0)
 const typeLabel = computed(() =>
   props.question ? getTypeLabel(props.question.type) : ''
 )
@@ -84,6 +96,32 @@ watch(
           <span class="switch-label">允许清空</span>
           <el-switch v-model="question.allowClear" />
         </div>
+        <el-form
+          v-if="showSelectLimit"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="最少选择数">
+            <el-input-number
+              v-model="question.minSelect"
+              :min="1"
+              :max="optionCount"
+              placeholder="留空不限"
+              class="w-full"
+              controls-position="right"
+            />
+          </el-form-item>
+          <el-form-item label="最多选择数">
+            <el-input-number
+              v-model="question.maxSelect"
+              :min="1"
+              :max="optionCount"
+              placeholder="留空不限"
+              class="w-full"
+              controls-position="right"
+            />
+          </el-form-item>
+        </el-form>
       </div>
 
       <div class="panel-section">

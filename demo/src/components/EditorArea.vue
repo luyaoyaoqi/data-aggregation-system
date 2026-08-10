@@ -336,12 +336,12 @@ function handlePick(cardId, type) {
 .footer-right {
   display: flex;
   align-items: center;
-  gap: var(--sp-md);
 }
 
 .save-time {
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
+  margin-right: var(--sp-md);
 }
 </style>
 

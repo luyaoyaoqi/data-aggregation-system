@@ -60,6 +60,8 @@ export function createQuestion(type) {
     showInList: true, // 在数据列表中显示
     defaultOption: false, // 设为默认选项
     linkField: false, // 选项关联字段
+    minSelect: null, // 最少选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
+    maxSelect: null, // 最多选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
     options: []
   }
   if (OPTION_TYPES.includes(type)) {
@@ -113,7 +115,7 @@ defineEmits(['pick'])
       <TypeChipGrid :groups="groups" @pick="$emit('pick', $event)" />
     </div>
 
-    <p class="lib-tip">点击题型即可插入到当前卡片</p>
+    <!-- <p class="lib-tip">点击题型即可插入到当前卡片</p> -->
   </aside>
 </template>
 

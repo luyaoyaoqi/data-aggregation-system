@@ -204,6 +204,29 @@ function handleSave() {
     ElMessage.error('标题超过长度限制，请检查')
     return
   }
+  // 多选题 必填时：最少/最多选择数 不能超过当前选项总数
+  const bad = []
+  for (const page of form.value.pages) {
+    for (const card of page.cards) {
+      for (const q of card.questions) {
+        if (!q.required) continue
+        const len = q.options?.length ?? 0
+        const { minSelect, maxSelect } = q
+        if (
+          (minSelect != null && minSelect > len) ||
+          (maxSelect != null && maxSelect > len)
+        ) {
+          bad.push(q.title?.trim() || '未命名题目')
+        }
+      }
+    }
+  }
+  if (bad.length) {
+    ElMessage.error(
+      `选择数超出选项数量的题目：${bad.join('、')}，请调整后再保存`
+    )
+    return
+  }
   const now = new Date()
   const pad = (n) => String(n).padStart(2, '0')
   lastSavedAt.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
