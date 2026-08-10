@@ -11,10 +11,10 @@ const active = ref('form')
 <template>
   <header class="top-nav">
     <div class="nav-left">
-      <button type="button" class="back-btn">
+      <button type="button" class="back-btn" title="返回">
         <el-icon><ArrowLeft /></el-icon>
-        <span>数据采集系统</span>
       </button>
+      <h1 class="nav-title">数据采集系统</h1>
 
       <nav class="nav-menu">
         <button
@@ -53,29 +53,36 @@ const active = ref('form')
 .nav-left {
   display: flex;
   align-items: center;
-  gap: var(--sp-2xl);
+  gap: var(--sp-lg);
 }
 
 .back-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--sp-xs);
+  justify-content: center;
+  width: 32px;
   height: 32px;
-  padding: 0 var(--sp-sm);
-  font-family: var(--ff-display);
-  font-size: var(--fs-16);
-  font-weight: 700;
+  font-family: inherit;
+  font-size: 16px;
   color: var(--c-nav-text);
   background: transparent;
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  letter-spacing: -0.01em;
   transition: background 0.15s var(--ease);
 }
 
 .back-btn:hover {
   background: var(--c-nav-hover);
+}
+
+.nav-title {
+  margin: 0;
+  font-family: var(--ff-display);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--c-nav-text);
+  letter-spacing: -0.01em;
 }
 
 .nav-menu {
