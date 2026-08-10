@@ -21,6 +21,36 @@ const device = ref('mobile')
 
 const allPages = computed(() => props.form.pages || [])
 
+/**
+ * 题目序号（按 form.settings 全局计算）
+ * 与 Editor.questionIndexMap 逻辑保持一致：
+ * - showIndex=false → null（不展示）
+ * - crossPage=false → 每页从 1 开始
+ * - crossCard=false → 每张卡片从 1 开始
+ */
+const questionIndexMap = computed(() => {
+  const map = new Map()
+  const s = props.form?.settings
+  if (!s || !s.showIndex) return map
+  let crossPageCounter = 0
+  for (let pIdx = 0; pIdx < allPages.value.length; pIdx++) {
+    const page = allPages.value[pIdx]
+    let cardCounter = 0
+    for (let cIdx = 0; cIdx < page.cards.length; cIdx++) {
+      const card = page.cards[cIdx]
+      if (!s.crossCard && cIdx > 0) cardCounter = 0
+      for (const q of card.questions) {
+        const idx = s.crossPage ? crossPageCounter : cardCounter
+        map.set(q.id, idx + 1)
+        crossPageCounter++
+        cardCounter++
+      }
+    }
+    if (!s.crossPage) crossPageCounter = 0
+  }
+  return map
+})
+
 /** 预览展示的当前页（>3 页时永远把当前页放在中间） */
 const currentPageIdx = ref(0)
 
@@ -129,9 +159,9 @@ function goNext() {
           >
             <p v-if="card.title" class="preview-card-title">{{ card.title }}</p>
 
-            <div v-for="(q, i) in card.questions" :key="q.id" class="preview-question">
+            <div v-for="q in card.questions" :key="q.id" class="preview-question">
               <p class="pq-title">
-                {{ i + 1 }}. {{ q.title || '未命名题目' }}
+                <span v-if="questionIndexMap.get(q.id)">{{ questionIndexMap.get(q.id) }}. </span>{{ q.title || '未命名题目' }}
                 <span v-if="q.required" class="pq-required">*</span>
               </p>
               <p v-if="q.desc" class="pq-desc">{{ q.desc }}</p>

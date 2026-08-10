@@ -10,7 +10,8 @@ const props = defineProps({
   form: { type: Object, required: true },
   page: { type: Object, default: null },
   activeQuestionId: { type: String, default: '' },
-  lastSavedAt: { type: String, default: '' }
+  lastSavedAt: { type: String, default: '' },
+  indexMap: { type: Map, default: () => new Map() }
 })
 
 const emit = defineEmits([
@@ -27,7 +28,8 @@ const emit = defineEmits([
   'reorder-question',
   'save',
   'reset',
-  'preview'
+  'preview',
+  'settings'
 ])
 
 const groups = TYPE_GROUPS
@@ -190,7 +192,7 @@ function endReorder() {
                 >
                   <QuestionCard
                     :question="q"
-                    :index="i + 1"
+                    :index="indexMap.get(q.id) ?? null"
                     :active="q.id === activeQuestionId"
                     @select="emit('select-question', $event)"
                     @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
@@ -248,7 +250,7 @@ function endReorder() {
 
       <div class="footer-right">
         <span class="save-time">最近保存：{{ lastSavedAt }}</span>
-        <el-button :icon="Setting" title="表单高级设置" />
+        <el-button :icon="Setting" title="表单高级设置" @click="emit('settings')" />
         <el-button @click="emit('preview')">预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>

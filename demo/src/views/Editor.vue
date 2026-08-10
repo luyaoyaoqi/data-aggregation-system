@@ -8,10 +8,19 @@ import ComponentLibrary, {
 import EditorArea from '../components/EditorArea.vue'
 import PropertyPanel from '../components/PropertyPanel.vue'
 import PreviewDialog from '../components/PreviewDialog.vue'
+import FormSettingsDialog from '../components/FormSettingsDialog.vue'
 
 /* ------------------------------ 表单数据 ------------------------------ */
 function createInitialForm() {
-  const form = { title: '', pages: [createPage(1), createPage(2)] }
+  const form = {
+    title: '',
+    settings: {
+      showIndex: true, // 是否展示序号
+      crossPage: false, // 跨页连续（仅 showIndex=true 生效）
+      crossCard: false // 跨卡片连续（仅 showIndex=true 生效）
+    },
+    pages: [createPage(1), createPage(2)]
+  }
   // 首页预置一道单选题，进入即有内容可看
   form.pages[0].cards[0].questions.push(createQuestion('radio'))
   return reactive(form)
@@ -23,6 +32,7 @@ const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id)
 const lastSavedAt = ref('2026-07-22 18:15')
 
 const previewVisible = ref(false)
+const settingsVisible = ref(false)
 
 const activePage = computed(
   () => form.value.pages.find((p) => p.id === activePageId.value) || null
@@ -36,6 +46,36 @@ const activeQuestion = computed(() => {
     }
   }
   return null
+})
+
+/**
+ * 全局题目序号（按 form.settings 计算）
+ * - showIndex=false → 不展示
+ * - crossPage=false → 每页从 1 开始
+ * - crossCard=false → 每张卡片从 1 开始
+ * - 题目的增删改、卡片/页的增删会自动重算
+ */
+const questionIndexMap = computed(() => {
+  const map = new Map()
+  const s = form.value.settings
+  if (!s || !s.showIndex) return map
+  let crossPageCounter = 0
+  for (let pIdx = 0; pIdx < form.value.pages.length; pIdx++) {
+    const page = form.value.pages[pIdx]
+    let cardCounter = 0
+    for (let cIdx = 0; cIdx < page.cards.length; cIdx++) {
+      const card = page.cards[cIdx]
+      if (!s.crossCard && cIdx > 0) cardCounter = 0
+      for (const q of card.questions) {
+        const idx = s.crossPage ? crossPageCounter : cardCounter
+        map.set(q.id, idx + 1)
+        crossPageCounter++
+        cardCounter++
+      }
+    }
+    if (!s.crossPage) crossPageCounter = 0
+  }
+  return map
 })
 
 /* ------------------------------ 分页操作 ------------------------------ */
@@ -378,6 +418,7 @@ function handlePreview() {
         :page="activePage"
         :active-question-id="activeQuestionId"
         :last-saved-at="lastSavedAt"
+        :index-map="questionIndexMap"
         @change-page="handleChangePage"
         @add-page="handleAddPage"
         @remove-page="handleRemovePage"
@@ -392,12 +433,15 @@ function handlePreview() {
         @save="handleSave"
         @reset="handleReset"
         @preview="handlePreview"
+        @settings="settingsVisible = true"
       />
 
       <PropertyPanel :question="activeQuestion" />
     </div>
 
     <PreviewDialog v-model="previewVisible" :form="form" :page="activePage" />
+
+    <FormSettingsDialog v-model="settingsVisible" :settings="form.settings" />
   </div>
 </template>
 

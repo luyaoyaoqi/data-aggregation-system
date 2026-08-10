@@ -233,7 +233,7 @@ function openListSettings() {
     <!-- 题干行 -->
     <div class="q-head">
       <el-icon class="q-drag" title="拖动排序" @mousedown="handleGripDown"><Rank /></el-icon>
-      <span class="q-index">{{ index }}.</span>
+      <span v-if="index != null" class="q-index">{{ index }}.</span>
       <input
         v-model="question.title"
         class="q-title-input"
