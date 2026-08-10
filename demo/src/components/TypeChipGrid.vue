@@ -67,7 +67,7 @@ defineEmits(['pick'])
 }
 
 .type-chip {
-  height: 80px;
+  /* height: 64px; */
   padding: var(--sp-md) var(--sp-xs);
   display: flex;
   flex-direction: column;
@@ -87,8 +87,8 @@ defineEmits(['pick'])
 }
 
 .chip-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   color: var(--c-text-secondary);
   transition: color 0.15s ease, transform 0.15s ease;

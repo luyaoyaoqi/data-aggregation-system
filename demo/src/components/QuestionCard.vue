@@ -109,17 +109,9 @@ function clearLink(opt) {
   }
 }
 
-/* -------------------- 删除题目二次确认 -------------------- */
-async function handleRemove() {
-  try {
-    await ElMessageBox.confirm('确认删除该题目？', '提示', {
-      type: 'warning',
-      confirmButtonText: '确认删除',
-      cancelButtonText: '取消'
-    })
-  } catch {
-    return
-  }
+/* -------------------- 删除题目 -------------------- */
+/* 二次确认由外层 Editor.handleRemoveQuestion 统一处理，这里只负责抛事件 */
+function handleRemove() {
   emit('remove', props.question.id)
 }
 
@@ -1098,27 +1090,6 @@ function openListSettings() {
   margin: var(--sp-lg) 0 0 28px;
   padding-top: var(--sp-md);
   border-top: 1px dashed var(--c-line-light);
-}
-
-.tool-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  padding: 0;
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-text-regular);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.tool-btn:hover {
-  color: var(--c-primary);
-}
-
-.tool-btn.is-danger:hover {
-  color: var(--c-danger);
 }
 
 .tool-divider {

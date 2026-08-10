@@ -210,8 +210,8 @@ function endReorder() {
               <el-popover
                 :model-value="popoverVisible[card.id] || false"
                 @update:model-value="popoverVisible[card.id] = $event"
-                :width="640"
-                placement="bottom-start"
+                :width="480"
+                placement="bottom"
                 trigger="click"
                 :show-arrow="false"
                 popper-class="add-question-popover"
@@ -286,7 +286,7 @@ function endReorder() {
   font-size: var(--fs-20);
   font-weight: 600;
   color: var(--c-text);
-  text-align: center;
+  /* text-align: center; */
   background: transparent;
   border: none;
   border-bottom: 1px solid transparent;
@@ -322,7 +322,7 @@ function endReorder() {
   font-family: inherit;
   font-size: var(--fs-16);
   color: var(--c-text);
-  text-align: center;
+  /* text-align: center; */
   background: transparent;
   border: none;
   border-bottom: 1px solid transparent;
