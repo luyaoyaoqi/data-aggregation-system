@@ -295,6 +295,10 @@ function endReorder() {
   transition: border-color 0.15s ease;
 }
 
+.form-title-input:hover:not(:focus) {
+  border-bottom-color: var(--c-line);
+}
+
 .form-title-input:focus {
   border-bottom-color: var(--c-primary);
 }
@@ -325,6 +329,10 @@ function endReorder() {
   border-radius: 0;
   outline: none;
   transition: border-color 0.15s ease;
+}
+
+.page-theme-input:hover:not(:focus) {
+  border-bottom-color: var(--c-line);
 }
 
 .page-theme-input:focus {
@@ -367,6 +375,10 @@ function endReorder() {
   border-radius: 0;
   outline: none;
   transition: border-color 0.15s ease;
+}
+
+.card-title-input:hover:not(:focus) {
+  border-bottom-color: var(--c-line);
 }
 
 .card-title-input:focus {

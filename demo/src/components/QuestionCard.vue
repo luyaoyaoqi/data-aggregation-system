@@ -591,15 +591,21 @@ function openListSettings() {
   color: var(--c-text);
   background: transparent;
   border: none;
+  border-bottom: 1px solid transparent;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .q-title-input::placeholder {
   color: var(--c-text-placeholder);
 }
 
+.q-title-input:hover:not(:focus) {
+  border-bottom-color: var(--c-line);
+}
+
 .q-title-input:focus {
-  border-bottom: 1px solid var(--c-primary);
+  border-bottom-color: var(--c-primary);
 }
 
 .q-required {

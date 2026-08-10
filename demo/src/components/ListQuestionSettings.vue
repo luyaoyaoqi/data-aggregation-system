@@ -386,11 +386,7 @@ function fixedWidthStyle(width) {
               :value="t.value"
             />
           </el-select>
-          <div class="col-required">
-            <el-checkbox v-model="col.required" size="small" class="col-required-checkbox"
-              >必填</el-checkbox
-            >
-          </div>
+          <el-checkbox v-model="col.required" size="small">必填</el-checkbox>
           <!-- <el-input-number
             v-model="col.width"
             :min="80"
@@ -401,13 +397,14 @@ function fixedWidthStyle(width) {
             placeholder="宽度"
             @change="clampColWidth(col)"
           /> -->
-          <el-button
-            class="col-del"
-            title="删除列"
+          <button
+            type="button"
+            class="tool-btn is-danger"
             @click="removeCol(i)"
           >
             <el-icon><Delete /></el-icon>
-          </el-button>
+            <span>删除</span>
+          </button>
         </div>
 
         <!-- 选项：仅 radio / checkbox 列展示 -->
@@ -665,7 +662,7 @@ function fixedWidthStyle(width) {
 .col-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-md);
+  gap: var(--sp-lg);
 }
 
 .col-index {
@@ -688,46 +685,9 @@ function fixedWidthStyle(width) {
   flex-shrink: 0;
 }
 
-.col-required {
-  flex-shrink: 0;
-  padding: 0 var(--sp-xs);
-}
-
-/* 与外边统一：checkbox 样式压小一点，匹配其它字段行高 */
-.col-required-checkbox {
-  height: 32px;
-}
-
-.col-required-checkbox :deep(.el-checkbox__label) {
-  font-size: var(--fs-13);
-  color: var(--c-text-regular);
-}
-
 .col-width-input {
   width: 120px;
   flex-shrink: 0;
-}
-
-/* 删除列按钮 */
-.col-del {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
-  color: var(--c-text-placeholder);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.col-del:hover {
-  color: var(--c-danger);
-  background: #fef2f2;
 }
 
 /* 列选项 */
@@ -809,5 +769,26 @@ function fixedWidthStyle(width) {
 .col-add {
   margin-top: var(--sp-md);
   font-size: var(--fs-13);
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--fs-12);
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.tool-btn:hover {
+  color: var(--c-primary);
+}
+
+.tool-btn.is-danger:hover {
+  color: var(--c-danger);
 }
 </style>
