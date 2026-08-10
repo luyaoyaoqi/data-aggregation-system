@@ -175,7 +175,57 @@ function changePage(idx) {
                   <span v-if="q.tags && q.tags.length" v-for="t in q.tags" :key="t" class="pq-tag">{{ t }}</span>
                   <span v-else class="pq-tag is-placeholder">暂未添加标签</span>
                 </div>
-                <div v-else-if="q.type === 'list'" class="pq-field">列表项 1 / 列表项 2</div>
+                <div v-else-if="q.type === 'list'" class="pq-list-wrap">
+                  <div class="pq-list-scroll">
+                    <table class="pq-list-table">
+                      <thead>
+                        <tr>
+                          <th
+                            v-for="col in (q.listColumns || [])"
+                            :key="col.id"
+                            :style="{ minWidth: col.width + 'px' }"
+                          >
+                            <span>{{ col.name }}</span>
+                            <span v-if="col.required" class="pq-required">*</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td v-for="col in (q.listColumns || [])" :key="col.id">
+                            <input
+                              v-if="col.colType === 'text'"
+                              class="pq-cell-input"
+                              :placeholder="col.name"
+                              readonly
+                            />
+                            <input
+                              v-else-if="col.colType === 'number'"
+                              class="pq-cell-input"
+                              type="number"
+                              placeholder="0"
+                              readonly
+                            />
+                            <input
+                              v-else-if="col.colType === 'date'"
+                              class="pq-cell-input"
+                              placeholder="年 - 月 - 日"
+                              readonly
+                            />
+                            <div
+                              v-else-if="col.colType === 'radio' || col.colType === 'checkbox'"
+                              class="pq-cell-select"
+                            >
+                              <span class="pq-cell-placeholder">请选择</span>
+                              <span class="pq-cell-arrow">▾</span>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <button type="button" class="pq-list-add-row">+ 添加一行</button>
+                </div>
                 <div v-else-if="q.type === 'richtext'" class="pq-field is-area">
                   请输入内容（支持加粗、颜色等）
                 </div>
@@ -455,6 +505,108 @@ function changePage(idx) {
 .pq-tag.is-placeholder {
   color: var(--c-text-placeholder);
   border-style: dashed;
+}
+
+/* 列表（自增表格） */
+.pq-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.pq-list-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+}
+
+.pq-list-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  background: var(--c-panel);
+}
+
+.pq-list-table th,
+.pq-list-table td {
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: var(--fs-13);
+  border-right: 1px solid var(--c-line-light);
+  border-bottom: 1px solid var(--c-line-light);
+  vertical-align: middle;
+}
+
+.pq-list-table th:last-child,
+.pq-list-table td:last-child {
+  border-right: none;
+}
+
+.pq-list-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pq-list-table th {
+  font-weight: 500;
+  color: var(--c-text);
+  background: var(--c-fill);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pq-list-table th .pq-required {
+  margin-left: 4px;
+  color: var(--c-danger);
+}
+
+.pq-list-table td {
+  color: var(--c-text-regular);
+}
+
+.pq-cell-input {
+  width: 100%;
+  min-width: 80px;
+  height: 26px;
+  font-family: inherit;
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.pq-cell-input::placeholder {
+  color: var(--c-text-placeholder);
+}
+
+.pq-cell-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  font-size: var(--fs-13);
+  color: var(--c-text-placeholder);
+  cursor: not-allowed;
+}
+
+.pq-cell-arrow {
+  margin-left: var(--sp-sm);
+  font-size: 10px;
+}
+
+.pq-list-add-row {
+  align-self: flex-start;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pq-list-add-row:hover {
+  color: var(--c-primary-hover);
 }
 
 .pq-submit {

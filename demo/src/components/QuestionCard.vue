@@ -1,7 +1,15 @@
 <script setup>
-import { ArrowDown, Close, CopyDocument, Delete, Link, Plus, Rank } from '@element-plus/icons-vue'
-import { OPTION_TYPES, getTypeLabel, createOption } from './ComponentLibrary.vue'
+import { ArrowDown, Close, CopyDocument, Delete, Link, MoreFilled, Plus, Rank, Setting } from '@element-plus/icons-vue'
+import {
+  OPTION_TYPES,
+  getTypeLabel,
+  createOption,
+  createListColumn,
+  LIST_COL_TYPES,
+  LIST_COL_DEFAULT_WIDTH
+} from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
+import ListQuestionSettings from './ListQuestionSettings.vue'
 
 /**
  * 7 切换：选项类 4 种题型互相切换的下拉数据
@@ -181,6 +189,55 @@ function handleTagKeydown(e) {
 
 function removeTag(i) {
   props.question.tags.splice(i, 1)
+}
+
+/* -------------------- 列表（自增表格） -------------------- */
+const isList = computed(() => props.question.type === 'list')
+const listCols = computed(() => props.question.listColumns || [])
+
+/** 列表列设置弹框 */
+const listSettingsVisible = ref(false)
+
+function openListSettings() {
+  listSettingsVisible.value = true
+}
+
+/** 新增一列，默认单行文本 */
+function addListColumn() {
+  const col = createListColumn(listCols.value.length + 1)
+  listCols.value.push(col)
+}
+
+/** 删除列 */
+function removeListColumn(idx) {
+  listCols.value.splice(idx, 1)
+}
+
+/** 移动列：dir = -1 左移 / +1 右移 */
+function moveListColumn(idx, dir) {
+  const target = idx + dir
+  if (target < 0 || target >= listCols.value.length) return
+  const [moved] = listCols.value.splice(idx, 1)
+  listCols.value.splice(target, 0, moved)
+}
+
+/** 「更多」菜单命令 */
+function handleColMore({ idx, cmd }) {
+  if (cmd === 'left') moveListColumn(idx, -1)
+  else if (cmd === 'right') moveListColumn(idx, 1)
+  else if (cmd === 'delete') removeListColumn(idx)
+}
+
+/** 获取列类型的简短展示文本 */
+const colTypeShortMap = {
+  text: '文本',
+  number: '数字',
+  date: '日期',
+  radio: '下拉单选',
+  checkbox: '下拉多选'
+}
+function getColTypeShort(colType) {
+  return colTypeShortMap[colType] || colType
 }
 </script>
 
@@ -404,9 +461,61 @@ function removeTag(i) {
               :class="{ 'is-full': question.tags.length >= question.maxTags }"
             >{{ question.tags.length }} / {{ question.maxTags }}</span>
           </div>
-          <div v-else-if="question.type === 'list'" class="list-box">
-            <div class="list-row">列表项 1</div>
-            <div class="list-row">列表项 2</div>
+          <div v-else-if="question.type === 'list'" class="list-editor">
+            <div class="list-cols">
+              <div
+                v-for="(col, i) in listCols"
+                :key="col.id"
+                class="list-col-chip"
+              >
+                <el-icon class="col-drag" title="拖动排序"><Rank /></el-icon>
+                <span
+                  class="col-name"
+                  :title="col.name"
+                  @click="openListSettings"
+                >{{ col.name }}</span>
+                <el-dropdown
+                  trigger="click"
+                  @command="(cmd) => handleColMore({ idx: i, cmd })"
+                >
+                  <el-icon class="col-more" title="更多"><MoreFilled /></el-icon>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="left" :disabled="i === 0">左移</el-dropdown-item>
+                      <el-dropdown-item
+                        command="right"
+                        :disabled="i === listCols.length - 1"
+                      >右移</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+              <button
+                v-if="listCols.length < 20"
+                type="button"
+                class="list-add-col"
+                title="新增列"
+                @click="addListColumn"
+              >
+                <el-icon><Plus /></el-icon>
+              </button>
+            </div>
+
+            <p class="list-hint">
+              应用端填报时可增删行；单选/多选列以下拉选择。
+              <span v-if="listCols.length >= 20" class="list-warn">已达 20 列上限</span>
+            </p>
+
+            <div class="list-toolbar">
+              <button type="button" class="list-tool-btn" @click="openListSettings">
+                <el-icon><Setting /></el-icon>
+                <span>列设置</span>
+              </button>
+              <span class="tool-bar-meta">
+                共 {{ listCols.length }} 列
+              </span>
+            </div>
           </div>
           <div v-else-if="question.type === 'richtext'" class="rich-box">
             <div class="rich-toolbar">B / U · 段落 · 链接 · 图片</div>
@@ -449,6 +558,9 @@ function removeTag(i) {
       :option="linkingOption"
       @confirm="handleLinkConfirm"
     />
+
+    <!-- 列表列设置弹框 -->
+    <ListQuestionSettings v-model="listSettingsVisible" :question="question" />
   </section>
 </template>
 
@@ -845,6 +957,137 @@ function removeTag(i) {
 
 .tag-counter.is-full {
   color: var(--c-danger);
+}
+
+.list-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.list-cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+  min-height: 32px;
+}
+
+.list-col-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 var(--sp-sm);
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
+  background: var(--c-fill);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.list-col-chip:hover {
+  border-color: var(--c-primary-border);
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+}
+
+.col-drag {
+  color: var(--c-text-placeholder);
+  cursor: grab;
+  font-size: 12px;
+}
+
+.list-col-chip:hover .col-drag {
+  color: var(--c-primary);
+}
+
+.col-name {
+  flex: 1;
+  min-width: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.col-more {
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.col-more:hover {
+  color: var(--c-primary);
+}
+
+.list-add-col {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-primary-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.list-add-col:hover {
+  background: var(--c-primary-bg);
+  border-style: solid;
+}
+
+.list-hint {
+  margin: 0;
+  font-size: var(--fs-12);
+  color: var(--c-text-placeholder);
+  line-height: 18px;
+}
+
+.list-warn {
+  margin-left: var(--sp-sm);
+  color: var(--c-danger);
+}
+
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding-top: var(--sp-sm);
+  border-top: 1px dashed var(--c-line-light);
+}
+
+.list-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--sp-sm);
+  font-family: inherit;
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-primary-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.list-tool-btn:hover {
+  background: var(--c-primary-bg);
+  border-style: solid;
+}
+
+.tool-bar-meta {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .list-box {

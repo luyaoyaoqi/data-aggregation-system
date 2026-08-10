@@ -86,10 +86,16 @@ export function createQuestion(type) {
     maxTags: defaults.maxTags ?? null, // 最多标签数：null = 不限
     allowDuplicate: defaults.allowDuplicate ?? true, // 允许重复
     tags: defaults.tags ?? [], // 已添加的标签
+    // 列表（自增表格）
+    listColumns: defaults.listColumns ?? [], // 列定义：每列 { id, name, colType, required, options, width }
     options: []
   }
   if (OPTION_TYPES.includes(type)) {
     q.options = [1, 2, 3].map((i) => createOption(i, { withScore: isRate }))
+  }
+  if (type === 'list') {
+    // 默认 3 列「第1/2/3列」，类型均为单行文本
+    q.listColumns = [1, 2, 3].map((i) => createListColumn(i))
   }
   return q
 }
@@ -101,8 +107,18 @@ const TYPE_DEFAULTS = {
   number: { placeholder: '请输入数字', precision: 0, unit: '' },
   datetime: { placeholder: '请选择日期时间', datePrecision: 'ymd' },
   image: { maxImageCount: 9, maxImageSize: 5 },
-  tag: { placeholder: '输入后回车添加', allowDuplicate: true }
+  tag: { placeholder: '输入后回车添加', allowDuplicate: true },
+  list: { listColumns: [] }
 }
+
+/** 列表列类型（决定该列单元格渲染什么输入控件） */
+export const LIST_COL_TYPES = [
+  { value: 'text', label: '单行文本' },
+  { value: 'number', label: '数字' },
+  { value: 'date', label: '日期' },
+  { value: 'radio', label: '单选（下拉）' },
+  { value: 'checkbox', label: '多选（下拉）' }
+]
 
 /**
  * 新建一个选项
@@ -121,6 +137,27 @@ export function createOption(index, { withScore = false } = {}) {
     // 评分：-rate 类型用，非必填；范围 [-9999, 9999]，支持 2 位小数
     // null 表示未设置 → 不参与计算
     score: withScore ? index : null
+  }
+}
+
+/** 列表列默认宽度（像素） */
+export const LIST_COL_DEFAULT_WIDTH = 160
+
+/**
+ * 新建一个列表列
+ * @param {number} index 列序号（用于默认 name）
+ * @param {object} [opts]
+ * @param {string} [opts.colType='text'] 列类型
+ * @param {string} [opts.name] 列名，默认「第N列」
+ */
+export function createListColumn(index, { colType = 'text', name } = {}) {
+  return {
+    id: nextId('lc'),
+    name: name || `第${index}列`,
+    colType,
+    required: false,
+    options: colType === 'radio' || colType === 'checkbox' ? [createOption(1)] : [],
+    width: LIST_COL_DEFAULT_WIDTH
   }
 }
 

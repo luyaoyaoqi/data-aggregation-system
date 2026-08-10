@@ -179,6 +179,13 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   copy.maxTags = source.maxTags
   copy.allowDuplicate = source.allowDuplicate
   copy.tags = Array.isArray(source.tags) ? [...source.tags] : []
+  // 列表（自增表格）
+  copy.listColumns = Array.isArray(source.listColumns)
+    ? source.listColumns.map((c) => ({
+        ...c,
+        options: Array.isArray(c.options) ? c.options.map((o) => ({ ...o })) : []
+      }))
+    : []
   copy.options = source.options.map((o, idx) => ({
     id: `${copy.id}_o${idx}`,
     label: o.label,
@@ -252,6 +259,28 @@ function handleSave() {
           }
           if (!q.maxImageSize || q.maxImageSize < 1) {
             bad.push({ title: qName, reason: '单张大小上限未填写或不合法' })
+          }
+        }
+        // 列表：至少 1 列；列名必填且 ≤ 20 字；下拉列至少 1 个选项；列宽 80-600
+        if (q.type === 'list') {
+          const cols = q.listColumns || []
+          if (cols.length < 1) {
+            bad.push({ title: qName, reason: '至少保留 1 列' })
+          }
+          for (let ci = 0; ci < cols.length; ci++) {
+            const c = cols[ci]
+            const name = (c.name || '').trim()
+            if (!name) {
+              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称为空` })
+            } else if (name.length > 20) {
+              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称超过 20 字` })
+            }
+            if ((c.colType === 'radio' || c.colType === 'checkbox') && (!c.options || c.options.length < 1)) {
+              bad.push({ title: qName, reason: `第 ${ci + 1} 列（下拉）至少 1 个选项` })
+            }
+            if (c.width != null && (c.width < 80 || c.width > 600)) {
+              bad.push({ title: qName, reason: `第 ${ci + 1} 列宽需在 80-600 之间` })
+            }
           }
         }
         if (!q.required) continue
