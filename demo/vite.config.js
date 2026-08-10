@@ -5,11 +5,13 @@ import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import vueDevTools from 'vite-plugin-vue-devtools';
 
 export default defineConfig({
   plugins: [
     vue(),
     UnoCSS(),
+    vueDevTools(),
     // 自动引入 Vue / Element Plus 的组合式 API 与 ElMessage、ElMessageBox 等
     AutoImport({
       imports: ['vue'],

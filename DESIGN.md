@@ -214,10 +214,59 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 
 ## Iconography
 
-- **Icon 库**: Element Plus Icons（已集成）
-- **尺寸**: 14px（行内）/ 16px（标准）/ 20px（按钮）
-- **粗细**: 1.5px stroke、round cap
-- **规则**: 优先用图标+文字组合，**不**用纯图标（除工具栏高频操作）
+### 策略
+
+- **首选**: Element Plus Icons（已集成，风格与本规范天然一致）
+- **自建**: 业务/行业特定图标走自建 SVG；统一收口在 `demo/src/components/icons/`，禁止在各组件内零散定义
+- **强制流程**: 自建图标必须走 `/svg-creator` skill 的渲染验证循环（WRITE → RENDER → VIEW → FIX → DELIVER），禁止只写代码不渲染就交付
+
+### 画法规范
+
+- **画布**: viewBox `0 0 16 16`
+- **stroke**: 1.5px，`currentColor`，`stroke-linecap="round"`，`stroke-linejoin="round"`，`fill="none"`
+- **几何对齐**: 坐标用整数 + 0.5 偏移（`x="2.5"`、`r="2.4"`），让 stroke 落在整数边界
+- **圆角矩形**: 11×11 用 `rx="2"`；11×10 用 `rx="1.5"`
+- **实心元素**: 选中点 / 状态指示用 `fill="currentColor" stroke="none"`
+- **禁用**: 渐变、阴影、装饰元素、多色（保持单色统一）
+
+### svg-creator 调用约定（覆盖 skill 默认值）
+
+调用 `/svg-creator` 时，必须显式覆盖以下参数以匹配本规范：
+
+- viewBox → `0 0 16 16`
+- stroke-width → `1.5`
+- 渲染尺寸 → 24px（chip）/ 16px（标准）/ 14px（行内）
+- 颜色 → 通过 CSS `color` 控制，SVG 内只用 `currentColor`，**禁止** hex
+
+### 尺寸
+
+| 场景 | 渲染尺寸 |
+|---|---|
+| 行内（紧贴文字） | 14px |
+| 标准（chip / 列表行） | 16px |
+| 控件库题型卡片 | 24px |
+| 按钮内 | 16px |
+
+### 颜色规则
+
+- **默认**: `var(--c-text-secondary)`
+- **激活 / 选中**: `var(--c-primary)`
+- **禁用**: `var(--c-text-placeholder)`
+- **危险**（删除等）: `var(--c-danger)` —— 仅该场景
+
+### 与文字组合
+
+- **默认**: 图标 + 文字（图标在左）
+- **例外**: 高频工具栏按钮可只用图标（必须配 `title` 或 `aria-label`）
+
+### 验收清单（交付前自查）
+
+- [ ] 渲染后目视通过（svg-creator 循环已跑完）
+- [ ] 所有描边落在整数边界（坐标用整数 + 0.5 偏移）
+- [ ] 实心元素都标了 `fill="currentColor" stroke="none"`
+- [ ] SVG 内无硬编码颜色（只有 `currentColor`）
+- [ ] 在 16px 尺寸下仍清晰可辨（不依赖细节才能看懂）
+- [ ] 与同组图标视觉权重一致（不会某个特别大 / 特别重）
 
 ---
 

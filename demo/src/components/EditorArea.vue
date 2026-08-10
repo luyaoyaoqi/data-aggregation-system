@@ -49,6 +49,7 @@ function handlePick(cardId, type) {
           v-model="form.title"
           class="form-title-input"
           placeholder="请输入表单标题（填写者不可见）"
+          maxlength="20"
         />
 
         <!-- 分页 Tab -->

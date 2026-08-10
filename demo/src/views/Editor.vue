@@ -127,10 +127,21 @@ function handleSelectQuestion(id) {
   activeQuestionId.value = id
 }
 
-function handleRemoveQuestion({ cardId, questionId }) {
+async function handleRemoveQuestion({ cardId, questionId }) {
   const card = activePage.value?.cards.find((c) => c.id === cardId)
   if (!card) return
-  const i = card.questions.findIndex((q) => q.id === questionId)
+  const q = card.questions.find((x) => x.id === questionId)
+  if (!q) return
+  try {
+    await ElMessageBox.confirm('确认删除该题目？', '删除确认', {
+      type: 'warning',
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消'
+    })
+  } catch {
+    return
+  }
+  const i = card.questions.findIndex((x) => x.id === questionId)
   if (i > -1) card.questions.splice(i, 1)
   if (activeQuestionId.value === questionId) activeQuestionId.value = ''
   ElMessage.success('已删除题目')
@@ -149,7 +160,11 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   copy.columns = source.columns
   copy.options = source.options.map((o, idx) => ({
     id: `${copy.id}_o${idx}`,
-    label: o.label
+    label: o.label,
+    isDefault: !!o.isDefault,
+    linkType: o.linkType || null,
+    linkData: o.linkData || null,
+    displayName: o.displayName || ''
   }))
   card.questions.splice(i + 1, 0, copy)
   activeQuestionId.value = copy.id
@@ -158,6 +173,15 @@ function handleDuplicateQuestion({ cardId, questionId }) {
 
 /* ------------------------------ 全局操作 ------------------------------ */
 function handleSave() {
+  const title = (form.value.title || '').trim()
+  if (!title) {
+    ElMessage.error('标题未填写，请检查')
+    return
+  }
+  if (title.length > 20) {
+    ElMessage.error('标题超过长度限制，请检查')
+    return
+  }
   const now = new Date()
   const pad = (n) => String(n).padStart(2, '0')
   lastSavedAt.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(

@@ -1,6 +1,7 @@
 <script setup>
-import { Close, CopyDocument, Delete, Plus, Rank } from '@element-plus/icons-vue'
+import { Close, CopyDocument, Delete, Link, Plus, Rank } from '@element-plus/icons-vue'
 import { OPTION_TYPES, getTypeLabel, createOption } from './ComponentLibrary.vue'
+import OptionLinkDialog from './OptionLinkDialog.vue'
 
 const props = defineProps({
   question: { type: Object, required: true },
@@ -12,7 +13,15 @@ const emit = defineEmits(['select', 'remove', 'duplicate'])
 
 const hasOptions = computed(() => OPTION_TYPES.includes(props.question.type))
 const isRate = computed(() => props.question.type.endsWith('-rate'))
+const isRadio = computed(
+  () => props.question.type === 'radio' || props.question.type === 'radio-rate'
+)
 const typeLabel = computed(() => getTypeLabel(props.question.type))
+
+/** 是否在当前题目上启用「设为默认选项」（仅 radio / radio-rate） */
+const showDefaultSwitch = computed(
+  () => props.question.type === 'radio' || props.question.type === 'radio-rate'
+)
 
 function addOption() {
   props.question.options.push(createOption(props.question.options.length + 1))
@@ -25,6 +34,58 @@ function removeOption(id) {
   }
   const i = props.question.options.findIndex((o) => o.id === id)
   if (i > -1) props.question.options.splice(i, 1)
+}
+
+/** 设为默认选项：单选/单选打分才有意义 */
+function setDefault(opt) {
+  if (!props.question.defaultOption) return
+  props.question.options.forEach((o) => (o.isDefault = o.id === opt.id))
+}
+
+/** 选项关联弹窗状态 */
+const linkDialogVisible = ref(false)
+const linkingOption = ref(null)
+
+function openLinkDialog(opt) {
+  linkingOption.value = opt
+  linkDialogVisible.value = true
+}
+
+function handleLinkConfirm({ linkType, linkData, displayName }) {
+  if (!linkingOption.value) return
+  const o = linkingOption.value
+  o.linkType = linkType
+  o.linkData = linkData
+  o.displayName = displayName
+  // 关联后展示名优先（<=10），否则回退到关联对象的中文名
+  if (!o.label || o.label === '') {
+    o.label = displayName || linkData?.name || ''
+  }
+}
+
+function clearLink(opt) {
+  opt.linkType = null
+  opt.linkData = null
+  opt.displayName = ''
+  // 清关联后恢复为「选项 N」默认展示
+  if (opt.label === '') {
+    const idx = props.question.options.findIndex((o) => o.id === opt.id)
+    opt.label = `选项${idx + 1}`
+  }
+}
+
+/* -------------------- 删除题目二次确认 -------------------- */
+async function handleRemove() {
+  try {
+    await ElMessageBox.confirm('确认删除该题目？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消'
+    })
+  } catch {
+    return
+  }
+  emit('remove', props.question.id)
 }
 </script>
 
@@ -59,8 +120,62 @@ function removeOption(id) {
         >
           <div v-for="(opt, i) in question.options" :key="opt.id" class="option-item">
             <span class="option-mark" :class="question.type.startsWith('checkbox') ? 'is-square' : ''" />
-            <input v-model="opt.label" class="option-input" placeholder="请输入选项" />
+
+            <!-- 已关联：替换为「←关联 + 显示名」展示 -->
+            <el-tooltip
+              v-if="opt.linkType"
+              placement="top"
+              :show-after="120"
+              :content="opt.linkData?.name || ''"
+            >
+              <span class="option-linked">
+                <span class="link-badge">←关联</span>
+                <span class="link-name">{{ opt.displayName || opt.linkData?.name }}</span>
+                <el-icon class="link-clear" title="删除关联" @click.stop="clearLink(opt)">
+                  <Close />
+                </el-icon>
+              </span>
+            </el-tooltip>
+
+            <!-- 未关联：保持文字输入框 -->
+            <input
+              v-else
+              v-model="opt.label"
+              class="option-input"
+              placeholder="请输入选项"
+            />
+
             <span v-if="isRate" class="option-score">{{ i + 1 }} 分</span>
+
+            <!-- 默认项标签（radio/radio-rate 启用 defaultOption 后展示） -->
+            <span
+              v-if="showDefaultSwitch && question.defaultOption && opt.isDefault"
+              class="opt-default-tag"
+            >
+              ● 默认
+            </span>
+
+            <!-- 设为默认按钮（仅 defaultOption 开启） -->
+            <button
+              v-if="showDefaultSwitch && question.defaultOption && !opt.isDefault"
+              type="button"
+              class="opt-set-default"
+              @click.stop="setDefault(opt)"
+            >
+              设为默认
+            </button>
+
+            <!-- 关联按钮（仅 linkField 开启） -->
+            <button
+              v-if="question.linkField && !opt.linkType"
+              type="button"
+              class="opt-link-btn"
+              @click.stop="openLinkDialog(opt)"
+            >
+              <el-icon><Link /></el-icon>
+              <span>关联</span>
+            </button>
+
             <el-icon class="option-del" title="删除选项" @click.stop="removeOption(opt.id)">
               <Close />
             </el-icon>
@@ -128,19 +243,30 @@ function removeOption(id) {
         <span>复制</span>
       </button>
 
-      <button type="button" class="tool-btn is-danger" @click.stop="emit('remove', question.id)">
+      <button type="button" class="tool-btn is-danger" @click.stop="handleRemove">
         <el-icon><Delete /></el-icon>
         <span>删除</span>
       </button>
 
       <template v-if="hasOptions">
         <span class="tool-divider" />
-        <span class="tool-label">设为默认选项</span>
-        <el-switch v-model="question.defaultOption" size="small" @click.stop />
+        <!-- 「设为默认选项」仅 radio / radio-rate 展示 -->
+        <template v-if="showDefaultSwitch">
+          <span class="tool-label">设为默认选项</span>
+          <el-switch v-model="question.defaultOption" size="small" @click.stop />
+        </template>
         <span class="tool-label">选项关联字段</span>
         <el-switch v-model="question.linkField" size="small" @click.stop />
       </template>
     </div>
+
+    <!-- 选项关联字段弹窗 -->
+    <OptionLinkDialog
+      v-if="linkingOption"
+      v-model="linkDialogVisible"
+      :option="linkingOption"
+      @confirm="handleLinkConfirm"
+    />
   </section>
 </template>
 
@@ -282,6 +408,97 @@ function removeOption(id) {
 .option-score {
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
+}
+
+/* 已关联：展示名 + 关联标签 + 删除关联 */
+.option-linked {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  min-width: 0;
+  height: 30px;
+  padding: 0 var(--sp-sm);
+  font-size: var(--fs-14);
+  color: var(--c-text-regular);
+  background: var(--c-primary-bg);
+  border: 1px solid var(--c-primary-border);
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+
+.link-badge {
+  flex-shrink: 0;
+  padding: 0 var(--sp-xs);
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  background: #fff;
+  border-radius: var(--radius-sm);
+}
+
+.link-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-clear {
+  flex-shrink: 0;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+}
+
+.link-clear:hover {
+  color: var(--c-danger);
+}
+
+/* 默认项标签 */
+.opt-default-tag {
+  flex-shrink: 0;
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  font-weight: 500;
+}
+
+/* 设为默认按钮 */
+.opt-set-default {
+  flex-shrink: 0;
+  padding: 2px var(--sp-sm);
+  font-family: inherit;
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-primary-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.opt-set-default:hover {
+  background: var(--c-primary-bg);
+}
+
+/* 关联按钮 */
+.opt-link-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2xs);
+  padding: 2px var(--sp-sm);
+  font-family: inherit;
+  font-size: var(--fs-12);
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-primary-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.opt-link-btn:hover {
+  background: var(--c-primary-bg);
 }
 
 .option-del {

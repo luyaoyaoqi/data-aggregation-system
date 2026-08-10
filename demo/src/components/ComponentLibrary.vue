@@ -63,16 +63,23 @@ export function createQuestion(type) {
   }
   if (OPTION_TYPES.includes(type)) {
     q.options = [
-      { id: nextId('o'), label: '选项1' },
-      { id: nextId('o'), label: '选项2' },
-      { id: nextId('o'), label: '选项3' }
+      { id: nextId('o'), label: '选项1', isDefault: false, linkType: null, linkData: null, displayName: '' },
+      { id: nextId('o'), label: '选项2', isDefault: false, linkType: null, linkData: null, displayName: '' },
+      { id: nextId('o'), label: '选项3', isDefault: false, linkType: null, linkData: null, displayName: '' }
     ]
   }
   return q
 }
 
 export function createOption(index) {
-  return { id: nextId('o'), label: `选项${index}` }
+  return {
+    id: nextId('o'),
+    label: `选项${index}`,
+    isDefault: false,
+    linkType: null,
+    linkData: null,
+    displayName: ''
+  }
 }
 
 export function createCard() {
