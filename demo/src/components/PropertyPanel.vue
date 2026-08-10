@@ -20,10 +20,8 @@ const isMultiSelect = computed(
     (props.question.type === 'checkbox' ||
       props.question.type === 'checkbox-rate')
 )
-/** 仅多选题 + 必填 时展示 最少/最多选择数 */
-const showSelectLimit = computed(
-  () => isMultiSelect.value && !!props.question?.required
-)
+/** 多选 / 多选打分 常驻展示「最少/最多选择数」配置项；仅当 required 时校验拦截 */
+const showSelectLimit = computed(() => isMultiSelect.value)
 /** 选项总数，用于限定输入框 max */
 const optionCount = computed(() => props.question?.options?.length ?? 0)
 const typeLabel = computed(() =>
