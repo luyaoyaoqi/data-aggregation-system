@@ -20,8 +20,24 @@ const isMultiSelect = computed(
     (props.question.type === 'checkbox' ||
       props.question.type === 'checkbox-rate')
 )
+/** 单选 / 单选打分：单选才有"清空已选项"的概念 */
+const isRadioLike = computed(
+  () =>
+    !!props.question &&
+    (props.question.type === 'radio' || props.question.type === 'radio-rate')
+)
+/** 填空类：单行文本 / 多行文本 / 数字 / 日期时间 */
+const isTextLike = computed(
+  () =>
+    !!props.question &&
+    ['text', 'textarea', 'number', 'datetime'].includes(props.question.type)
+)
 /** 多选 / 多选打分 常驻展示「最少/最多选择数」配置项；仅当 required 时校验拦截 */
 const showSelectLimit = computed(() => isMultiSelect.value)
+/** 属性 section 是否展示：至少有一个属性子项可见 */
+const hasPropertySection = computed(
+  () => isRadioLike.value || showSelectLimit.value || isTextLike.value
+)
 /** 选项总数，用于限定输入框 max */
 const optionCount = computed(() => props.question?.options?.length ?? 0)
 const typeLabel = computed(() =>
@@ -85,13 +101,10 @@ watch(
         </el-form-item>
       </el-form>
 
-      <div class="panel-section">
+      <div v-if="hasPropertySection" class="panel-section">
         <p class="section-title">属性</p>
-        <div class="switch-row">
-          <span class="switch-label">必填</span>
-          <el-switch v-model="question.required" />
-        </div>
-        <div class="switch-row">
+        <!-- 必填：中间工具栏已有，右侧不再展示 -->
+        <div v-if="isRadioLike" class="switch-row">
           <span class="switch-label">允许清空</span>
           <el-switch v-model="question.allowClear" />
         </div>
@@ -119,6 +132,44 @@ watch(
               class="w-full"
               controls-position="right"
             />
+          </el-form-item>
+        </el-form>
+        <!-- 填空类专属：占位提示 / 默认值 / 最大长度 / 格式校验 -->
+        <el-form
+          v-if="isTextLike"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="占位提示">
+            <el-input
+              v-model="question.placeholder"
+              :maxlength="40"
+              show-word-limit
+              placeholder="请输入"
+            />
+          </el-form-item>
+          <el-form-item label="默认值">
+            <el-input
+              v-model="question.defaultValue"
+              :maxlength="question.maxLength || 40"
+              placeholder="请输入默认值"
+            />
+          </el-form-item>
+          <el-form-item label="最大长度">
+            <el-input-number
+              v-model="question.maxLength"
+              :min="0"
+              :max="40"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+            />
+            <span class="section-tip">0 表示不限</span>
+          </el-form-item>
+          <el-form-item label="格式校验">
+            <el-select v-model="question.format" disabled class="w-full">
+              <el-option label="无" value="none" />
+            </el-select>
           </el-form-item>
         </el-form>
       </div>

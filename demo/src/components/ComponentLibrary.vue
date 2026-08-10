@@ -63,12 +63,25 @@ export function createQuestion(type) {
     linkField: false, // 选项关联字段
     minSelect: null, // 最少选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
     maxSelect: null, // 最多选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
+    // 填空类属性
+    placeholder: TEXT_DEFAULTS[type]?.placeholder || '', // 占位提示（中间编辑区 input 绑这个）
+    defaultValue: '', // 默认值：应用端展示权重 > placeholder
+    maxLength: 40, // 最大长度：0 = 不限；>0 时限制输入字符数
+    format: 'none', // 格式校验：本期仅 'none' 不可更改
     options: []
   }
   if (OPTION_TYPES.includes(type)) {
     q.options = [1, 2, 3].map((i) => createOption(i, { withScore: isRate }))
   }
   return q
+}
+
+/** 各填空题型的默认 placeholder / maxLength */
+const TEXT_DEFAULTS = {
+  text: { placeholder: '请输入' },
+  textarea: { placeholder: '请输入' },
+  number: { placeholder: '请输入数字' },
+  datetime: { placeholder: '请选择日期时间' }
 }
 
 /**

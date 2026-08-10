@@ -134,7 +134,7 @@ async function handleRemove() {
         class="q-type-switch"
         @command="handleSwitchType"
       >
-        <span class="q-type-tag is-switchable" @click.stop>
+        <span class="q-type-tag is-switchable">
           <svg
             class="q-type-icon"
             viewBox="0 0 16 16"
@@ -198,7 +198,7 @@ async function handleRemove() {
               <span class="option-linked">
                 <span class="link-badge">←关联</span>
                 <span class="link-name">{{ opt.displayName || opt.linkData?.name }}</span>
-                <el-icon class="link-clear" title="删除关联" @click.stop="clearLink(opt)">
+                <el-icon class="link-clear" title="删除关联" @click="clearLink(opt)">
                   <Close />
                 </el-icon>
               </span>
@@ -222,7 +222,6 @@ async function handleRemove() {
               placeholder="评分"
               :controls="false"
               class="option-score-input"
-              @click.stop
             >
               <template #suffix>
                 <span v-if="opt.score != null" class="option-score-suffix">分</span>
@@ -242,7 +241,7 @@ async function handleRemove() {
               v-if="showDefaultSwitch && question.defaultOption && !opt.isDefault"
               type="button"
               class="opt-set-default"
-              @click.stop="setDefault(opt)"
+              @click="setDefault(opt)"
             >
               设为默认
             </button>
@@ -252,19 +251,19 @@ async function handleRemove() {
               v-if="question.linkField && !opt.linkType"
               type="button"
               class="opt-link-btn"
-              @click.stop="openLinkDialog(opt)"
+              @click="openLinkDialog(opt)"
             >
               <el-icon><Link /></el-icon>
               <span>关联</span>
             </button>
 
-            <el-icon class="option-del" title="删除选项" @click.stop="removeOption(opt.id)">
+            <el-icon class="option-del" title="删除选项" @click="removeOption(opt.id)">
               <Close />
             </el-icon>
           </div>
         </div>
 
-        <button type="button" class="add-option" @click.stop="addOption">
+        <button type="button" class="add-option" @click="addOption">
           <el-icon><Plus /></el-icon>
           <span>添加选项</span>
         </button>
@@ -275,24 +274,30 @@ async function handleRemove() {
         <div class="q-preview">
           <el-input
             v-if="question.type === 'text'"
-            disabled
-            placeholder="请输入内容"
+            v-model="question.placeholder"
+            :maxlength="question.maxLength || undefined"
+            show-word-limit
+            placeholder="请输入"
           />
           <el-input
             v-else-if="question.type === 'textarea'"
+            v-model="question.placeholder"
             type="textarea"
             :rows="3"
-            disabled
-            placeholder="请输入内容"
+            :maxlength="question.maxLength || undefined"
+            show-word-limit
+            placeholder="请输入"
           />
           <el-input
             v-else-if="question.type === 'number'"
-            disabled
+            v-model="question.placeholder"
+            :maxlength="question.maxLength || undefined"
             placeholder="请输入数字"
           />
           <el-input
             v-else-if="question.type === 'datetime'"
-            disabled
+            v-model="question.placeholder"
+            :maxlength="question.maxLength || undefined"
             placeholder="请选择日期时间"
           />
           <div v-else-if="question.type === 'image'" class="upload-box">
@@ -318,14 +323,14 @@ async function handleRemove() {
 
     <!-- 底部工具条 -->
     <div class="q-tools">
-      <el-checkbox v-model="question.required" size="small" @click.stop>必填</el-checkbox>
+      <el-checkbox v-model="question.required" size="small">必填</el-checkbox>
 
-      <button type="button" class="tool-btn" @click.stop="emit('duplicate', question.id)">
+      <button type="button" class="tool-btn" @click="emit('duplicate', question.id)">
         <el-icon><CopyDocument /></el-icon>
         <span>复制</span>
       </button>
 
-      <button type="button" class="tool-btn is-danger" @click.stop="handleRemove">
+      <button type="button" class="tool-btn is-danger" @click="handleRemove">
         <el-icon><Delete /></el-icon>
         <span>删除</span>
       </button>
@@ -335,10 +340,10 @@ async function handleRemove() {
         <!-- 「设为默认选项」仅 radio / radio-rate 展示 -->
         <template v-if="showDefaultSwitch">
           <span class="tool-label">设为默认选项</span>
-          <el-switch v-model="question.defaultOption" size="small" @click.stop />
+          <el-switch v-model="question.defaultOption" size="small" />
         </template>
         <span class="tool-label">选项关联字段</span>
-        <el-switch v-model="question.linkField" size="small" @click.stop />
+        <el-switch v-model="question.linkField" size="small" />
       </template>
     </div>
 
@@ -671,7 +676,8 @@ async function handleRemove() {
 
 /* ---------- 其它题型预览 ---------- */
 .q-preview {
-  max-width: 520px;
+  /* 填空类默认拉满 q-body 宽度；采集类有各自固定宽度 */
+  width: 100%;
 }
 
 .upload-box {

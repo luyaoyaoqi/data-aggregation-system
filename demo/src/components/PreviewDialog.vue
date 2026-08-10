@@ -146,9 +146,27 @@ function changePage(idx) {
 
               <!-- 填空 / 采集类 -->
               <template v-else>
-                <div v-if="q.type === 'textarea'" class="pq-field is-area">请输入内容</div>
-                <div v-else-if="q.type === 'number'" class="pq-field">请输入数字</div>
-                <div v-else-if="q.type === 'datetime'" class="pq-field">请选择日期时间</div>
+                <!-- 填空类：默认值（> 占位提示） / 占位提示 / 限长提示 -->
+                <div
+                  v-if="q.type === 'text'"
+                  class="pq-field"
+                  :class="{ 'has-value': q.defaultValue }"
+                >{{ q.defaultValue || q.placeholder || '请输入' }}</div>
+                <div
+                  v-else-if="q.type === 'textarea'"
+                  class="pq-field is-area"
+                  :class="{ 'has-value': q.defaultValue }"
+                >{{ q.defaultValue || q.placeholder || '请输入' }}</div>
+                <div
+                  v-else-if="q.type === 'number'"
+                  class="pq-field"
+                  :class="{ 'has-value': q.defaultValue }"
+                >{{ q.defaultValue || q.placeholder || '请输入数字' }}</div>
+                <div
+                  v-else-if="q.type === 'datetime'"
+                  class="pq-field"
+                  :class="{ 'has-value': q.defaultValue }"
+                >{{ q.defaultValue || q.placeholder || '请选择日期时间' }}</div>
                 <div v-else-if="q.type === 'image'" class="pq-upload">+ 上传图片</div>
                 <div v-else-if="q.type === 'tag'" class="pq-tags">
                   <span class="pq-tag">标签一</span>
@@ -381,6 +399,10 @@ function changePage(idx) {
   background: var(--c-panel);
   border: 1px solid var(--c-line);
   border-radius: var(--radius);
+}
+
+.pq-field.has-value {
+  color: var(--c-text);
 }
 
 .pq-field.is-area {

@@ -158,6 +158,10 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   copy.desc = source.desc
   copy.required = source.required
   copy.columns = source.columns
+  copy.placeholder = source.placeholder
+  copy.defaultValue = source.defaultValue
+  copy.maxLength = source.maxLength
+  copy.format = source.format
   copy.options = source.options.map((o, idx) => ({
     id: `${copy.id}_o${idx}`,
     label: o.label,
@@ -205,27 +209,42 @@ function handleSave() {
     ElMessage.error('标题超过长度限制，请检查')
     return
   }
-  // 多选题 必填时：最少/最多选择数 不能超过当前选项总数
   const bad = []
   for (const page of form.value.pages) {
     for (const card of page.cards) {
       for (const q of card.questions) {
         if (!q.required) continue
         const len = q.options?.length ?? 0
-        const { minSelect, maxSelect } = q
+        const { minSelect, maxSelect, defaultValue, maxLength } = q
+        // 多选题：选择数 超出选项数
         if (
           (minSelect != null && minSelect > len) ||
           (maxSelect != null && maxSelect > len)
         ) {
-          bad.push(q.title?.trim() || '未命名题目')
+          bad.push({
+            title: q.title?.trim() || '未命名题目',
+            reason: '选择数超出选项数量'
+          })
+        }
+        // 填空类：默认值 超出最大长度（仅 maxLength > 0 时校验）
+        if (
+          maxLength > 0 &&
+          defaultValue &&
+          defaultValue.length > maxLength
+        ) {
+          bad.push({
+            title: q.title?.trim() || '未命名题目',
+            reason: `默认值长度 ${defaultValue.length} 超过 ${maxLength}`
+          })
         }
       }
     }
   }
   if (bad.length) {
-    ElMessage.error(
-      `选择数超出选项数量的题目：${bad.join('、')}，请调整后再保存`
-    )
+    const msg = bad
+      .map((b) => `${b.title}（${b.reason}）`)
+      .join('；')
+    ElMessage.error(`保存校验未通过：${msg}，请调整后再保存`)
     return
   }
   const now = new Date()
