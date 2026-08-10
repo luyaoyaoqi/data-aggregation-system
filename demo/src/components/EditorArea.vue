@@ -171,9 +171,10 @@ function endReorder() {
               </p>
 
               <template v-for="(q, i) in card.questions" :key="q.id">
-                <!-- 占位条：拖到「在当前 q 之前」插入 -->
+                <!-- 占位条：拖到「在当前 q 之前」插入。
+                     排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」(overIdx === fromIdx + 1)，避免在被拖动项紧邻位置出现指示线。 -->
                 <div
-                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i && reorderState.fromIdx < i"
+                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i && i !== reorderState.fromIdx && i !== reorderState.fromIdx + 1 "
                   class="q-placeholder"
                 />
                 <!-- 包裹层：承载拖动时的漂浮样式 -->
@@ -198,12 +199,13 @@ function endReorder() {
                     @grip-down="(e, qId) => startReorder(e, cardIdx, i)"
                   />
                 </div>
-                <!-- 占位条：拖到「在最后一道题之后」插入 -->
-                <div
-                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i + 1 && reorderState.fromIdx > i"
-                  class="q-placeholder"
-                />
               </template>
+              <!-- 占位条：拖到尾行后（overIdx === N，最后一道题之后）。
+                   同样排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」的情况。 -->
+              <div
+                v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === card.questions.length && reorderState.overIdx !== reorderState.fromIdx && reorderState.overIdx !== reorderState.fromIdx + 1"
+                class="q-placeholder"
+              />
 
               <el-popover
                 :model-value="popoverVisible[card.id] || false"
@@ -394,10 +396,9 @@ function endReorder() {
 }
 
 .card-body {
+  /* 不再用 flex + gap：因为占位条要插入到题目之间，flex gap 会强制让出空隙导致布局抖动；
+     改用 block + 子元素自管 margin，让占位条 height:0 时不影响其他元素位置。 */
   padding: var(--sp-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm);
 }
 
 .card-empty {
@@ -436,7 +437,21 @@ function endReorder() {
   background: var(--c-panel);
 }
 
+/* 「添加题目」按钮（卡片内）需与最后一个 wrapper 保持 sm 间距（原本由 flex gap 提供） */
+.card-body .dashed-btn {
+  margin-top: var(--sp-sm);
+}
+
 /* ---------- 题目拖动排序（wrapper + 占位条）---------- */
+/* wrapper 间距由自身 margin 提供（不再依赖 .card-body 的 flex gap） */
+.q-drag-wrap {
+  margin-bottom: var(--sp-sm);
+}
+
+.q-drag-wrap:last-of-type {
+  margin-bottom: 0;
+}
+
 /* 被拖的题：主色高亮 + 虚线外框 + 漂浮阴影 */
 .q-drag-wrap.is-dragging {
   opacity: 0.55;
@@ -447,14 +462,16 @@ function endReorder() {
   cursor: grabbing;
 }
 
-/* 占位条：拖动时插入点指示，与列宽调节样式一致 */
+/* 占位条：height: 0 + border-top 视觉蓝线 → 不占布局空间，题目不会因占位条出现/消失而上下跳 */
 .q-placeholder {
-  height: 3px;
-  margin: 2px 0;
-  background: var(--c-primary);
+  height: 0;
+  margin: 0;
+  border-top: 3px solid var(--c-primary);
   border-radius: 2px;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 1px rgba(37, 99, 235, 0.45);
   pointer-events: none;
+  margin-bottom: var(--sp-sm);
+  /* 紧跟其后的 .q-drag-wrap margin-bottom 提供与下一题的间距 */
 }
 
 /* ---------- 底部条 ---------- */

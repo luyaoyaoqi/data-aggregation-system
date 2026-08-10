@@ -1,5 +1,5 @@
 <script setup>
-import { ArrowDown, Close, CopyDocument, Delete, Link, Setting } from '@element-plus/icons-vue'
+import { ArrowDown, Close, CopyDocument, Delete, Link, Rank, Setting, Plus } from '@element-plus/icons-vue'
 import {
   OPTION_TYPES,
   getTypeLabel,
@@ -558,13 +558,23 @@ function openListSettings() {
 }
 
 .q-drag {
+  /* Element Plus 的 el-icon 不会自动撑开，需要显式尺寸 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  flex-shrink: 0;
   color: var(--c-text-placeholder);
   cursor: move;
-  transition: color 0.15s ease;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .q-drag:hover {
   color: var(--c-primary);
+  background: var(--c-primary-bg);
 }
 
 .q-index {
@@ -601,7 +611,7 @@ function openListSettings() {
 .q-type-tag {
   flex-shrink: 0;
   padding: var(--sp-xs) var(--sp-sm);
-  font-size: var(--fs-12);
+  font-size: var(--fs-14);
   color: var(--c-text-secondary);
   background: var(--c-fill);
   border-radius: var(--radius-sm);
