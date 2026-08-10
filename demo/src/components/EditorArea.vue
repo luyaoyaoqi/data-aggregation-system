@@ -151,7 +151,7 @@ function handlePick(cardId, type) {
 
       <div class="footer-right">
         <span class="save-time">最近保存：{{ lastSavedAt }}</span>
-        <el-button :icon="Setting" circle title="表单高级设置" />
+        <!-- <el-button :icon="Setting" circle title="表单高级设置" /> -->
         <el-button @click="emit('preview')">预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>
@@ -193,7 +193,14 @@ function handlePick(cardId, type) {
   text-align: center;
   background: transparent;
   border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-title-input:focus {
+  border-bottom-color: var(--c-primary);
 }
 
 .form-title-input::placeholder {
@@ -218,7 +225,14 @@ function handlePick(cardId, type) {
   text-align: center;
   background: transparent;
   border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.page-theme-input:focus {
+  border-bottom-color: var(--c-primary);
 }
 
 .page-theme-input::placeholder {
@@ -253,7 +267,14 @@ function handlePick(cardId, type) {
   color: var(--c-text);
   background: transparent;
   border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.card-title-input:focus {
+  border-bottom-color: var(--c-primary);
 }
 
 .card-title-input::placeholder {

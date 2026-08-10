@@ -48,6 +48,7 @@ const nextId = (prefix) => `${prefix}_${Date.now().toString(36)}_${++seed}`
 /** 新建一道题目 */
 export function createQuestion(type) {
   const isRate = type.endsWith('-rate')
+  const defaults = TYPE_DEFAULTS[type] || {}
   const q = {
     id: nextId('q'),
     type,
@@ -63,11 +64,28 @@ export function createQuestion(type) {
     linkField: false, // 选项关联字段
     minSelect: null, // 最少选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
     maxSelect: null, // 最多选择数（null = 不限制；仅多选/多选打分 + required=true 时校验）
-    // 填空类属性
-    placeholder: TEXT_DEFAULTS[type]?.placeholder || '', // 占位提示（中间编辑区 input 绑这个）
+    // 填空 / 采集类通用
+    placeholder: defaults.placeholder || '', // 占位提示（中间编辑区 input 绑这个）
     defaultValue: '', // 默认值：应用端展示权重 > placeholder
-    maxLength: 40, // 最大长度：0 = 不限；>0 时限制输入字符数
+    maxLength: defaults.maxLength ?? 0, // 最大长度：0 = 不限；>0 时限制输入字符数
     format: 'none', // 格式校验：本期仅 'none' 不可更改
+    // 多行文本
+    rows: defaults.rows ?? 3, // 默认行数（决定编辑器中间区域的高度）
+    // 数字
+    minValue: defaults.minValue ?? null, // 最小值
+    maxValue: defaults.maxValue ?? null, // 最大值（保存时校验 > minValue）
+    precision: defaults.precision ?? 0, // 小数位数：0 = 整数
+    unit: defaults.unit ?? '', // 单位（展示在输入框后面）
+    // 日期时间
+    datePrecision: defaults.datePrecision ?? 'ymd', // y | ym | ymd | ymdhm
+    defaultToday: defaults.defaultToday ?? false, // 默认当天（本年/本月/当天/当天10:00）
+    // 图片
+    maxImageCount: defaults.maxImageCount ?? 9, // 必填，默认 9，范围 [1, 99]
+    maxImageSize: defaults.maxImageSize ?? 5, // 必填（MB），默认 5，范围 [1, 20]
+    // 标签文本
+    maxTags: defaults.maxTags ?? null, // 最多标签数：null = 不限
+    allowDuplicate: defaults.allowDuplicate ?? true, // 允许重复
+    tags: defaults.tags ?? [], // 已添加的标签
     options: []
   }
   if (OPTION_TYPES.includes(type)) {
@@ -76,12 +94,14 @@ export function createQuestion(type) {
   return q
 }
 
-/** 各填空题型的默认 placeholder / maxLength */
-const TEXT_DEFAULTS = {
+/** 各题型的默认值占位提示 / 默认值 */
+const TYPE_DEFAULTS = {
   text: { placeholder: '请输入' },
-  textarea: { placeholder: '请输入' },
-  number: { placeholder: '请输入数字' },
-  datetime: { placeholder: '请选择日期时间' }
+  textarea: { placeholder: '请输入', rows: 3 },
+  number: { placeholder: '请输入数字', precision: 0, unit: '' },
+  datetime: { placeholder: '请选择日期时间', datePrecision: 'ymd' },
+  image: { maxImageCount: 9, maxImageSize: 5 },
+  tag: { placeholder: '输入后回车添加', allowDuplicate: true }
 }
 
 /**

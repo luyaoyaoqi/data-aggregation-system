@@ -26,17 +26,41 @@ const isRadioLike = computed(
     !!props.question &&
     (props.question.type === 'radio' || props.question.type === 'radio-rate')
 )
-/** 填空类：单行文本 / 多行文本 / 数字 / 日期时间 */
-const isTextLike = computed(
-  () =>
-    !!props.question &&
-    ['text', 'textarea', 'number', 'datetime'].includes(props.question.type)
+/** 单行文本 */
+const isText = computed(() => !!props.question && props.question.type === 'text')
+/** 多行文本 */
+const isTextarea = computed(
+  () => !!props.question && props.question.type === 'textarea'
+)
+/** 数字 */
+const isNumber = computed(
+  () => !!props.question && props.question.type === 'number'
+)
+/** 日期时间 */
+const isDatetime = computed(
+  () => !!props.question && props.question.type === 'datetime'
+)
+/** 图片 */
+const isImage = computed(
+  () => !!props.question && props.question.type === 'image'
+)
+/** 标签文本 */
+const isTag = computed(
+  () => !!props.question && props.question.type === 'tag'
 )
 /** 多选 / 多选打分 常驻展示「最少/最多选择数」配置项；仅当 required 时校验拦截 */
 const showSelectLimit = computed(() => isMultiSelect.value)
 /** 属性 section 是否展示：至少有一个属性子项可见 */
 const hasPropertySection = computed(
-  () => isRadioLike.value || showSelectLimit.value || isTextLike.value
+  () =>
+    isRadioLike.value ||
+    showSelectLimit.value ||
+    isText.value ||
+    isTextarea.value ||
+    isNumber.value ||
+    isDatetime.value ||
+    isImage.value ||
+    isTag.value
 )
 /** 选项总数，用于限定输入框 max */
 const optionCount = computed(() => props.question?.options?.length ?? 0)
@@ -134,9 +158,9 @@ watch(
             />
           </el-form-item>
         </el-form>
-        <!-- 填空类专属：占位提示 / 默认值 / 最大长度 / 格式校验 -->
+        <!-- 单行文本：占位提示 / 默认值 / 最大长度 / 格式校验 -->
         <el-form
-          v-if="isTextLike"
+          v-if="isText"
           label-position="top"
           class="section-form"
         >
@@ -172,37 +196,228 @@ watch(
             </el-select>
           </el-form-item>
         </el-form>
-      </div>
 
-      <div class="panel-section">
-        <p class="section-title">查询条件</p>
-        <div class="switch-row">
-          <span class="switch-label">设为查询条件</span>
-          <el-switch v-model="question.asQuery" />
-        </div>
+        <!-- 多行文本：占位提示 / 默认值 / 最大长度 / 默认行数 -->
         <el-form
-          v-if="question.asQuery"
+          v-if="isTextarea"
           label-position="top"
           class="section-form"
         >
-          <el-form-item label="查询形式">
-            <el-select v-model="question.queryType" class="w-full">
-              <el-option label="单选查询" value="single" />
-              <el-option label="多选查询" value="multiple" />
-            </el-select>
+          <el-form-item label="占位提示">
+            <el-input
+              v-model="question.placeholder"
+              :maxlength="40"
+              show-word-limit
+              placeholder="请输入"
+            />
+          </el-form-item>
+          <el-form-item label="默认值">
+            <el-input
+              v-model="question.defaultValue"
+              type="textarea"
+              :rows="2"
+              resize="none"
+              :maxlength="question.maxLength || 200"
+              placeholder="请输入默认值"
+            />
+          </el-form-item>
+          <el-form-item label="最大长度">
+            <el-input-number
+              v-model="question.maxLength"
+              :min="0"
+              :max="2000"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+            />
+            <span class="section-tip">0 表示不限</span>
+          </el-form-item>
+          <el-form-item label="默认行数">
+            <el-input-number
+              v-model="question.rows"
+              :min="1"
+              :max="20"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+            />
           </el-form-item>
         </el-form>
-        <p class="section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
+
+        <!-- 数字：占位提示 / 默认值 / 最小值 / 最大值 / 小数位数 / 单位 -->
+        <el-form
+          v-if="isNumber"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="占位提示">
+            <el-input
+              v-model="question.placeholder"
+              :maxlength="40"
+              show-word-limit
+              placeholder="请输入数字"
+            />
+          </el-form-item>
+          <el-form-item label="默认值">
+            <el-input
+              v-model="question.defaultValue"
+              placeholder="请输入默认值"
+            />
+          </el-form-item>
+          <div class="form-row">
+            <el-form-item label="最小值">
+              <el-input-number
+                v-model="question.minValue"
+                :step="1"
+                controls-position="right"
+                class="w-full"
+                placeholder="留空不限"
+              />
+            </el-form-item>
+            <el-form-item label="最大值">
+              <el-input-number
+                v-model="question.maxValue"
+                :step="1"
+                controls-position="right"
+                class="w-full"
+                placeholder="留空不限"
+              />
+            </el-form-item>
+          </div>
+          <div class="form-row">
+            <el-form-item label="小数位数">
+              <el-input-number
+                v-model="question.precision"
+                :min="0"
+                :max="2"
+                :step="1"
+                controls-position="right"
+                class="w-full"
+              />
+              <span class="section-tip">0 表示整数</span>
+            </el-form-item>
+            <el-form-item label="单位">
+              <el-input
+                v-model="question.unit"
+                :maxlength="8"
+                placeholder="如 kg、元"
+              />
+            </el-form-item>
+          </div>
+        </el-form>
+
+        <!-- 日期时间：占位提示 / 日期精度 / 默认当天 -->
+        <el-form
+          v-if="isDatetime"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="占位提示">
+            <el-input
+              v-model="question.placeholder"
+              :maxlength="40"
+              show-word-limit
+              placeholder="请选择日期时间"
+            />
+          </el-form-item>
+          <el-form-item label="日期精度">
+            <el-select v-model="question.datePrecision" class="w-full">
+              <el-option label="年" value="y" />
+              <el-option label="年-月" value="ym" />
+              <el-option label="年-月-日" value="ymd" />
+              <el-option label="年-月-日 时:分" value="ymdhm" />
+            </el-select>
+          </el-form-item>
+          <div class="switch-row">
+            <span class="switch-label">默认当天</span>
+            <el-switch v-model="question.defaultToday" />
+          </div>
+        </el-form>
+
+        <!-- 图片：数量上限 / 单张大小上限 -->
+        <el-form
+          v-if="isImage"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="数量上限">
+            <el-input-number
+              v-model="question.maxImageCount"
+              :min="1"
+              :max="99"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+            />
+            <span class="section-tip">范围 1 - 99 张</span>
+          </el-form-item>
+          <el-form-item label="单张大小上限（MB）">
+            <el-input-number
+              v-model="question.maxImageSize"
+              :min="1"
+              :max="20"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+            />
+            <span class="section-tip">范围 1 - 20 MB</span>
+          </el-form-item>
+        </el-form>
+
+        <!-- 标签文本：最多标签数 / 允许重复 -->
+        <template v-if="isTag">
+          <el-form label-position="top" class="section-form">
+            <el-form-item label="最多标签数">
+              <el-input-number
+                v-model="question.maxTags"
+                :min="1"
+                :max="999"
+                :step="1"
+                controls-position="right"
+                class="w-full"
+                placeholder="留空不限"
+              />
+              <span class="section-tip">留空表示不限</span>
+            </el-form-item>
+          </el-form>
+          <div class="switch-row">
+            <span class="switch-label">允许重复</span>
+            <el-switch v-model="question.allowDuplicate" />
+          </div>
+        </template>
       </div>
 
-      <div class="panel-section">
-        <p class="section-title">数据列表</p>
-        <div class="switch-row">
-          <span class="switch-label">在列表中显示</span>
-          <el-switch v-model="question.showInList" />
+      <template v-if="!isImage">
+        <div class="panel-section">
+          <p class="section-title">查询条件</p>
+          <div class="switch-row">
+            <span class="switch-label">设为查询条件</span>
+            <el-switch v-model="question.asQuery" />
+          </div>
+          <el-form
+            v-if="question.asQuery"
+            label-position="top"
+            class="section-form"
+          >
+            <el-form-item label="查询形式">
+              <el-select v-model="question.queryType" class="w-full">
+                <el-option label="单选查询" value="single" />
+                <el-option label="多选查询" value="multiple" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <p class="section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
         </div>
-        <p class="section-tip">关闭后该题目仅在详情页展示</p>
-      </div>
+
+        <div class="panel-section">
+          <p class="section-title">数据列表</p>
+          <div class="switch-row">
+            <span class="switch-label">在列表中显示</span>
+            <el-switch v-model="question.showInList" />
+          </div>
+          <p class="section-tip">关闭后该题目仅在详情页展示</p>
+        </div>
+      </template>
     </el-scrollbar>
   </aside>
 </template>
@@ -284,5 +499,15 @@ watch(
 
 .w-full {
   width: 100%;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+}
+
+.form-row .el-form-item {
+  margin-bottom: var(--sp-lg);
 }
 </style>

@@ -162,6 +162,23 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   copy.defaultValue = source.defaultValue
   copy.maxLength = source.maxLength
   copy.format = source.format
+  // 多行文本
+  copy.rows = source.rows
+  // 数字
+  copy.minValue = source.minValue
+  copy.maxValue = source.maxValue
+  copy.precision = source.precision
+  copy.unit = source.unit
+  // 日期时间
+  copy.datePrecision = source.datePrecision
+  copy.defaultToday = source.defaultToday
+  // 图片
+  copy.maxImageCount = source.maxImageCount
+  copy.maxImageSize = source.maxImageSize
+  // 标签文本
+  copy.maxTags = source.maxTags
+  copy.allowDuplicate = source.allowDuplicate
+  copy.tags = Array.isArray(source.tags) ? [...source.tags] : []
   copy.options = source.options.map((o, idx) => ({
     id: `${copy.id}_o${idx}`,
     label: o.label,
@@ -213,6 +230,30 @@ function handleSave() {
   for (const page of form.value.pages) {
     for (const card of page.cards) {
       for (const q of card.questions) {
+        const qName = q.title?.trim() || '未命名题目'
+        // 数字：最大值 ≤ 最小值
+        if (q.type === 'number') {
+          const { minValue, maxValue } = q
+          if (
+            minValue != null &&
+            maxValue != null &&
+            maxValue <= minValue
+          ) {
+            bad.push({
+              title: qName,
+              reason: `最大值 ${maxValue} 不大于最小值 ${minValue}`
+            })
+          }
+        }
+        // 图片：必填项不能为空（maxImageCount / maxImageSize 已有默认值 9 / 5，但仍校验兜底）
+        if (q.type === 'image') {
+          if (!q.maxImageCount || q.maxImageCount < 1) {
+            bad.push({ title: qName, reason: '数量上限未填写或不合法' })
+          }
+          if (!q.maxImageSize || q.maxImageSize < 1) {
+            bad.push({ title: qName, reason: '单张大小上限未填写或不合法' })
+          }
+        }
         if (!q.required) continue
         const len = q.options?.length ?? 0
         const { minSelect, maxSelect, defaultValue, maxLength } = q
@@ -222,7 +263,7 @@ function handleSave() {
           (maxSelect != null && maxSelect > len)
         ) {
           bad.push({
-            title: q.title?.trim() || '未命名题目',
+            title: qName,
             reason: '选择数超出选项数量'
           })
         }
@@ -233,7 +274,7 @@ function handleSave() {
           defaultValue.length > maxLength
         ) {
           bad.push({
-            title: q.title?.trim() || '未命名题目',
+            title: qName,
             reason: `默认值长度 ${defaultValue.length} 超过 ${maxLength}`
           })
         }

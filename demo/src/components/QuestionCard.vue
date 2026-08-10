@@ -109,6 +109,32 @@ async function handleRemove() {
   }
   emit('remove', props.question.id)
 }
+
+/* -------------------- 标签文本：输入回车添加 -------------------- */
+const tagInput = ref('')
+
+function commitTag() {
+  const v = tagInput.value.trim()
+  if (!v) return
+  // 已达上限：拒绝添加（保留输入可编辑）
+  if (props.question.maxTags != null && props.question.tags.length >= props.question.maxTags) {
+    ElMessage.warning(`标签已达上限 ${props.question.maxTags}`)
+    tagInput.value = ''
+    return
+  }
+  // 重复检查
+  if (!props.question.allowDuplicate && props.question.tags.includes(v)) {
+    ElMessage.warning('标签已存在，禁止重复')
+    tagInput.value = ''
+    return
+  }
+  props.question.tags.push(v)
+  tagInput.value = ''
+}
+
+function removeTag(i) {
+  props.question.tags.splice(i, 1)
+}
 </script>
 
 <template>
@@ -283,7 +309,7 @@ async function handleRemove() {
             v-else-if="question.type === 'textarea'"
             v-model="question.placeholder"
             type="textarea"
-            :rows="3"
+            :rows="question.rows"
             :maxlength="question.maxLength || undefined"
             show-word-limit
             placeholder="请输入"
@@ -293,21 +319,38 @@ async function handleRemove() {
             v-model="question.placeholder"
             :maxlength="question.maxLength || undefined"
             placeholder="请输入数字"
-          />
+          >
+            <template #suffix>
+              <span v-if="question.unit" class="option-score-suffix">{{ question.unit }}</span>
+            </template>
+          </el-input>
           <el-input
             v-else-if="question.type === 'datetime'"
             v-model="question.placeholder"
             :maxlength="question.maxLength || undefined"
-            placeholder="请选择日期时间"
+            placeholder="年 - 月 - 日"
           />
           <div v-else-if="question.type === 'image'" class="upload-box">
             <el-icon><Plus /></el-icon>
             <span>上传图片</span>
           </div>
-          <div v-else-if="question.type === 'tag'" class="tag-row">
-            <el-tag type="info" effect="plain">标签一</el-tag>
-            <el-tag type="info" effect="plain">标签二</el-tag>
-            <el-tag type="info" effect="plain">标签三</el-tag>
+          <div v-else-if="question.type === 'tag'" class="tag-input-wrap">
+            <el-tag
+              v-for="(t, i) in question.tags"
+              :key="t"
+              closable
+              class="tag-chip"
+              @close="removeTag(i)"
+            >{{ t }}</el-tag>
+            <input
+              v-model="tagInput"
+              class="tag-input"
+              :placeholder="question.tags.length ? '' : question.placeholder || '输入后回车添加'"
+              :maxlength="40"
+              @keydown.enter.prevent="commitTag"
+              @keydown.,="commitTag"
+              @blur="commitTag"
+            />
           </div>
           <div v-else-if="question.type === 'list'" class="list-box">
             <div class="list-row">列表项 1</div>
@@ -700,6 +743,37 @@ async function handleRemove() {
   gap: var(--sp-sm);
 }
 
+/* 标签文本：标签 + 输入框一行 */
+.tag-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+  min-height: 30px;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--c-line-light);
+}
+
+.tag-chip {
+  margin-right: 0;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 120px;
+  height: 28px;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.tag-input::placeholder {
+  color: var(--c-text-placeholder);
+}
+
 .list-box {
   border: 1px solid var(--c-line);
   border-radius: var(--radius);
@@ -742,7 +816,7 @@ async function handleRemove() {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--sp-md);
+  gap: var(--sp-lg);
   margin: var(--sp-lg) 0 0 28px;
   padding-top: var(--sp-md);
   border-top: 1px dashed var(--c-line-light);

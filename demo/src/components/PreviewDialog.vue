@@ -159,9 +159,12 @@ function changePage(idx) {
                 >{{ q.defaultValue || q.placeholder || '请输入' }}</div>
                 <div
                   v-else-if="q.type === 'number'"
-                  class="pq-field"
+                  class="pq-field pq-number"
                   :class="{ 'has-value': q.defaultValue }"
-                >{{ q.defaultValue || q.placeholder || '请输入数字' }}</div>
+                >
+                  <span>{{ q.defaultValue || q.placeholder || '请输入数字' }}</span>
+                  <span v-if="q.unit" class="pq-suffix">{{ q.unit }}</span>
+                </div>
                 <div
                   v-else-if="q.type === 'datetime'"
                   class="pq-field"
@@ -169,8 +172,8 @@ function changePage(idx) {
                 >{{ q.defaultValue || q.placeholder || '请选择日期时间' }}</div>
                 <div v-else-if="q.type === 'image'" class="pq-upload">+ 上传图片</div>
                 <div v-else-if="q.type === 'tag'" class="pq-tags">
-                  <span class="pq-tag">标签一</span>
-                  <span class="pq-tag">标签二</span>
+                  <span v-if="q.tags && q.tags.length" v-for="t in q.tags" :key="t" class="pq-tag">{{ t }}</span>
+                  <span v-else class="pq-tag is-placeholder">暂未添加标签</span>
                 </div>
                 <div v-else-if="q.type === 'list'" class="pq-field">列表项 1 / 列表项 2</div>
                 <div v-else-if="q.type === 'richtext'" class="pq-field is-area">
@@ -409,6 +412,19 @@ function changePage(idx) {
   min-height: 64px;
 }
 
+.pq-number {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+}
+
+.pq-suffix {
+  flex-shrink: 0;
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+}
+
 .pq-upload {
   width: 88px;
   height: 88px;
@@ -434,6 +450,11 @@ function changePage(idx) {
   background: var(--c-panel);
   border: 1px solid var(--c-line);
   border-radius: var(--radius-sm);
+}
+
+.pq-tag.is-placeholder {
+  color: var(--c-text-placeholder);
+  border-style: dashed;
 }
 
 .pq-submit {
