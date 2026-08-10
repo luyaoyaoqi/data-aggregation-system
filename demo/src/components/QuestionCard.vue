@@ -3,6 +3,7 @@ import { ArrowDown, Close, CopyDocument, Delete, Link, Rank, Setting, Plus } fro
 import {
   OPTION_TYPES,
   getTypeLabel,
+  getTypeIcon,
   createOption,
   LIST_COL_TYPES
 } from './ComponentLibrary.vue'
@@ -10,15 +11,14 @@ import OptionLinkDialog from './OptionLinkDialog.vue'
 import ListQuestionSettings from './ListQuestionSettings.vue'
 
 /**
- * 7 切换：选项类 4 种题型互相切换的下拉数据
- * icon 与 ComponentLibrary.vue 选择组保持一致（16×16 stroke）
+ * 切换：选项类 4 种题型互相切换的下拉数据
+ * icon 复用 ComponentLibrary.vue 的 SVG（getTypeIcon 统一取）
  */
-const SWITCHABLE_TYPES = [
-  { type: 'radio', label: '单选', icon: '<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.4" fill="currentColor" stroke="none"/>' },
-  { type: 'checkbox', label: '多选', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5 8.2l2 2 4-4.4"/>' },
-  { type: 'radio-rate', label: '单选打分', icon: '<circle cx="8" cy="8" r="6"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' },
-  { type: 'checkbox-rate', label: '多选打分', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' }
-]
+const SWITCHABLE_TYPES = ['radio', 'checkbox', 'radio-rate', 'checkbox-rate'].map((type) => ({
+  type,
+  label: getTypeLabel(type),
+  icon: getTypeIcon(type)
+}))
 
 const props = defineProps({
   question: { type: Object, required: true },
@@ -34,12 +34,10 @@ const isRadio = computed(
   () => props.question.type === 'radio' || props.question.type === 'radio-rate'
 )
 const typeLabel = computed(() => getTypeLabel(props.question.type))
+const typeIcon = computed(() => getTypeIcon(props.question.type))
 
 /** 是否在题目右上角显示可点击的题型下拉（仅选项类 4 种支持切换） */
 const canSwitchType = computed(() => OPTION_TYPES.includes(props.question.type))
-const currentTypeIcon = computed(
-  () => SWITCHABLE_TYPES.find((t) => t.type === props.question.type)?.icon || ''
-)
 
 function handleSwitchType(newType) {
   if (newType === props.question.type) return
@@ -188,6 +186,11 @@ function removeTag(i) {
   props.question.tags.splice(i, 1)
 }
 
+/** 富文本命令封装：按钮 mousedown.prevent 避免输入区失焦 */
+function exec(cmd, value) {
+  document.execCommand(cmd, false, value)
+}
+
 /* -------------------- 列表（自增表格） -------------------- */
 const isList = computed(() => props.question.type === 'list')
 const listCols = computed(() => props.question.listColumns || [])
@@ -253,7 +256,7 @@ function openListSettings() {
             stroke-width="1.5"
             stroke-linecap="round"
             stroke-linejoin="round"
-            v-html="currentTypeIcon"
+            v-html="typeIcon"
           />
           <span>{{ typeLabel }}</span>
           <el-icon class="q-type-arrow"><ArrowDown /></el-icon>
@@ -281,8 +284,20 @@ function openListSettings() {
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <!-- 其它题型：只读标签 -->
-      <span v-else class="q-type-tag">{{ typeLabel }}</span>
+      <!-- 其它题型：只读标签（带图标） -->
+      <span v-else class="q-type-tag is-static">
+        <svg
+          class="q-type-icon"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          v-html="typeIcon"
+        />
+        <span>{{ typeLabel }}</span>
+      </span>
     </div>
 
     <p v-if="question.desc" class="q-desc">{{ question.desc }}</p>
@@ -476,8 +491,18 @@ function openListSettings() {
             </div>
           </div>
           <div v-else-if="question.type === 'richtext'" class="rich-box">
-            <div class="rich-toolbar">B / U · 段落 · 链接 · 图片</div>
-            <div class="rich-area">请输入富文本内容</div>
+            <div class="rich-toolbar">
+              <button type="button" class="rich-btn" @mousedown.prevent @click="exec('bold')">B</button>
+              <button type="button" class="rich-btn is-italic" @mousedown.prevent @click="exec('italic')">/</button>
+              <button type="button" class="rich-btn is-blue" @mousedown.prevent @click="exec('foreColor', '#2563EB')">蓝</button>
+              <button type="button" class="rich-btn is-red" @mousedown.prevent @click="exec('foreColor', '#dc2626')">红</button>
+              <button type="button" class="rich-btn is-list" @mousedown.prevent @click="exec('insertUnorderedList')"><span class="rich-dot" />列表</button>
+            </div>
+            <div
+              class="rich-area"
+              contenteditable="true"
+              data-ph="请输入内容（支持加粗、颜色等）"
+            />
           </div>
         </div>
       </template>
@@ -609,6 +634,9 @@ function openListSettings() {
 
 .q-type-tag {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: var(--sp-xs) var(--sp-sm);
   font-size: var(--fs-14);
   color: var(--c-text-secondary);
@@ -665,7 +693,7 @@ function openListSettings() {
 
 .option-list.is-double {
   grid-template-columns: repeat(2, 1fr);
-  column-gap: var(--sp-xl);
+  column-gap: var(--sp-3xl);
 }
 
 .option-item {
@@ -1064,22 +1092,92 @@ function openListSettings() {
 .rich-box {
   border: 1px solid var(--c-line);
   border-radius: var(--radius);
-  overflow: hidden;
+  background: var(--c-panel);
+  transition: border-color 0.15s ease;
+}
+
+.rich-box:focus-within {
+  border-color: var(--c-primary);
 }
 
 .rich-toolbar {
-  padding: var(--sp-sm) var(--sp-md);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-bottom: 1px solid var(--c-line-light);
+}
+
+.rich-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 var(--sp-xs);
+  font-family: inherit;
   font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  background: var(--c-fill);
-  border-bottom: 1px solid var(--c-line);
+  font-weight: 600;
+  color: var(--c-text-regular);
+  background: transparent;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rich-btn:hover {
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+  background: var(--c-primary-bg);
+}
+
+.rich-btn.is-italic {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.rich-btn.is-blue {
+  color: #2563EB;
+}
+
+.rich-btn.is-blue:hover {
+  color: #ffffff;
+  background: #2563EB;
+}
+
+.rich-btn.is-red {
+  color: #dc2626;
+}
+
+.rich-btn.is-red:hover {
+  color: #ffffff;
+  background: #dc2626;
+}
+
+.rich-btn.is-list {
+  gap: 4px;
+}
+
+.rich-dot {
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
 }
 
 .rich-area {
   padding: var(--sp-md);
   min-height: 72px;
   font-size: var(--fs-14);
+  color: var(--c-text-regular);
+  outline: none;
+}
+
+.rich-area:empty::before {
+  content: attr(data-ph);
   color: var(--c-text-placeholder);
+  pointer-events: none;
 }
 
 /* ---------- 工具条 ---------- */

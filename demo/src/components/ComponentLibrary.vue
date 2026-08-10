@@ -42,6 +42,11 @@ export function getTypeLabel(type) {
   return ALL_TYPES.find((t) => t.type === type)?.label || '未知题型'
 }
 
+/** 题型图标（16×16 SVG path），复用左侧组件库的图标 */
+export function getTypeIcon(type) {
+  return ALL_TYPES.find((t) => t.type === type)?.icon || ''
+}
+
 let seed = 0
 const nextId = (prefix) => `${prefix}_${Date.now().toString(36)}_${++seed}`
 

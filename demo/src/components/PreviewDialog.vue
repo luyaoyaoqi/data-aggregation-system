@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { Cellphone, Monitor, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { OPTION_TYPES } from './ComponentLibrary.vue'
 
 const props = defineProps({
@@ -59,42 +60,54 @@ function changePage(idx) {
   if (idx < 0 || idx >= allPages.value.length) return
   currentPageIdx.value = idx
 }
+
+const isFirstPage = computed(() => currentPageIdx.value <= 0)
+const isLastPage = computed(
+  () => currentPageIdx.value >= allPages.value.length - 1
+)
+
+function goPrev() {
+  if (!isFirstPage.value) changePage(currentPageIdx.value - 1)
+}
+
+function goNext() {
+  if (!isLastPage.value) changePage(currentPageIdx.value + 1)
+}
 </script>
 
 <template>
   <el-dialog
     v-model="visible"
-    title="查看数据"
-    width="1000px"
+    :width="1000"
     align-center
+    fullscreen
     class="preview-dialog"
     @open="currentPageIdx = (allPages.findIndex((p) => p.id === page?.id)) || 0"
   >
-    <div class="preview-toolbar">
-      <el-radio-group v-model="device" size="default">
-        <el-radio-button value="mobile">手机</el-radio-button>
-        <el-radio-button value="desktop">电脑</el-radio-button>
-      </el-radio-group>
-    </div>
+    <template #header>
+      <div class="preview-header">
+        <el-radio-group v-model="device" size="default">
+          <el-radio-button value="mobile">
+            <el-icon><Cellphone /></el-icon>
+            <span>手机</span>
+          </el-radio-button>
+          <el-radio-button value="desktop">
+            <el-icon><Monitor /></el-icon>
+            <span>电脑</span>
+          </el-radio-button>
+        </el-radio-group>
+      </div>
+    </template>
 
     <div class="preview-stage">
       <div class="device-frame" :class="device === 'mobile' ? 'is-mobile' : 'is-desktop'">
         <div class="device-scroll">
           <h3 class="preview-title">{{ formTitle }}</h3>
 
-          <!-- 页签（>3 页只展示 3 页，当前页永远在中间） -->
-          <div v-if="allPages.length > 0" class="page-tabs">
-            <button
-              v-for="idx in visiblePageIdxs"
-              :key="allPages[idx].id"
-              type="button"
-              class="page-tab"
-              :class="{ 'is-active': idx === currentPageIdx }"
-              @click="changePage(idx)"
-            >
-              {{ idx + 1 }}
-            </button>
-          </div>
+          <!-- 页码：顶部展示当前进度 -->
+          <p v-if="allPages.length > 1" class="preview-pageinfo">
+            {{ currentPageIdx + 1 }} / {{ allPages.length }}
+          </p>
 
           <!-- 当前页主题 -->
           <p v-if="currentPage && currentPage.theme" class="preview-theme">
@@ -256,39 +269,94 @@ function changePage(idx) {
             </div>
           </section>
 
-          <button
-            v-if="currentPage && currentPage.cards.some((c) => c.questions.length > 0)"
-            type="button"
-            class="pq-submit"
-          >
-            提交
-          </button>
+          <div class="preview-footer">
+            <!-- 分页切换：底部 Prev / Next，按需渲染 -->
+            <div v-if="allPages.length > 1" class="preview-pager">
+              <button
+                v-if="!isFirstPage"
+                type="button"
+                class="preview-pager-btn"
+                @click="goPrev"
+              >
+                <el-icon><ArrowLeft /></el-icon>
+                <span>上一页</span>
+              </button>
+              <span v-else />
+
+              <button
+                v-if="!isLastPage"
+                type="button"
+                class="preview-pager-btn"
+                @click="goNext"
+              >
+                <span>下一页</span>
+                <el-icon><ArrowRight /></el-icon>
+              </button>
+              <button
+                v-else-if="currentPage && currentPage.cards.some((c) => c.questions.length > 0)"
+                type="button"
+                class="pq-submit"
+              >
+                提交
+              </button>
+            </div>
+            <button
+              v-else-if="currentPage && currentPage.cards.some((c) => c.questions.length > 0)"
+              type="button"
+              class="pq-submit"
+            >
+              提交
+            </button>
+          </div>
         </div>
       </div>
     </div>
-
-    <template #footer>
-      <el-button @click="visible = false">返回编辑</el-button>
-    </template>
   </el-dialog>
 </template>
 
 <style scoped>
-.preview-toolbar {
+.preview-dialog {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-dialog :deep(.el-dialog__body) {
+  flex: 1;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--sp-lg);
+  width: 100%;
+}
+
+.preview-header :deep(.el-radio-button__inner) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-header :deep(.el-radio-button__inner .el-icon) {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
 }
 
 .preview-stage {
   display: flex;
   justify-content: center;
-  padding: var(--sp-xl) 0;
+  height: 100%;
+  padding: var(--sp-lg);
+  border-radius: var(--radius-lg);
   background: #eef1f6;
-  border-radius: var(--radius);
 }
 
 .device-frame {
+  display: flex;
+  flex-direction: column;
   background: var(--c-panel);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-float);
@@ -298,16 +366,76 @@ function changePage(idx) {
 
 .device-frame.is-mobile {
   width: 375px;
+  flex-shrink: 0;
 }
 
 .device-frame.is-desktop {
-  width: 640px;
+  width: 100%;
 }
 
 .device-scroll {
-  max-height: 460px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--sp-xl);
+  padding: var(--sp-lg);
+}
+
+/* ---------- 底部操作（提交 + 分页） ---------- */
+.preview-footer {
+  margin-top: var(--sp-lg);
+  padding-top: var(--sp-md);
+  border-top: 1px dashed var(--c-line);
+}
+
+.preview-pageinfo {
+  margin: 0 0 var(--sp-md);
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+
+.preview-pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-md);
+  font-family: inherit;
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
+  background: var(--c-panel);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.preview-pager-btn:hover:not(:disabled) {
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+  background: var(--c-primary-bg);
+}
+
+.preview-pager-btn:disabled {
+  color: var(--c-text-placeholder);
+  background: var(--c-fill);
+  cursor: not-allowed;
+}
+
+.preview-pager-info {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .preview-title {
@@ -409,7 +537,7 @@ function changePage(idx) {
 
 .pq-options {
   display: grid;
-  gap: var(--sp-sm);
+  gap: var(--sp-sm) var(--sp-3xl);
 }
 
 .pq-options.is-double {
@@ -735,8 +863,7 @@ function changePage(idx) {
 
 .pq-submit {
   width: 100%;
-  height: 40px;
-  margin-top: var(--sp-xl);
+  height: 32px;
   font-family: inherit;
   font-size: var(--fs-14);
   color: #fff;
