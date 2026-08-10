@@ -29,6 +29,11 @@ const formTitle = computed(() => props.form.title || '未命名表单（草稿�
 
 const hasOptions = (type) => OPTION_TYPES.includes(type)
 
+/** 富文本命令封装：按钮 mousedown.prevent 避免输入区失焦 */
+function exec(cmd, value) {
+  document.execCommand(cmd, false, value)
+}
+
 /**
  * >3 页时，可视区为 [currentIdx-1, currentIdx, currentIdx+1]（边界裁剪）
  * ≤3 页全部展示
@@ -60,7 +65,7 @@ function changePage(idx) {
   <el-dialog
     v-model="visible"
     title="查看数据"
-    width="780px"
+    width="1000px"
     align-center
     class="preview-dialog"
     @open="currentPageIdx = (allPages.findIndex((p) => p.id === page?.id)) || 0"
@@ -232,8 +237,19 @@ function changePage(idx) {
                   </div>
                   <button type="button" class="pq-list-add-row">+ 添加一行</button>
                 </div>
-                <div v-else-if="q.type === 'richtext'" class="pq-field is-area">
-                  请输入内容（支持加粗、颜色等）
+                <div v-else-if="q.type === 'richtext'" class="pq-rte">
+                  <div class="pq-rte-toolbar">
+                    <button type="button" class="pq-rte-btn" @mousedown.prevent @click="exec('bold')">B</button>
+                    <button type="button" class="pq-rte-btn is-italic" @mousedown.prevent @click="exec('italic')">/</button>
+                    <button type="button" class="pq-rte-btn is-blue" @mousedown.prevent @click="exec('foreColor', '#2563EB')">蓝</button>
+                    <button type="button" class="pq-rte-btn is-red" @mousedown.prevent @click="exec('foreColor', '#dc2626')">红</button>
+                    <button type="button" class="pq-rte-btn is-list" @mousedown.prevent @click="exec('insertUnorderedList')"><span class="pq-rte-dot" />列表</button>
+                  </div>
+                  <div
+                    class="pq-rte-area"
+                    contenteditable="true"
+                    data-ph="请输入内容（支持加粗、颜色等）"
+                  />
                 </div>
                 <div v-else class="pq-field">请输入内容</div>
               </template>
@@ -466,6 +482,101 @@ function changePage(idx) {
 
 .pq-field.is-area {
   min-height: 64px;
+}
+
+/* ---------- 富文本（richtext）---------- */
+.pq-rte {
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+  background: var(--c-panel);
+  transition: border-color 0.15s ease;
+}
+
+.pq-rte:focus-within {
+  border-color: var(--c-primary);
+}
+
+.pq-rte-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-bottom: 1px solid var(--c-line-light);
+}
+
+.pq-rte-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 var(--sp-xs);
+  font-family: inherit;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--c-text-regular);
+  background: transparent;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pq-rte-btn:hover {
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+  background: var(--c-primary-bg);
+}
+
+.pq-rte-btn.is-italic {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.pq-rte-btn.is-blue {
+  color: #2563EB;
+}
+
+.pq-rte-btn.is-blue:hover {
+  color: #ffffff;
+  background: #2563EB;
+  border-color: #2563EB;
+}
+
+.pq-rte-btn.is-red {
+  color: #dc2626;
+}
+
+.pq-rte-btn.is-red:hover {
+  color: #ffffff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.pq-rte-btn.is-list {
+  font-weight: 400;
+}
+
+.pq-rte-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-right: 4px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.pq-rte-area {
+  padding: var(--sp-sm) var(--sp-md);
+  min-height: 64px;
+  font-size: var(--fs-14);
+  color: var(--c-text);
+  outline: none;
+}
+
+.pq-rte-area:empty::before {
+  content: attr(data-ph);
+  color: var(--c-text-placeholder);
 }
 
 .pq-number {
