@@ -80,8 +80,8 @@ function goNext() {
     v-model="visible"
     :width="1000"
     align-center
-    fullscreen
     class="preview-dialog"
+    append-to-body
     @open="currentPageIdx = (allPages.findIndex((p) => p.id === page?.id)) || 0"
   >
     <template #header>
@@ -314,17 +314,18 @@ function goNext() {
   </el-dialog>
 </template>
 
-<style scoped>
+<style>
 .preview-dialog {
   display: flex;
   flex-direction: column;
+  height: 90%;
 }
 
-.preview-dialog :deep(.el-dialog__body) {
+.preview-dialog .el-dialog__body {
   flex: 1;
-  min-height: 90vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .preview-header {
@@ -333,13 +334,13 @@ function goNext() {
   width: 100%;
 }
 
-.preview-header :deep(.el-radio-button__inner) {
+.preview-header .el-radio-button__inner {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.preview-header :deep(.el-radio-button__inner .el-icon) {
+.preview-header .el-radio-button__inner .el-icon {
   display: inline-flex;
   align-items: center;
   font-size: 14px;
@@ -378,13 +379,18 @@ function goNext() {
   min-height: 0;
   overflow-y: auto;
   padding: var(--sp-lg);
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---------- 底部操作（提交 + 分页） ---------- */
 .preview-footer {
-  margin-top: var(--sp-lg);
-  padding-top: var(--sp-md);
-  border-top: 1px dashed var(--c-line);
+  padding: var(--sp-lg);
+  margin:var(--sp-lg) calc(-1 * var(--sp-lg)) calc(-1 * var(--sp-lg));
+  border-top: 1px solid var(--c-line);
+  position: sticky;
+  bottom: calc(-1 * var(--sp-lg));
+  background: #fff;
 }
 
 .preview-pageinfo {
@@ -496,10 +502,10 @@ function goNext() {
 
 /* ---------- 卡片分组 ---------- */
 .preview-card {
-  margin-bottom: var(--sp-lg);
   padding: var(--sp-md) var(--sp-lg);
   background: var(--c-fill);
   border-radius: var(--radius);
+  flex: 1;
 }
 
 .preview-card-title {
