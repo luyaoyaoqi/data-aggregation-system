@@ -242,12 +242,13 @@ function endReorder() {
     <!-- 底部操作条 -->
     <footer class="editor-footer">
       <div class="footer-left">
-        <el-button text @click="emit('reset')">重置</el-button>
+        <el-button @click="emit('exit')">退出编辑</el-button>
+        <el-button @click="emit('reset')">重置</el-button>
       </div>
 
       <div class="footer-right">
         <span class="save-time">最近保存：{{ lastSavedAt }}</span>
-        <!-- <el-button :icon="Setting" circle title="表单高级设置" /> -->
+        <el-button :icon="Setting" title="表单高级设置" />
         <el-button @click="emit('preview')">预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>
@@ -506,7 +507,7 @@ function endReorder() {
 .save-time {
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
-  margin-right: var(--sp-md);
+  margin-right: var(--sp-lg);
 }
 </style>
 
