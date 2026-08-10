@@ -112,24 +112,71 @@ async function handleRemove() {
 
 /* -------------------- 标签文本：输入回车添加 -------------------- */
 const tagInput = ref('')
+/** 单标签最大字符数（与 PropertyPanel maxlength=40 保持一致） */
+const TAG_MAX_LEN = 40
 
+/**
+ * 提交输入框中的标签内容
+ * - 支持一次输入多个：用 , ， ; ； 换行 分隔
+ * - 自动 trim / 去空 / 跳过超 40 字符
+ * - maxTags 上限内逐个添加；allowDuplicate=false 时跳过重复
+ */
 function commitTag() {
-  const v = tagInput.value.trim()
-  if (!v) return
-  // 已达上限：拒绝添加（保留输入可编辑）
-  if (props.question.maxTags != null && props.question.tags.length >= props.question.maxTags) {
-    ElMessage.warning(`标签已达上限 ${props.question.maxTags}`)
+  const raw = tagInput.value.trim()
+  if (!raw) return
+  // 多种分隔符：英文/中文逗号、分号、换行
+  const items = raw
+    .split(/[,，;；\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (!items.length) {
     tagInput.value = ''
     return
   }
-  // 重复检查
-  if (!props.question.allowDuplicate && props.question.tags.includes(v)) {
-    ElMessage.warning('标签已存在，禁止重复')
-    tagInput.value = ''
-    return
+  let added = 0
+  let dupOrMax = 0
+  let overSized = 0
+  for (const v of items) {
+    if (v.length > TAG_MAX_LEN) {
+      overSized++
+      continue
+    }
+    if (
+      props.question.maxTags != null &&
+      props.question.tags.length >= props.question.maxTags
+    ) {
+      dupOrMax++
+      continue
+    }
+    if (!props.question.allowDuplicate && props.question.tags.includes(v)) {
+      dupOrMax++
+      continue
+    }
+    props.question.tags.push(v)
+    added++
   }
-  props.question.tags.push(v)
   tagInput.value = ''
+  // 仅在全部失败时给提示；部分成功不打断
+  if (added === 0) {
+    if (overSized && !dupOrMax) {
+      ElMessage.warning(`单标签最多 ${TAG_MAX_LEN} 字符`)
+    } else {
+      const reasons = []
+      if (dupOrMax && props.question.maxTags != null) reasons.push('已达上限')
+      if (dupOrMax && !props.question.allowDuplicate) reasons.push('禁止重复')
+      ElMessage.warning(reasons.length ? reasons.join(' / ') : '未添加任何标签')
+    }
+  }
+}
+
+/** 中文逗号 / 分号 也触发提交（避免中文输入法下 Enter 失效的情况） */
+function handleTagKeydown(e) {
+  // 中文输入法组合中不触发（避免拼音输入到一半被吞）
+  if (e.isComposing || e.keyCode === 229) return
+  if (e.key === ',' || e.key === '，' || e.key === ';' || e.key === '；') {
+    e.preventDefault()
+    commitTag()
+  }
 }
 
 function removeTag(i) {
@@ -348,9 +395,14 @@ function removeTag(i) {
               :placeholder="question.tags.length ? '' : question.placeholder || '输入后回车添加'"
               :maxlength="40"
               @keydown.enter.prevent="commitTag"
-              @keydown.,="commitTag"
+              @keydown="handleTagKeydown"
               @blur="commitTag"
             />
+            <span
+              v-if="question.maxTags != null"
+              class="tag-counter"
+              :class="{ 'is-full': question.tags.length >= question.maxTags }"
+            >{{ question.tags.length }} / {{ question.maxTags }}</span>
           </div>
           <div v-else-if="question.type === 'list'" class="list-box">
             <div class="list-row">列表项 1</div>
@@ -751,7 +803,13 @@ function removeTag(i) {
   gap: var(--sp-sm);
   min-height: 30px;
   padding: 4px 0;
-  border-bottom: 1px dashed var(--c-line-light);
+  border-bottom: 1px solid var(--c-line-light);
+  transition: border-color 0.15s ease;
+}
+
+.tag-input-wrap:focus-within {
+  border-bottom-color: var(--c-primary);
+  border-bottom-style: solid;
 }
 
 .tag-chip {
@@ -772,6 +830,21 @@ function removeTag(i) {
 
 .tag-input::placeholder {
   color: var(--c-text-placeholder);
+}
+
+.tag-counter {
+  flex-shrink: 0;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+  padding-left: var(--sp-sm);
+  border-left: 1px solid var(--c-line-light);
+  margin-left: auto;
+}
+
+.tag-counter.is-full {
+  color: var(--c-danger);
 }
 
 .list-box {

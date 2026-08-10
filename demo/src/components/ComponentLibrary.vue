@@ -67,7 +67,7 @@ export function createQuestion(type) {
     // 填空 / 采集类通用
     placeholder: defaults.placeholder || '', // 占位提示（中间编辑区 input 绑这个）
     defaultValue: '', // 默认值：应用端展示权重 > placeholder
-    maxLength: defaults.maxLength ?? 0, // 最大长度：0 = 不限；>0 时限制输入字符数
+    maxLength: defaults.maxLength ?? null, // 最大长度：null = 不限；>0 时限制输入字符数
     format: 'none', // 格式校验：本期仅 'none' 不可更改
     // 多行文本
     rows: defaults.rows ?? 3, // 默认行数（决定编辑器中间区域的高度）

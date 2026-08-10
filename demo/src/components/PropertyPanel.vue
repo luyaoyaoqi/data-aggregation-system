@@ -187,8 +187,9 @@ watch(
               :step="1"
               controls-position="right"
               class="w-full"
+              placeholder="留空不限"
+              :value-on-clear="null"
             />
-            <span class="section-tip">0 表示不限</span>
           </el-form-item>
           <el-form-item label="格式校验">
             <el-select v-model="question.format" disabled class="w-full">
@@ -229,8 +230,9 @@ watch(
               :step="1"
               controls-position="right"
               class="w-full"
+              placeholder="留空不限"
+              :value-on-clear="null"
             />
-            <span class="section-tip">0 表示不限</span>
           </el-form-item>
           <el-form-item label="默认行数">
             <el-input-number
