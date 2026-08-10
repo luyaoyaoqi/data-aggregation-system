@@ -5,7 +5,7 @@
  * - 支持新增 / 删除列（最多 20 列）
  */
 import { ref, computed, watch, nextTick } from "vue";
-import { Plus, Delete, Close, MoreFilled, Rank } from "@element-plus/icons-vue";
+import { Plus, Delete, Close, Rank } from "@element-plus/icons-vue";
 import {
   LIST_COL_TYPES,
   LIST_COL_DEFAULT_WIDTH,
@@ -76,21 +76,6 @@ function removeCol(idx) {
     return;
   }
   draftCols.value.splice(idx, 1);
-}
-
-/** 移动列：dir = -1 左移 / +1 右移（被下拉框「更多」菜单调用） */
-function moveCol(idx, dir) {
-  const target = idx + dir;
-  if (target < 0 || target >= draftCols.value.length) return;
-  const [moved] = draftCols.value.splice(idx, 1);
-  draftCols.value.splice(target, 0, moved);
-}
-
-/** col-row 「更多」下拉框命令 */
-function handleRowMore(cmd, idx) {
-  if (cmd === "left") moveCol(idx, -1);
-  else if (cmd === "right") moveCol(idx, 1);
-  else if (cmd === "delete") removeCol(idx);
 }
 
 /** 列内选项操作 */
@@ -402,11 +387,11 @@ function fixedWidthStyle(width) {
             />
           </el-select>
           <div class="col-required">
-            <el-checkbox v-model="col.required" class="col-required-checkbox"
+            <el-checkbox v-model="col.required" size="small" class="col-required-checkbox"
               >必填</el-checkbox
             >
           </div>
-          <el-input-number
+          <!-- <el-input-number
             v-model="col.width"
             :min="80"
             :max="600"
@@ -415,20 +400,14 @@ function fixedWidthStyle(width) {
             class="col-width-input"
             placeholder="宽度"
             @change="clampColWidth(col)"
-          />
-          <el-dropdown
-            trigger="click"
-            class="col-more"
-            @command="(cmd) => handleRowMore(cmd, i)"
+          /> -->
+          <el-button
+            class="col-del"
+            title="删除列"
+            @click="removeCol(i)"
           >
-            <el-icon class="col-more-icon" title="更多"><MoreFilled /></el-icon>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <!-- 排序请用 bar 左侧的拖移图标；此处仅保留删除，避免与拖移功能重复 -->
-                <el-dropdown-item command="delete">删除</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+            <el-icon><Delete /></el-icon>
+          </el-button>
         </div>
 
         <!-- 选项：仅 radio / checkbox 列展示 -->
@@ -441,7 +420,7 @@ function fixedWidthStyle(width) {
             :key="opt.id || oi"
             class="opt-row"
           >
-            <span class="opt-index">{{ oi + 1 }}.</span>
+            <span class="opt-index">{{ oi + 1 }}</span>
             <el-input
               v-model="opt.label"
               :maxlength="20"
@@ -449,7 +428,7 @@ function fixedWidthStyle(width) {
               placeholder="请输入选项文字"
               class="opt-name-input"
             />
-            <button
+            <el-button
               v-if="col.options.length > 1"
               type="button"
               class="opt-del"
@@ -457,7 +436,7 @@ function fixedWidthStyle(width) {
               @click="removeOption(col, oi)"
             >
               <el-icon><Close /></el-icon>
-            </button>
+            </el-button>
           </div>
           <button
             v-if="col.options.length < 20"
@@ -729,28 +708,26 @@ function fixedWidthStyle(width) {
   flex-shrink: 0;
 }
 
-/* 「更多」下拉框按钮（替代原删除按钮） */
-.col-more {
+/* 删除列按钮 */
+.col-del {
   flex-shrink: 0;
-}
-
-.col-more-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   font-size: 14px;
-  color: var(--c-text-secondary);
+  color: var(--c-text-placeholder);
   background: transparent;
+  border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.col-more-icon:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-bg);
+.col-del:hover {
+  color: var(--c-danger);
+  background: #fef2f2;
 }
 
 /* 列选项 */
