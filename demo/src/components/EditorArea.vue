@@ -1,12 +1,12 @@
 <script setup>
 import { Delete, Plus, Setting } from '@element-plus/icons-vue'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { TYPE_GROUPS } from './ComponentLibrary.vue'
 import CardTabs from './CardTabs.vue'
 import QuestionCard from './QuestionCard.vue'
 import TypeChipGrid from './TypeChipGrid.vue'
 
-defineProps({
+const props = defineProps({
   form: { type: Object, required: true },
   page: { type: Object, default: null },
   activeQuestionId: { type: String, default: '' },
@@ -24,6 +24,7 @@ const emit = defineEmits([
   'remove-question',
   'duplicate-question',
   'switch-question-type',
+  'reorder-question',
   'save',
   'reset',
   'preview'
@@ -37,6 +38,76 @@ const popoverVisible = reactive({})
 function handlePick(cardId, type) {
   emit('pick-type', { cardId, type })
   popoverVisible[cardId] = false
+}
+
+/* -------------------- 题目上下拖动排序（同卡内） -------------------- */
+/**
+ * 拖动状态：{ cardIdx, fromIdx, overIdx }
+ * overIdx 是「插入位置」语义（0 ~ questions.length）
+ */
+const reorderState = ref(null)
+
+/** 每张卡片内各题目 DOM 的 ref 数组（按 cardIdx 索引） */
+const questionRefsByCard = ref([])
+
+function setQuestionRef(cardIdx, qIdx, el) {
+  if (!questionRefsByCard.value[cardIdx]) {
+    questionRefsByCard.value[cardIdx] = []
+  }
+  questionRefsByCard.value[cardIdx][qIdx] = el
+}
+
+/** 在 grip 上按下：开始拖动 */
+function startReorder(e, cardIdx, fromIdx) {
+  e.preventDefault()
+  reorderState.value = { cardIdx, fromIdx, overIdx: fromIdx }
+  document.body.style.cursor = 'grabbing'
+  document.body.style.userSelect = 'none'
+  window.addEventListener('mousemove', onReorderMove)
+  window.addEventListener('mouseup', endReorder)
+}
+
+/** 拖动中：计算鼠标 Y 落在哪个题目上 */
+function onReorderMove(e) {
+  if (!reorderState.value) return
+  const { cardIdx, fromIdx } = reorderState.value
+  const refs = questionRefsByCard.value[cardIdx] || []
+  const y = e.clientY
+  let target = fromIdx
+  for (let i = 0; i < refs.length; i++) {
+    const el = refs[i]
+    if (!el) continue
+    const rect = el.getBoundingClientRect()
+    const midY = rect.top + rect.height / 2
+    if (y < midY) {
+      target = i
+      break
+    }
+    target = i + 1
+  }
+  target = Math.max(0, Math.min(refs.length, target))
+  if (target !== reorderState.value.overIdx) {
+    reorderState.value.overIdx = target
+  }
+}
+
+/** 拖动结束：执行重排，emit 给 Editor */
+function endReorder() {
+  let payload = null
+  if (reorderState.value) {
+    const { cardIdx, fromIdx, overIdx } = reorderState.value
+    // overIdx 是「插入位置」；转换为 splice 索引
+    const insertAt = overIdx > fromIdx ? overIdx - 1 : overIdx
+    if (insertAt !== fromIdx) {
+      payload = { cardIdx, fromIdx, insertAt }
+    }
+  }
+  reorderState.value = null
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  window.removeEventListener('mousemove', onReorderMove)
+  window.removeEventListener('mouseup', endReorder)
+  if (payload) emit('reorder-question', payload)
 }
 </script>
 
@@ -74,7 +145,7 @@ function handlePick(cardId, type) {
 
           <!-- 卡片列表 -->
           <section
-            v-for="card in page.cards"
+            v-for="(card, cardIdx) in page.cards"
             :key="card.id"
             class="form-card"
           >
@@ -99,17 +170,40 @@ function handlePick(cardId, type) {
                 本卡片暂无题目，点下方题型或从左侧点击插入
               </p>
 
-              <QuestionCard
-                v-for="(q, i) in card.questions"
-                :key="q.id"
-                :question="q"
-                :index="i + 1"
-                :active="q.id === activeQuestionId"
-                @select="emit('select-question', $event)"
-                @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
-                @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
-                @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
-              />
+              <template v-for="(q, i) in card.questions" :key="q.id">
+                <!-- 占位条：拖到「在当前 q 之前」插入 -->
+                <div
+                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i && reorderState.fromIdx < i"
+                  class="q-placeholder"
+                />
+                <!-- 包裹层：承载拖动时的漂浮样式 -->
+                <div
+                  :ref="(el) => setQuestionRef(cardIdx, i, el)"
+                  class="q-drag-wrap"
+                  :class="{
+                    'is-dragging':
+                      reorderState &&
+                      reorderState.cardIdx === cardIdx &&
+                      reorderState.fromIdx === i
+                  }"
+                >
+                  <QuestionCard
+                    :question="q"
+                    :index="i + 1"
+                    :active="q.id === activeQuestionId"
+                    @select="emit('select-question', $event)"
+                    @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
+                    @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
+                    @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
+                    @grip-down="(e, qId) => startReorder(e, cardIdx, i)"
+                  />
+                </div>
+                <!-- 占位条：拖到「在最后一道题之后」插入 -->
+                <div
+                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i + 1 && reorderState.fromIdx > i"
+                  class="q-placeholder"
+                />
+              </template>
 
               <el-popover
                 :model-value="popoverVisible[card.id] || false"
@@ -175,7 +269,7 @@ function handlePick(cardId, type) {
 }
 
 .canvas {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--sp-xl) var(--sp-xl) 48px;
 }
@@ -340,6 +434,27 @@ function handlePick(cardId, type) {
 .dashed-btn.is-page {
   height: 44px;
   background: var(--c-panel);
+}
+
+/* ---------- 题目拖动排序（wrapper + 占位条）---------- */
+/* 被拖的题：主色高亮 + 虚线外框 + 漂浮阴影 */
+.q-drag-wrap.is-dragging {
+  opacity: 0.55;
+  outline: 1px dashed var(--c-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  cursor: grabbing;
+}
+
+/* 占位条：拖动时插入点指示，与列宽调节样式一致 */
+.q-placeholder {
+  height: 3px;
+  margin: 2px 0;
+  background: var(--c-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+  pointer-events: none;
 }
 
 /* ---------- 底部条 ---------- */

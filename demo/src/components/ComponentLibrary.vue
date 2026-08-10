@@ -145,6 +145,8 @@ export const LIST_COL_DEFAULT_WIDTH = 160
 
 /**
  * 新建一个列表列
+ * - width 默认 null：表示「自动撑满」，不预设固定宽度
+ * - 用户在列设置弹框拖动列的右边界后，width 才会写入具体像素值
  * @param {number} index 列序号（用于默认 name）
  * @param {object} [opts]
  * @param {string} [opts.colType='text'] 列类型
@@ -157,7 +159,7 @@ export function createListColumn(index, { colType = 'text', name } = {}) {
     colType,
     required: false,
     options: colType === 'radio' || colType === 'checkbox' ? [createOption(1)] : [],
-    width: LIST_COL_DEFAULT_WIDTH
+    width: null
   }
 }
 

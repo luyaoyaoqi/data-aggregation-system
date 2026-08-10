@@ -183,7 +183,8 @@ function changePage(idx) {
                           <th
                             v-for="col in (q.listColumns || [])"
                             :key="col.id"
-                            :style="{ minWidth: col.width + 'px' }"
+                            :class="{ 'is-fixed': col.width != null }"
+                            :style="col.width != null ? { width: col.width + 'px' } : null"
                           >
                             <span>{{ col.name }}</span>
                             <span v-if="col.required" class="pq-required">*</span>
@@ -192,7 +193,12 @@ function changePage(idx) {
                       </thead>
                       <tbody>
                         <tr>
-                          <td v-for="col in (q.listColumns || [])" :key="col.id">
+                          <td
+                            v-for="col in (q.listColumns || [])"
+                            :key="col.id"
+                            :class="{ 'is-fixed': col.width != null }"
+                            :style="col.width != null ? { width: col.width + 'px' } : null"
+                          >
                             <input
                               v-if="col.colType === 'text'"
                               class="pq-cell-input"
@@ -539,6 +545,13 @@ function changePage(idx) {
 .pq-list-table th:last-child,
 .pq-list-table td:last-child {
   border-right: none;
+}
+
+/* 设置了 width 的列：固定宽度，不被内容撑开 */
+.pq-list-table th.is-fixed,
+.pq-list-table td.is-fixed {
+  width: 0;
+  /* width 由内联 style 给具体值；这里仅声明存在性，让浏览器尊重它 */
 }
 
 .pq-list-table tr:last-child td {

@@ -127,6 +127,25 @@ function handleSelectQuestion(id) {
   activeQuestionId.value = id
 }
 
+/**
+ * 题目上下拖动排序（同卡内）
+ * payload: { cardIdx, fromIdx, insertAt }
+ * insertAt 是 splice 索引（已扣除 fromIdx 偏移）
+ */
+function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
+  if (!activePage.value) return
+  const card = activePage.value.cards[cardIdx]
+  if (!card) return
+  const qs = card.questions
+  if (fromIdx < 0 || fromIdx >= qs.length) return
+  if (fromIdx === insertAt) return
+  const [moved] = qs.splice(fromIdx, 1)
+  // 重新夹紧 insertAt，splice 后数组长度变化，原值可能越界
+  const target = Math.max(0, Math.min(qs.length, insertAt))
+  qs.splice(target, 0, moved)
+  ElMessage.success(`已调整题目顺序：${moved.title || '未命名题目'}`)
+}
+
 async function handleRemoveQuestion({ cardId, questionId }) {
   const card = activePage.value?.cards.find((c) => c.id === cardId)
   if (!card) return
@@ -281,6 +300,7 @@ function handleSave() {
             if (c.width != null && (c.width < 80 || c.width > 600)) {
               bad.push({ title: qName, reason: `第 ${ci + 1} 列宽需在 80-600 之间` })
             }
+            // width == null 视为「自动撑满」，合法
           }
         }
         if (!q.required) continue
@@ -368,6 +388,7 @@ function handlePreview() {
         @remove-question="handleRemoveQuestion"
         @duplicate-question="handleDuplicateQuestion"
         @switch-question-type="handleSwitchQuestionType"
+        @reorder-question="handleReorderQuestion"
         @save="handleSave"
         @reset="handleReset"
         @preview="handlePreview"

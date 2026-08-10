@@ -1,12 +1,10 @@
 <script setup>
-import { ArrowDown, Close, CopyDocument, Delete, Link, MoreFilled, Plus, Rank, Setting } from '@element-plus/icons-vue'
+import { ArrowDown, Close, CopyDocument, Delete, Link, Setting } from '@element-plus/icons-vue'
 import {
   OPTION_TYPES,
   getTypeLabel,
   createOption,
-  createListColumn,
-  LIST_COL_TYPES,
-  LIST_COL_DEFAULT_WIDTH
+  LIST_COL_TYPES
 } from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
 import ListQuestionSettings from './ListQuestionSettings.vue'
@@ -28,7 +26,7 @@ const props = defineProps({
   active: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['select', 'remove', 'duplicate', 'switch-type'])
+const emit = defineEmits(['select', 'remove', 'duplicate', 'switch-type', 'grip-down'])
 
 const hasOptions = computed(() => OPTION_TYPES.includes(props.question.type))
 const isRate = computed(() => props.question.type.endsWith('-rate'))
@@ -46,6 +44,13 @@ const currentTypeIcon = computed(
 function handleSwitchType(newType) {
   if (newType === props.question.type) return
   emit('switch-type', newType)
+}
+
+/** 拖动手柄按下：阻止默认行为 + 冒泡，emit 给父级协调重排 */
+function handleGripDown(e) {
+  e.preventDefault()
+  e.stopPropagation()
+  emit('grip-down', e, props.question.id)
 }
 
 /** 是否在当前题目上启用「设为默认选项」（仅 radio / radio-rate） */
@@ -195,49 +200,32 @@ function removeTag(i) {
 const isList = computed(() => props.question.type === 'list')
 const listCols = computed(() => props.question.listColumns || [])
 
+/** 列类型中文名（用于预览图第 2 行直接展示） */
+const colTypeLabelMap = Object.fromEntries(
+  LIST_COL_TYPES.map((t) => [t.value, t.label])
+)
+/**
+ * 单行文本 / 数字 / 日期 → 直接返回 label
+ * 单选 / 多选 → "单选（下拉：选项1、选项2）"（把选项值拼到括号里）
+ */
+function getColTypeLabel(col) {
+  const label = colTypeLabelMap[col.colType] || ''
+  if (
+    (col.colType === 'radio' || col.colType === 'checkbox') &&
+    Array.isArray(col.options) &&
+    col.options.length
+  ) {
+    const optsText = col.options.map((o) => o.label || '').filter(Boolean).join('、')
+    return label.replace('（下拉）', `（下拉：${optsText}）`)
+  }
+  return label
+}
+
 /** 列表列设置弹框 */
 const listSettingsVisible = ref(false)
 
 function openListSettings() {
   listSettingsVisible.value = true
-}
-
-/** 新增一列，默认单行文本 */
-function addListColumn() {
-  const col = createListColumn(listCols.value.length + 1)
-  listCols.value.push(col)
-}
-
-/** 删除列 */
-function removeListColumn(idx) {
-  listCols.value.splice(idx, 1)
-}
-
-/** 移动列：dir = -1 左移 / +1 右移 */
-function moveListColumn(idx, dir) {
-  const target = idx + dir
-  if (target < 0 || target >= listCols.value.length) return
-  const [moved] = listCols.value.splice(idx, 1)
-  listCols.value.splice(target, 0, moved)
-}
-
-/** 「更多」菜单命令 */
-function handleColMore({ idx, cmd }) {
-  if (cmd === 'left') moveListColumn(idx, -1)
-  else if (cmd === 'right') moveListColumn(idx, 1)
-  else if (cmd === 'delete') removeListColumn(idx)
-}
-
-/** 获取列类型的简短展示文本 */
-const colTypeShortMap = {
-  text: '文本',
-  number: '数字',
-  date: '日期',
-  radio: '下拉单选',
-  checkbox: '下拉多选'
-}
-function getColTypeShort(colType) {
-  return colTypeShortMap[colType] || colType
 }
 </script>
 
@@ -249,7 +237,7 @@ function getColTypeShort(colType) {
   >
     <!-- 题干行 -->
     <div class="q-head">
-      <el-icon class="q-drag" title="拖动排序"><Rank /></el-icon>
+      <el-icon class="q-drag" title="拖动排序" @mousedown="handleGripDown"><Rank /></el-icon>
       <span class="q-index">{{ index }}.</span>
       <input
         v-model="question.title"
@@ -462,59 +450,37 @@ function getColTypeShort(colType) {
             >{{ question.tags.length }} / {{ question.maxTags }}</span>
           </div>
           <div v-else-if="question.type === 'list'" class="list-editor">
-            <div class="list-cols">
-              <div
-                v-for="(col, i) in listCols"
-                :key="col.id"
-                class="list-col-chip"
-              >
-                <el-icon class="col-drag" title="拖动排序"><Rank /></el-icon>
-                <span
-                  class="col-name"
-                  :title="col.name"
-                  @click="openListSettings"
-                >{{ col.name }}</span>
-                <el-dropdown
-                  trigger="click"
-                  @command="(cmd) => handleColMore({ idx: i, cmd })"
-                >
-                  <el-icon class="col-more" title="更多"><MoreFilled /></el-icon>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="left" :disabled="i === 0">左移</el-dropdown-item>
-                      <el-dropdown-item
-                        command="right"
-                        :disabled="i === listCols.length - 1"
-                      >右移</el-dropdown-item>
-                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </div>
-              <button
-                v-if="listCols.length < 20"
-                type="button"
-                class="list-add-col"
-                title="新增列"
-                @click="addListColumn"
-              >
-                <el-icon><Plus /></el-icon>
-              </button>
-            </div>
-
             <p class="list-hint">
               应用端填报时可增删行；单选/多选列以下拉选择。
               <span v-if="listCols.length >= 20" class="list-warn">已达 20 列上限</span>
             </p>
 
-            <div class="list-toolbar">
-              <button type="button" class="list-tool-btn" @click="openListSettings">
-                <el-icon><Setting /></el-icon>
-                <span>列设置</span>
-              </button>
-              <span class="tool-bar-meta">
-                共 {{ listCols.length }} 列
-              </span>
+            <!-- 列表预览图：撑满父容器，2 行（表头 + 1 行内容），点击进入列设置 -->
+            <div class="list-table-preview" @click="openListSettings">
+              <div class="ltp-head">
+                <div
+                  v-for="col in listCols"
+                  :key="col.id"
+                  class="ltp-th"
+                  :class="{ 'is-fixed': col.width != null }"
+                  :style="col.width != null ? { width: col.width + 'px' } : null"
+                >
+                  <span class="ltp-name">{{ col.name || '未命名列' }}</span>
+                  <span v-if="col.required" class="ltp-required">*</span>
+                </div>
+              </div>
+              <div class="ltp-body">
+                <div
+                  v-for="col in listCols"
+                  :key="col.id"
+                  class="ltp-td"
+                  :class="{ 'is-fixed': col.width != null }"
+                  :style="col.width != null ? { width: col.width + 'px' } : null"
+                >
+                  <!-- 第 2 行：单行文本 / 数字 / 日期直接显示类型；单选 / 多选显示「类型（下拉：选项1、选项2）」 -->
+                  <div class="ltp-cell-text">{{ getColTypeLabel(col) }}</div>
+                </div>
+              </div>
             </div>
           </div>
           <div v-else-if="question.type === 'richtext'" class="rich-box">
@@ -593,7 +559,12 @@ function getColTypeShort(colType) {
 
 .q-drag {
   color: var(--c-text-placeholder);
-  cursor: grab;
+  cursor: move;
+  transition: color 0.15s ease;
+}
+
+.q-drag:hover {
+  color: var(--c-primary);
 }
 
 .q-index {
@@ -966,81 +937,7 @@ function getColTypeShort(colType) {
 }
 
 .list-cols {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-sm);
-  min-height: 32px;
-}
-
-.list-col-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 30px;
-  padding: 0 var(--sp-sm);
-  font-size: var(--fs-13);
-  color: var(--c-text-regular);
-  background: var(--c-fill);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-sm);
-  transition: all 0.15s ease;
-}
-
-.list-col-chip:hover {
-  border-color: var(--c-primary-border);
-  background: var(--c-primary-bg);
-  color: var(--c-primary);
-}
-
-.col-drag {
-  color: var(--c-text-placeholder);
-  cursor: grab;
-  font-size: 12px;
-}
-
-.list-col-chip:hover .col-drag {
-  color: var(--c-primary);
-}
-
-.col-name {
-  flex: 1;
-  min-width: 0;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.col-more {
-  color: var(--c-text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.col-more:hover {
-  color: var(--c-primary);
-}
-
-.list-add-col {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  font-size: 14px;
-  color: var(--c-primary);
-  background: transparent;
-  border: 1px dashed var(--c-primary-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.list-add-col:hover {
-  background: var(--c-primary-bg);
-  border-style: solid;
+  display: none;
 }
 
 .list-hint {
@@ -1055,40 +952,89 @@ function getColTypeShort(colType) {
   color: var(--c-danger);
 }
 
-.list-toolbar {
+/* ---------- 列表预览图（替代原 chip + 列设置按钮）---------- */
+.list-table-preview {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+  background: var(--c-panel);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.list-table-preview:hover {
+  border-color: var(--c-primary);
+}
+
+.ltp-head,
+.ltp-body {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.ltp-head {
+  background: var(--c-fill);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.ltp-th,
+.ltp-td {
+  min-width: 0;
+  flex: 1 1 0;
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: var(--fs-13);
+  border-right: 1px solid var(--c-line-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ltp-th:last-child,
+.ltp-td:last-child {
+  border-right: none;
+}
+
+.ltp-th.is-fixed,
+.ltp-td.is-fixed {
+  flex: 0 0 auto;
+}
+
+.ltp-th {
   display: flex;
   align-items: center;
-  gap: var(--sp-md);
-  padding-top: var(--sp-sm);
-  border-top: 1px dashed var(--c-line-light);
-}
-
-.list-tool-btn {
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
-  padding: 2px var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  background: transparent;
-  border: 1px dashed var(--c-primary-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-weight: 500;
+  color: var(--c-text);
 }
 
-.list-tool-btn:hover {
-  background: var(--c-primary-bg);
-  border-style: solid;
+.ltp-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tool-bar-meta {
-  font-family: var(--ff-mono);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  font-variant-numeric: tabular-nums;
+.ltp-required {
+  flex-shrink: 0;
+  color: var(--c-danger);
 }
+
+.ltp-td {
+  color: var(--c-text-regular);
+}
+
+/* 第 2 行直接显示类型名称（单行文本 / 数字 / 日期 / 单选（下拉：选项1、选项2）/ 多选（下拉：...）） */
+.ltp-cell-text {
+  font-size: var(--fs-13);
+  color: var(--c-text-placeholder);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 列设置按钮已删除，预览图替代 */
 
 .list-box {
   border: 1px solid var(--c-line);

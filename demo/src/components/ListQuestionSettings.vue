@@ -4,8 +4,8 @@
  * - 配置每一列的：列名 / 类型 / 必填 / 选项（仅 radio/checkbox）/ 列宽
  * - 支持新增 / 删除列（最多 20 列）
  */
-import { ref, computed, watch } from 'vue'
-import { Plus, Delete, Close } from '@element-plus/icons-vue'
+import { ref, computed, watch, nextTick } from 'vue'
+import { Plus, Delete, Close, MoreFilled, Rank } from '@element-plus/icons-vue'
 import {
   LIST_COL_TYPES,
   LIST_COL_DEFAULT_WIDTH,
@@ -78,6 +78,21 @@ function removeCol(idx) {
   draftCols.value.splice(idx, 1)
 }
 
+/** 移动列：dir = -1 左移 / +1 右移（被下拉框「更多」菜单调用） */
+function moveCol(idx, dir) {
+  const target = idx + dir
+  if (target < 0 || target >= draftCols.value.length) return
+  const [moved] = draftCols.value.splice(idx, 1)
+  draftCols.value.splice(target, 0, moved)
+}
+
+/** col-row 「更多」下拉框命令 */
+function handleRowMore(cmd, idx) {
+  if (cmd === 'left') moveCol(idx, -1)
+  else if (cmd === 'right') moveCol(idx, 1)
+  else if (cmd === 'delete') removeCol(idx)
+}
+
 /** 列内选项操作 */
 function addOption(col) {
   if (col.options.length >= 20) {
@@ -139,21 +154,42 @@ const WIDTH_PRESETS = [120, 160, 200, 240, 300]
 /* -------------------- 列宽拖拽调节 -------------------- */
 /** 拖拽状态：{ idx, startX, startWidth } */
 const resizeState = ref(null)
+/** 拖拽条容器 ref（用来测实际宽度） */
+const widthBarsRef = ref(null)
+/** 每个 bar 的 ref（用于重排时计算鼠标位置） */
+const widthBarRefs = ref([])
 
-/** 视觉预览条总宽度（用来给 scroll 容器兜底，避免列总宽过窄挤在一起） */
-const previewTotalWidth = computed(() =>
-  draftCols.value.reduce((s, c) => s + (c.width || LIST_COL_DEFAULT_WIDTH), 0)
-)
+/**
+ * 计算 idx 这一列在「当前没有固定宽度」的情况下应该占的等分宽度
+ * = (容器宽 - 其它固定列总宽) / 自动列数
+ */
+function computeAutoWidth(idx, containerWidth) {
+  const cols = draftCols.value
+  const fixedTotal = cols.reduce(
+    (s, c, i) => s + (c.width != null ? c.width : 0),
+    0
+  )
+  const autoCount = cols.filter((c) => c.width == null).length
+  if (autoCount <= 0) return COL_WIDTH_MIN
+  const remain = containerWidth - fixedTotal
+  return Math.max(COL_WIDTH_MIN, Math.floor(remain / autoCount))
+}
 
 /** 鼠标按下：开始拖拽 */
 function startResize(e, idx) {
   e.preventDefault()
   e.stopPropagation()
   const col = draftCols.value[idx]
+  // 测一下当前预览条的实际宽度，用于自动列的起始等分值
+  const containerWidth = widthBarsRef.value?.clientWidth || 0
+  const startWidth =
+    col.width != null
+      ? col.width
+      : computeAutoWidth(idx, containerWidth)
   resizeState.value = {
     idx,
     startX: e.clientX,
-    startWidth: col.width || LIST_COL_DEFAULT_WIDTH
+    startWidth
   }
   document.body.style.cursor = 'col-resize'
   document.body.style.userSelect = 'none'
@@ -183,14 +219,80 @@ function onResizeEnd() {
   window.removeEventListener('mouseup', onResizeEnd)
 }
 
-/** 列宽输入框手动调整时也走夹紧逻辑 */
+/** 列宽输入框手动调整：清空则回到「自动撑满」 */
 function clampColWidth(col) {
   if (col.width == null || Number.isNaN(col.width)) {
-    col.width = LIST_COL_DEFAULT_WIDTH
+    col.width = null
     return
   }
   const v = Math.round(col.width / COL_WIDTH_STEP) * COL_WIDTH_STEP
   col.width = Math.max(COL_WIDTH_MIN, Math.min(COL_WIDTH_MAX, v))
+}
+
+/* -------------------- 列重排拖拽（仅在 bar 左侧手柄上触发） -------------------- */
+/** 拖拽重排状态：{ fromIdx, overIdx } */
+const reorderState = ref(null)
+
+/** 鼠标按下：开始重排拖拽 */
+function startReorder(e, idx) {
+  // 只在手柄触发，冒泡已由 e.stopPropagation 拦掉，避免与 width-handle 冲突
+  e.preventDefault()
+  e.stopPropagation()
+  reorderState.value = { fromIdx: idx, overIdx: idx }
+  document.body.style.cursor = 'grabbing'
+  document.body.style.userSelect = 'none'
+  window.addEventListener('mousemove', onReorderMove)
+  window.addEventListener('mouseup', endReorder)
+}
+
+/** 拖拽中：根据鼠标 X 位置计算目标插入点 */
+function onReorderMove(e) {
+  if (!reorderState.value) return
+  const x = e.clientX
+  let target = reorderState.value.fromIdx
+  for (let i = 0; i < widthBarRefs.value.length; i++) {
+    const el = widthBarRefs.value[i]
+    if (!el) continue
+    const rect = el.getBoundingClientRect()
+    const midX = rect.left + rect.width / 2
+    if (x < midX) {
+      target = i
+      break
+    }
+    target = i + 1
+  }
+  target = Math.max(0, Math.min(draftCols.value.length, target))
+  if (target !== reorderState.value.overIdx) {
+    reorderState.value.overIdx = target
+  }
+}
+
+/** 拖拽结束：执行重排 */
+function endReorder() {
+  if (reorderState.value) {
+    const { fromIdx, overIdx } = reorderState.value
+    // overIdx 是「插入位置」语义；转换为 splice 索引
+    const insertAt = overIdx > fromIdx ? overIdx - 1 : overIdx
+    if (insertAt !== fromIdx) {
+      const [moved] = draftCols.value.splice(fromIdx, 1)
+      draftCols.value.splice(insertAt, 0, moved)
+    }
+  }
+  reorderState.value = null
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  window.removeEventListener('mousemove', onReorderMove)
+  window.removeEventListener('mouseup', endReorder)
+}
+
+/** 自动列样式（撑满剩余空间） */
+function autoFlexStyle() {
+  return { flex: '1 1 0', minWidth: COL_WIDTH_MIN + 'px' }
+}
+
+/** 固定列样式（按宽度渲染） */
+function fixedWidthStyle(width) {
+  return { flex: `0 0 ${width}px`, width: width + 'px' }
 }
 </script>
 
@@ -198,7 +300,7 @@ function clampColWidth(col) {
   <el-dialog
     v-model="visible"
     title="列设置"
-    width="960px"
+    width="1000px"
     align-center
     class="list-settings-dialog"
     @close="handleClose"
@@ -211,27 +313,51 @@ function clampColWidth(col) {
     <div class="width-preview">
       <div class="width-preview-head">
         <span class="width-preview-title">列宽调节</span>
-        <span class="width-preview-tip">拖动列的右边缘调节宽度（{{ COL_WIDTH_MIN }}-{{ COL_WIDTH_MAX }}px）</span>
+        <span class="width-preview-tip">
+          默认自动撑满；拖动列的右边缘可设为固定宽度（{{ COL_WIDTH_MIN }}-{{ COL_WIDTH_MAX }}px）
+        </span>
       </div>
       <div class="width-bars-scroll">
-        <div
-          class="width-bars"
-          :style="{ width: Math.max(previewTotalWidth, 320) + 'px' }"
-        >
-          <div
-            v-for="(col, i) in draftCols"
-            :key="col.id || i"
-            class="width-bar"
-            :style="{ width: col.width + 'px' }"
-          >
-            <span class="width-bar-name" :title="col.name">{{ col.name || `第${i + 1}列` }}</span>
-            <span class="width-bar-px">{{ col.width }}px</span>
-            <span
-              class="width-bar-handle"
-              :class="{ 'is-dragging': resizeState?.idx === i }"
-              @mousedown="(e) => startResize(e, i)"
+        <div ref="widthBarsRef" class="width-bars">
+          <template v-for="(col, i) in draftCols" :key="col.id || i">
+            <!-- 占位条：拖到目标位置时显示 -->
+            <div
+              v-if="reorderState && reorderState.overIdx === i && reorderState.fromIdx < i"
+              class="width-bar-placeholder"
             />
-          </div>
+            <div
+              :ref="(el) => (widthBarRefs[i] = el)"
+              class="width-bar"
+              :class="{
+                'is-auto': col.width == null,
+                'is-fixed': col.width != null,
+                // 仅标记「被拖的列」；目标插入位置已用 .width-bar-placeholder 占位条单独显示，不再叠加半透明
+                'is-dragging':
+                  reorderState && reorderState.fromIdx === i
+              }"
+              :style="col.width != null ? fixedWidthStyle(col.width) : autoFlexStyle()"
+            >
+              <el-icon
+                class="width-bar-grip"
+                title="拖动排序"
+                @mousedown="(e) => startReorder(e, i)"
+              ><Rank /></el-icon>
+              <span class="width-bar-name" :title="col.name">{{ col.name || `第${i + 1}列` }}</span>
+              <span class="width-bar-px">
+                {{ col.width != null ? `${col.width}px` : '自动' }}
+              </span>
+              <span
+                class="width-bar-handle"
+                :class="{ 'is-dragging': resizeState?.idx === i }"
+                @mousedown="(e) => startResize(e, i)"
+              />
+            </div>
+            <!-- 占位条：拖到末尾时显示 -->
+            <div
+              v-if="reorderState && reorderState.overIdx === i + 1 && reorderState.fromIdx > i"
+              class="width-bar-placeholder"
+            />
+          </template>
         </div>
       </div>
     </div>
@@ -265,8 +391,7 @@ function clampColWidth(col) {
             />
           </el-select>
           <div class="col-required">
-            <span class="col-required-label">必填</span>
-            <el-switch v-model="col.required" size="small" />
+            <el-checkbox v-model="col.required" class="col-required-checkbox">必填</el-checkbox>
           </div>
           <el-input-number
             v-model="col.width"
@@ -278,14 +403,19 @@ function clampColWidth(col) {
             placeholder="宽度"
             @change="clampColWidth(col)"
           />
-          <button
-            type="button"
-            class="col-del"
-            title="删除该列"
-            @click="removeCol(i)"
+          <el-dropdown
+            trigger="click"
+            class="col-more"
+            @command="(cmd) => handleRowMore(cmd, i)"
           >
-            <el-icon><Delete /></el-icon>
-          </button>
+            <el-icon class="col-more-icon" title="更多"><MoreFilled /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <!-- 排序请用 bar 左侧的拖移图标；此处仅保留删除，避免与拖移功能重复 -->
+                <el-dropdown-item command="delete">删除</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
 
         <!-- 选项：仅 radio / checkbox 列展示 -->
@@ -387,6 +517,7 @@ function clampColWidth(col) {
 .width-bars {
   display: flex;
   align-items: stretch;
+  width: 100%;
   min-height: 36px;
 }
 
@@ -395,15 +526,55 @@ function clampColWidth(col) {
   display: flex;
   align-items: center;
   gap: var(--sp-xs);
-  flex-shrink: 0;
   padding: 0 var(--sp-sm);
-  font-size: var(--fs-12);
+  font-size: var(--fs-14);
   color: var(--c-text-regular);
   background: var(--c-fill);
   border-right: 1px solid var(--c-line);
-  /* 关闭 overflow:hidden，让右侧的拖拽手柄（right: -3px）能溢出可见 */
   white-space: nowrap;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease, color 0.15s ease;
+}
+
+/* 重排占位条：拖到目标位置时显示，加粗 + 蓝色发光，更显眼 */
+.width-bar-placeholder {
+  flex: 0 0 3px;
+  margin: 0 -1.5px;
+  background: var(--c-primary);
+  border-radius: 2px;
+  align-self: stretch;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+}
+
+/* 被拖动的 bar：主色高亮 + 虚线边框 + 漂浮阴影，区别于普通列 */
+.width-bar.is-dragging {
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+  border-right-color: var(--c-primary);
+  /* 用 outline 而非 border，避免占据布局空间破坏 flex 等分 */
+  outline: 1px dashed var(--c-primary);
+  outline-offset: -1px;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+  z-index: 2;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.width-bar.is-dragging .width-bar-grip {
+  color: var(--c-primary);
+}
+
+.width-bar.is-dragging .width-bar-px {
+  color: var(--c-primary);
+  font-style: normal;
+}
+
+/* 自动列：撑满剩余空间，视觉上偏柔和 */
+.width-bar.is-auto {
+  background: transparent;
+  color: var(--c-text-secondary);
+  border-right-style: dashed;
 }
 
 .width-bar:hover {
@@ -429,6 +600,11 @@ function clampColWidth(col) {
   font-variant-numeric: tabular-nums;
 }
 
+.width-bar.is-auto .width-bar-px {
+  color: var(--c-text-placeholder);
+  font-style: italic;
+}
+
 .width-bar-handle {
   position: absolute;
   top: 0;
@@ -445,6 +621,21 @@ function clampColWidth(col) {
   background: var(--c-primary);
   opacity: 0.5;
 }
+
+/* 左侧拖拽手柄：整列重排 */
+.width-bar-grip {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--c-text-placeholder);
+  cursor: move;
+  transition: color 0.15s ease;
+}
+
+.width-bar-grip:hover {
+  color: var(--c-primary);
+}
+
+/* 拖动中：保持 move，cursor 由 body 全局锁定为 grabbing，避免反复切换 */
 
 .col-list {
   display: flex;
@@ -464,7 +655,7 @@ function clampColWidth(col) {
 .col-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-sm);
+  gap: var(--sp-md);
 }
 
 .col-index {
@@ -483,21 +674,23 @@ function clampColWidth(col) {
 }
 
 .col-type-select {
-  width: 140px;
+  width: 240px;
   flex-shrink: 0;
 }
 
 .col-required {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
   flex-shrink: 0;
   padding: 0 var(--sp-xs);
 }
 
-.col-required-label {
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
+/* 与外边统一：checkbox 样式压小一点，匹配其它字段行高 */
+.col-required-checkbox {
+  height: 32px;
+}
+
+.col-required-checkbox :deep(.el-checkbox__label) {
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
 }
 
 .col-width-input {
@@ -505,25 +698,28 @@ function clampColWidth(col) {
   flex-shrink: 0;
 }
 
-.col-del {
+/* 「更多」下拉框按钮（替代原删除按钮） */
+.col-more {
   flex-shrink: 0;
+}
+
+.col-more-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   font-size: 14px;
-  color: var(--c-text-placeholder);
+  color: var(--c-text-secondary);
   background: transparent;
-  border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.col-del:hover {
-  color: var(--c-danger);
-  background: #fef2f2;
+.col-more-icon:hover {
+  color: var(--c-primary);
+  background: var(--c-primary-bg);
 }
 
 /* 列选项 */

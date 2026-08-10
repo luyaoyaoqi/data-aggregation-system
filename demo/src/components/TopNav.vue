@@ -13,7 +13,7 @@ const active = ref('form')
     <div class="nav-left">
       <button type="button" class="back-btn">
         <el-icon><ArrowLeft /></el-icon>
-        <span>采集通</span>
+        <span>数据采集系统</span>
       </button>
 
       <nav class="nav-menu">
