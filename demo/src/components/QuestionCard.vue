@@ -526,7 +526,7 @@ function openListSettings() {
 .question-card {
   padding: var(--sp-lg);
   background: var(--c-panel);
-  border: 1px solid transparent;
+  border: 1px dashed var(--c-line);
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -538,6 +538,7 @@ function openListSettings() {
 
 .question-card.is-active {
   border-color: var(--c-primary);
+  border-style: solid;
   background: var(--c-panel);
   box-shadow: 0 0 0 3px var(--c-primary-bg);
 }
