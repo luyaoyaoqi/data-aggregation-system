@@ -47,6 +47,7 @@ const nextId = (prefix) => `${prefix}_${Date.now().toString(36)}_${++seed}`
 
 /** 新建一道题目 */
 export function createQuestion(type) {
+  const isRate = type.endsWith('-rate')
   const q = {
     id: nextId('q'),
     type,
@@ -65,23 +66,28 @@ export function createQuestion(type) {
     options: []
   }
   if (OPTION_TYPES.includes(type)) {
-    q.options = [
-      { id: nextId('o'), label: '选项1', isDefault: false, linkType: null, linkData: null, displayName: '' },
-      { id: nextId('o'), label: '选项2', isDefault: false, linkType: null, linkData: null, displayName: '' },
-      { id: nextId('o'), label: '选项3', isDefault: false, linkType: null, linkData: null, displayName: '' }
-    ]
+    q.options = [1, 2, 3].map((i) => createOption(i, { withScore: isRate }))
   }
   return q
 }
 
-export function createOption(index) {
+/**
+ * 新建一个选项
+ * @param {number} index 选项序号（用于默认 label）
+ * @param {object} [opts]
+ * @param {boolean} [opts.withScore=false] 是否带分数；仅 *-rate 题型传 true
+ */
+export function createOption(index, { withScore = false } = {}) {
   return {
     id: nextId('o'),
     label: `选项${index}`,
     isDefault: false,
     linkType: null,
     linkData: null,
-    displayName: ''
+    displayName: '',
+    // 评分：-rate 类型用，非必填；范围 [-9999, 9999]，支持 2 位小数
+    // null 表示未设置 → 不参与计算
+    score: withScore ? index : null
   }
 }
 

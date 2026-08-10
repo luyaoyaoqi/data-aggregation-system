@@ -43,7 +43,8 @@ watch(
   (type) => {
     if (!type || !props.question) return
     if (OPTION_TYPES.includes(type) && props.question.options.length === 0) {
-      props.question.options = [1, 2, 3].map((i) => createOption(i))
+      const withScore = type.endsWith('-rate')
+      props.question.options = [1, 2, 3].map((i) => createOption(i, { withScore }))
     }
   }
 )

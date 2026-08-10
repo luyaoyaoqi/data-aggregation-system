@@ -212,7 +212,22 @@ async function handleRemove() {
               placeholder="请输入选项"
             />
 
-            <span v-if="isRate" class="option-score">{{ i + 1 }} 分</span>
+            <el-input-number
+              v-if="isRate"
+              v-model="opt.score"
+              :min="-9999"
+              :max="9999"
+              :precision="2"
+              controls-position="right"
+              placeholder="评分"
+              :controls="false"
+              class="option-score-input"
+              @click.stop
+            >
+              <template #suffix>
+                <span v-if="opt.score != null" class="option-score-suffix">分</span>
+              </template>
+            </el-input-number>
 
             <!-- 默认项标签（radio/radio-rate 启用 defaultOption 后展示） -->
             <span
@@ -502,9 +517,38 @@ async function handleRemove() {
   background: #fff;
 }
 
-.option-score {
-  font-size: var(--fs-12);
+.option-score-input {
+  flex-shrink: 0;
+  width: 96px;
+}
+
+/* 与 .option-input 视觉一致：透明底 + 悬浮显边框 + focus 主色 */
+.option-score-input :deep(.el-input__wrapper) {
+  padding: 1px 8px;
+  background: transparent;
+  box-shadow: 0 0 0 1px transparent inset;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.option-score-input:hover :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--c-line) inset;
+}
+
+.option-score-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--c-primary) inset;
+  background: #fff;
+}
+
+.option-score-input :deep(.el-input__inner) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.option-score-suffix {
+  font-size: var(--fs-14);
   color: var(--c-text-secondary);
+  margin-left: 4px;
 }
 
 /* 已关联：展示名 + 关联标签 + 删除关联 */

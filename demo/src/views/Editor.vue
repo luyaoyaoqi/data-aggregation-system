@@ -164,7 +164,8 @@ function handleDuplicateQuestion({ cardId, questionId }) {
     isDefault: !!o.isDefault,
     linkType: o.linkType || null,
     linkData: o.linkData || null,
-    displayName: o.displayName || ''
+    displayName: o.displayName || '',
+    score: o.score ?? null
   }))
   card.questions.splice(i + 1, 0, copy)
   activeQuestionId.value = copy.id

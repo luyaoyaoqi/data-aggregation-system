@@ -134,7 +134,13 @@ function changePage(idx) {
                     class="pq-mark"
                     :class="q.type.startsWith('checkbox') ? 'is-square' : ''"
                   />
-                  <span>{{ opt.linkType ? (opt.displayName || opt.linkData?.name) : opt.label }}</span>
+                  <span class="pq-label">{{ opt.linkType ? (opt.displayName || opt.linkData?.name) : opt.label }}</span>
+                  <span
+                    v-if="q.type.endsWith('-rate') && opt.score != null"
+                    class="pq-score"
+                  >
+                    ({{ opt.score }}分)
+                  </span>
                 </label>
               </div>
 
@@ -323,6 +329,18 @@ function changePage(idx) {
   gap: var(--sp-sm);
   font-size: var(--fs-14);
   color: var(--c-text-regular);
+}
+
+.pq-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.pq-score {
+  margin-left: auto;
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .pq-option.is-default .pq-mark {
