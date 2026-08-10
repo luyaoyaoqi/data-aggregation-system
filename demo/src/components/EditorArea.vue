@@ -23,6 +23,7 @@ const emit = defineEmits([
   'select-question',
   'remove-question',
   'duplicate-question',
+  'switch-question-type',
   'save',
   'reset',
   'preview'
@@ -107,6 +108,7 @@ function handlePick(cardId, type) {
                 @select="emit('select-question', $event)"
                 @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
                 @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
+                @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
               />
 
               <el-popover

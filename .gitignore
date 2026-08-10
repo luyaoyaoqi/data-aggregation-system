@@ -45,3 +45,4 @@ coverage/
 
 # ============ TypeScript 缓存（即使本项目用 JS，预留）============
 *.tsbuildinfo
+.gstack/

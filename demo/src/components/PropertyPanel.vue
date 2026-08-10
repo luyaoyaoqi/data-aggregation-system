@@ -52,9 +52,7 @@ watch(
 
     <el-scrollbar v-else class="panel-body">
       <el-form label-position="top" class="panel-form">
-        <el-form-item label="题干">
-          <el-input v-model="question.title" placeholder="请输入题目标题" />
-        </el-form-item>
+        <!-- 题干/题型：中间编辑区已有，右侧隐藏，避免重复 -->
 
         <el-form-item label="题目说明（选填，填写者可见）">
           <el-input
@@ -62,25 +60,10 @@ watch(
             type="textarea"
             :rows="3"
             resize="none"
+            maxlength="40"
+            show-word-limit
             placeholder="请输入题目说明"
           />
-        </el-form-item>
-
-        <el-form-item label="题型">
-          <el-select v-model="question.type" placeholder="请选择题型" class="w-full">
-            <el-option-group
-              v-for="g in groups"
-              :key="g.name"
-              :label="g.name"
-            >
-              <el-option
-                v-for="item in g.items"
-                :key="item.type"
-                :label="item.label"
-                :value="item.type"
-              />
-            </el-option-group>
-          </el-select>
         </el-form-item>
 
         <el-form-item v-if="hasOptions" label="选项排列">
@@ -109,6 +92,18 @@ watch(
           <span class="switch-label">设为查询条件</span>
           <el-switch v-model="question.asQuery" />
         </div>
+        <el-form
+          v-if="question.asQuery"
+          label-position="top"
+          class="section-form"
+        >
+          <el-form-item label="查询形式">
+            <el-select v-model="question.queryType" class="w-full">
+              <el-option label="单选查询" value="single" />
+              <el-option label="多选查询" value="multiple" />
+            </el-select>
+          </el-form-item>
+        </el-form>
         <p class="section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
       </div>
 
@@ -193,6 +188,10 @@ watch(
   font-size: var(--fs-12);
   color: var(--c-text-placeholder);
   line-height: 18px;
+}
+
+.section-form {
+  margin-top: var(--sp-md);
 }
 
 .w-full {

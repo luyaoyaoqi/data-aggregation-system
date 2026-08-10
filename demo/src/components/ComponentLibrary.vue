@@ -56,6 +56,7 @@ export function createQuestion(type) {
     columns: 'single', // single | double 选项排列
     allowClear: true, // 允许清空
     asQuery: false, // 设为查询条件
+    queryType: 'single', // 查询形式：single | multiple（仅 asQuery 开启时生效）
     showInList: true, // 在数据列表中显示
     defaultOption: false, // 设为默认选项
     linkField: false, // 选项关联字段

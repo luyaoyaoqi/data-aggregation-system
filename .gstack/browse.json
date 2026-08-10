@@ -1,8 +1,8 @@
 {
-  "pid": 15148,
-  "port": 47467,
-  "token": "fee4dfa4-a8e2-4509-8660-0556ec3a52f4",
-  "startedAt": "2026-08-10T03:26:57.441Z",
+  "pid": 22690,
+  "port": 32984,
+  "token": "eb6fee5c-c74b-43c2-870e-b3833a91c41d",
+  "startedAt": "2026-08-10T04:47:04.076Z",
   "serverPath": "/Users/luyao/.claude/skills/browse/src/server.ts",
   "mode": "launched",
   "configHash": "303a7eeccc03078b"

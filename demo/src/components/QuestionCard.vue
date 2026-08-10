@@ -1,7 +1,18 @@
 <script setup>
-import { Close, CopyDocument, Delete, Link, Plus, Rank } from '@element-plus/icons-vue'
+import { ArrowDown, Close, CopyDocument, Delete, Link, Plus, Rank } from '@element-plus/icons-vue'
 import { OPTION_TYPES, getTypeLabel, createOption } from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
+
+/**
+ * 7 切换：选项类 4 种题型互相切换的下拉数据
+ * icon 与 ComponentLibrary.vue 选择组保持一致（16×16 stroke）
+ */
+const SWITCHABLE_TYPES = [
+  { type: 'radio', label: '单选', icon: '<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.4" fill="currentColor" stroke="none"/>' },
+  { type: 'checkbox', label: '多选', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5 8.2l2 2 4-4.4"/>' },
+  { type: 'radio-rate', label: '单选打分', icon: '<circle cx="8" cy="8" r="6"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' },
+  { type: 'checkbox-rate', label: '多选打分', icon: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M8 4.8l0.95 1.92 2.12 0.31-1.53 1.49 0.36 2.1L8 9.6l-1.9 1.02 0.36-2.1-1.53-1.49 2.12-0.31z" fill="currentColor" stroke="none"/>' }
+]
 
 const props = defineProps({
   question: { type: Object, required: true },
@@ -9,7 +20,7 @@ const props = defineProps({
   active: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['select', 'remove', 'duplicate'])
+const emit = defineEmits(['select', 'remove', 'duplicate', 'switch-type'])
 
 const hasOptions = computed(() => OPTION_TYPES.includes(props.question.type))
 const isRate = computed(() => props.question.type.endsWith('-rate'))
@@ -17,6 +28,17 @@ const isRadio = computed(
   () => props.question.type === 'radio' || props.question.type === 'radio-rate'
 )
 const typeLabel = computed(() => getTypeLabel(props.question.type))
+
+/** 是否在题目右上角显示可点击的题型下拉（仅选项类 4 种支持切换） */
+const canSwitchType = computed(() => OPTION_TYPES.includes(props.question.type))
+const currentTypeIcon = computed(
+  () => SWITCHABLE_TYPES.find((t) => t.type === props.question.type)?.icon || ''
+)
+
+function handleSwitchType(newType) {
+  if (newType === props.question.type) return
+  emit('switch-type', newType)
+}
 
 /** 是否在当前题目上启用「设为默认选项」（仅 radio / radio-rate） */
 const showDefaultSwitch = computed(
@@ -105,7 +127,52 @@ async function handleRemove() {
         placeholder="请输入题目标题"
       />
       <span v-if="question.required" class="q-required">*</span>
-      <span class="q-type-tag">{{ typeLabel }}</span>
+      <!-- 选项类 4 种：题型可点击下拉切换 -->
+      <el-dropdown
+        v-if="canSwitchType"
+        trigger="click"
+        class="q-type-switch"
+        @command="handleSwitchType"
+      >
+        <span class="q-type-tag is-switchable" @click.stop>
+          <svg
+            class="q-type-icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            v-html="currentTypeIcon"
+          />
+          <span>{{ typeLabel }}</span>
+          <el-icon class="q-type-arrow"><ArrowDown /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item
+              v-for="t in SWITCHABLE_TYPES"
+              :key="t.type"
+              :command="t.type"
+              :disabled="t.type === question.type"
+            >
+              <svg
+                class="q-type-icon"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                v-html="t.icon"
+              />
+              <span>{{ t.label }}</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <!-- 其它题型：只读标签 -->
+      <span v-else class="q-type-tag">{{ typeLabel }}</span>
     </div>
 
     <p v-if="question.desc" class="q-desc">{{ question.desc }}</p>
@@ -335,11 +402,41 @@ async function handleRemove() {
 
 .q-type-tag {
   flex-shrink: 0;
-  padding: 2px var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm);
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
   background: var(--c-fill);
   border-radius: var(--radius-sm);
+}
+
+.q-type-tag.is-switchable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.q-type-tag.is-switchable:hover {
+  color: var(--c-primary);
+  background: var(--c-primary-bg);
+}
+
+.q-type-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.q-type-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* el-dropdown 菜单项里也用同样的图标 */
+.el-dropdown-menu .q-type-icon {
+  vertical-align: -2px;
+  margin-right: 6px;
 }
 
 .q-desc {

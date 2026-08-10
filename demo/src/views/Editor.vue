@@ -171,6 +171,28 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   ElMessage.success('已复制题目')
 }
 
+/**
+ * 7 切换：选项类 4 种题型之间互相切换
+ * - options/columns/defaultOption/linkField/desc/required/title 全部保留
+ * - 单选 ↔ 多选（radio↔checkbox / radio-rate↔checkbox-rate）时清掉 isDefault
+ */
+function handleSwitchQuestionType({ cardId, questionId, newType }) {
+  const card = activePage.value?.cards.find((c) => c.id === cardId)
+  if (!card) return
+  const q = card.questions.find((x) => x.id === questionId)
+  if (!q || q.type === newType) return
+  const oldIsRadio =
+    q.type === 'radio' || q.type === 'radio-rate'
+  const newIsRadio =
+    newType === 'radio' || newType === 'radio-rate'
+  q.type = newType
+  // 单选↔多选时，多选无「默认」概念，清掉
+  if (oldIsRadio !== newIsRadio && q.options?.length) {
+    q.options.forEach((o) => (o.isDefault = false))
+  }
+  ElMessage.success('已切换题型')
+}
+
 /* ------------------------------ 全局操作 ------------------------------ */
 function handleSave() {
   const title = (form.value.title || '').trim()
@@ -232,6 +254,7 @@ function handlePreview() {
         @select-question="handleSelectQuestion"
         @remove-question="handleRemoveQuestion"
         @duplicate-question="handleDuplicateQuestion"
+        @switch-question-type="handleSwitchQuestionType"
         @save="handleSave"
         @reset="handleReset"
         @preview="handlePreview"
