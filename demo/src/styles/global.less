@@ -256,6 +256,65 @@
   border-radius: var(--radius);
 }
 
+// ============================ 标签文本输入 ============================
+// 标签 + 内联输入框 + 计数器，单一描边容器；编辑器（QuestionCard）和使用端（FormFill）共用
+.tag-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-xs);
+  min-height: 32px;
+  padding: 4px 11px;
+  border: 1px solid var(--c-line-light);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  transition: border-color var(--dur) var(--ease);
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: var(--c-text-placeholder);
+  }
+
+  &:focus-within {
+    border-color: var(--c-primary);
+  }
+}
+
+.tag-chip {
+  margin-right: 0;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 120px;
+  height: 28px;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: var(--c-text-placeholder);
+  }
+}
+
+.tag-counter {
+  flex-shrink: 0;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+  padding-left: var(--sp-sm);
+  border-left: 1px solid var(--c-line-light);
+  margin-left: auto;
+
+  &.is-full {
+    color: var(--c-danger);
+  }
+}
+
 // ============================ 富文本编辑器 ============================
 // 替代原 QuestionCard 的 .rich-* 与 PreviewDialog 的 .pq-rte-* 两套重复样式
 .rte {

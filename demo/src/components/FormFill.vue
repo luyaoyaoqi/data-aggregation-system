@@ -125,27 +125,62 @@ function removeImage(q, idx) {
 function getTags(q) {
   return Array.isArray(answers.value[q.id]) ? answers.value[q.id] : []
 }
-function canAddTag(q) {
-  if (q.maxTags == null) return true
-  return getTags(q).length < q.maxTags
-}
 function addTag(q) {
   if (props.readonly) return
   const raw = (tagInputs.value[q.id] || '').trim()
   if (!raw) return
-  const cur = [...getTags(q)]
-  if (!q.allowDuplicate && cur.includes(raw)) {
-    ElMessage.warning('标签已存在')
+  // 多种分隔符：英文/中文逗号、分号、换行
+  const items = raw
+    .split(/[,，;；\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (!items.length) {
     tagInputs.value[q.id] = ''
     return
   }
-  if (q.maxTags != null && cur.length >= q.maxTags) {
-    ElMessage.warning(`最多 ${q.maxTags} 个标签`)
-    return
+  const cur = [...getTags(q)]
+  let added = 0
+  let dupOrMax = 0
+  let overSized = 0
+  for (const v of items) {
+    if (v.length > 40) {
+      overSized++
+      continue
+    }
+    if (q.maxTags != null && cur.length >= q.maxTags) {
+      dupOrMax++
+      continue
+    }
+    if (!q.allowDuplicate && cur.includes(v)) {
+      dupOrMax++
+      continue
+    }
+    cur.push(v)
+    added++
   }
-  cur.push(raw)
-  answers.value[q.id] = cur
   tagInputs.value[q.id] = ''
+  answers.value[q.id] = cur
+  // 仅在全部失败时给提示；部分成功不打断
+  if (added === 0) {
+    if (overSized && !dupOrMax) {
+      ElMessage.warning('单标签最多 40 字符')
+    } else {
+      const reasons = []
+      if (dupOrMax && q.maxTags != null) reasons.push('已达上限')
+      if (dupOrMax && !q.allowDuplicate) reasons.push('禁止重复')
+      ElMessage.warning(reasons.length ? reasons.join(' / ') : '未添加任何标签')
+    }
+  }
+}
+
+/** 中文逗号 / 分号 也触发提交（避免中文输入法下 Enter 失效的情况） */
+function handleTagKeydown(q, e) {
+  // 中文输入法组合中不触发（避免拼音输入到一半被吞）
+  if (e.isComposing || e.keyCode === 229) return
+  if (e.key === ',' || e.key === '，' || e.key === ';' || e.key === '；') {
+    e.preventDefault()
+    addTag(q)
+  }
 }
 function removeTag(q, idx) {
   if (props.readonly) return
@@ -383,42 +418,30 @@ defineExpose({
             />
           </div>
 
-          <div v-else-if="q.type === 'tag'" class="ff-tags-wrap">
-            <div class="ff-tags">
-              <span
-                v-for="(t, idx) in getTags(q)"
-                :key="t + '_' + idx"
-                class="ff-tag"
-              >
-                {{ t }}
-                <button
-                  v-if="!readonly"
-                  type="button"
-                  class="ff-tag-remove"
-                  title="移除"
-                  @click="removeTag(q, idx)"
-                >×</button>
-              </span>
-              <span
-                v-if="getTags(q).length === 0"
-                class="ff-tag is-placeholder"
-              >暂未添加标签</span>
-            </div>
-            <div v-if="!readonly && canAddTag(q)" class="ff-tag-input-wrap">
-              <el-input
-                v-model="tagInputs[q.id]"
-                size="small"
-                :placeholder="q.placeholder || '输入后回车添加'"
-                :maxlength="20"
-                class="ff-tag-input"
-                @keyup.enter="addTag(q)"
-              />
-              <button
-                type="button"
-                class="btn-text-primary-sm"
-                @click="addTag(q)"
-              >添加</button>
-            </div>
+          <div v-else-if="q.type === 'tag'" class="tag-input-wrap">
+            <el-tag
+              v-for="(t, i) in getTags(q)"
+              :key="t + '_' + i"
+              closable
+              :disable-transitions="true"
+              class="tag-chip"
+              @close="removeTag(q, i)"
+            >{{ t }}</el-tag>
+            <input
+              v-if="!readonly"
+              v-model="tagInputs[q.id]"
+              class="tag-input"
+              :placeholder="getTags(q).length ? '' : q.placeholder || '输入后回车添加'"
+              :maxlength="40"
+              @keydown.enter.prevent="addTag(q)"
+              @keydown="(e) => handleTagKeydown(q, e)"
+              @blur="addTag(q)"
+            />
+            <span
+              v-if="q.maxTags != null"
+              class="tag-counter"
+              :class="{ 'is-full': getTags(q).length >= q.maxTags }"
+            >{{ getTags(q).length }} / {{ q.maxTags }}</span>
           </div>
 
           <div v-else-if="q.type === 'list'" class="ff-list-wrap">
@@ -735,8 +758,7 @@ defineExpose({
    注意 .upload-box 排除,保留 global 的 96x96 小图标 */
 .ff-input,
 .ff-input-wrap,
-.ff-list-wrap,
-.ff-tags {
+.ff-list-wrap {
   width: 100%;
 }
 
@@ -754,62 +776,6 @@ defineExpose({
     font-size: var(--fs-14);
     color: var(--c-text-secondary);
   }
-}
-
-/* ============ 标签 ============ */
-.ff-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-sm);
-}
-
-.ff-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: var(--sp-2xs) var(--sp-sm);
-  font-size: var(--fs-12);
-  color: var(--c-text-regular);
-  background: var(--c-fill);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-sm);
-
-  &.is-placeholder {
-    color: var(--c-text-placeholder);
-    border-style: dashed;
-  }
-}
-
-.ff-tag-remove {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: all var(--dur) var(--ease);
-
-  &:hover {
-    opacity: 1;
-    color: var(--c-danger);
-  }
-}
-
-.ff-tags-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm);
-}
-
-.ff-tag-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-}
-
-.ff-tag-input {
-  flex: 1;
 }
 
 /* ============ 图片 ============ */

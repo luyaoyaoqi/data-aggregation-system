@@ -838,64 +838,6 @@ function openListSettings() {
 
   /* .upload-box 走全局,无需额外样式 */
 
-  /* 标签文本：标签 + 输入框,与单行文本一致的输入框样式 */
-  .tag-input-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sp-xs);
-    min-height: 32px;
-    padding: 4px 11px;
-    border: 1px solid var(--c-line-light);
-    border-radius: var(--radius);
-    background: var(--c-bg);
-    transition: border-color var(--dur) var(--ease);
-    box-sizing: border-box;
-
-    &:hover {
-      border-color: var(--c-text-placeholder);
-    }
-
-    &:focus-within {
-      border-color: var(--c-primary);
-    }
-  }
-
-  .tag-chip {
-    margin-right: 0;
-  }
-
-  .tag-input {
-    flex: 1;
-    min-width: 120px;
-    height: 28px;
-    font-family: inherit;
-    font-size: var(--fs-14);
-    color: var(--c-text-regular);
-    background: transparent;
-    border: none;
-    outline: none;
-
-    &::placeholder {
-      color: var(--c-text-placeholder);
-    }
-  }
-
-  .tag-counter {
-    flex-shrink: 0;
-    font-family: var(--ff-mono);
-    font-size: var(--fs-12);
-    color: var(--c-text-secondary);
-    font-variant-numeric: tabular-nums;
-    padding-left: var(--sp-sm);
-    border-left: 1px solid var(--c-line-light);
-    margin-left: auto;
-
-    &.is-full {
-      color: var(--c-danger);
-    }
-  }
-
   /* ---------- 列表题 ---------- */
   .list-editor {
     display: flex;
