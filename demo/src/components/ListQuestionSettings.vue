@@ -141,8 +141,6 @@ const WIDTH_PRESETS = [120, 160, 200, 240, 300];
 const resizeState = ref(null);
 /** 拖拽条容器 ref（用来测实际宽度） */
 const widthBarsRef = ref(null);
-/** 每个 bar 的 ref（用于重排时计算鼠标位置） */
-const widthBarRefs = ref([]);
 
 /**
  * 计算 idx 这一列在「当前没有固定宽度」的情况下应该占的等分宽度
@@ -212,60 +210,25 @@ function clampColWidth(col) {
   col.width = Math.max(COL_WIDTH_MIN, Math.min(COL_WIDTH_MAX, v));
 }
 
-/* -------------------- 列重排拖拽（仅在 bar 左侧手柄上触发） -------------------- */
-/** 拖拽重排状态：{ fromIdx, overIdx } */
-const reorderState = ref(null);
-
-/** 鼠标按下：开始重排拖拽 */
-function startReorder(e, idx) {
-  // 只在手柄触发，冒泡已由 e.stopPropagation 拦掉，避免与 width-handle 冲突
-  e.preventDefault();
-  e.stopPropagation();
-  reorderState.value = { fromIdx: idx, overIdx: idx };
-  document.body.style.cursor = "grabbing";
-  document.body.style.userSelect = "none";
-  window.addEventListener("mousemove", onReorderMove);
-  window.addEventListener("mouseup", endReorder);
+/* -------------------- 列重排：左移 / 右移 -------------------- */
+/** 列左移一格（与前一列交换），第一列禁用 */
+function moveColLeft(idx) {
+  if (idx <= 0) return;
+  const [moved] = draftCols.value.splice(idx, 1);
+  draftCols.value.splice(idx - 1, 0, moved);
 }
 
-/** 拖拽中：根据鼠标 X 位置计算目标插入点 */
-function onReorderMove(e) {
-  if (!reorderState.value) return;
-  const x = e.clientX;
-  let target = reorderState.value.fromIdx;
-  for (let i = 0; i < widthBarRefs.value.length; i++) {
-    const el = widthBarRefs.value[i];
-    if (!el) continue;
-    const rect = el.getBoundingClientRect();
-    const midX = rect.left + rect.width / 2;
-    if (x < midX) {
-      target = i;
-      break;
-    }
-    target = i + 1;
-  }
-  target = Math.max(0, Math.min(draftCols.value.length, target));
-  if (target !== reorderState.value.overIdx) {
-    reorderState.value.overIdx = target;
-  }
+/** 列右移一格（与后一列交换），最后一列禁用 */
+function moveColRight(idx) {
+  if (idx >= draftCols.value.length - 1) return;
+  const [moved] = draftCols.value.splice(idx, 1);
+  draftCols.value.splice(idx + 1, 0, moved);
 }
 
-/** 拖拽结束：执行重排 */
-function endReorder() {
-  if (reorderState.value) {
-    const { fromIdx, overIdx } = reorderState.value;
-    // overIdx 是「插入位置」语义；转换为 splice 索引
-    const insertAt = overIdx > fromIdx ? overIdx - 1 : overIdx;
-    if (insertAt !== fromIdx) {
-      const [moved] = draftCols.value.splice(fromIdx, 1);
-      draftCols.value.splice(insertAt, 0, moved);
-    }
-  }
-  reorderState.value = null;
-  document.body.style.cursor = "";
-  document.body.style.userSelect = "";
-  window.removeEventListener("mousemove", onReorderMove);
-  window.removeEventListener("mouseup", endReorder);
+/** 三点菜单命令分发 */
+function handleColCommand(cmd, idx) {
+  if (cmd === "left") moveColLeft(idx);
+  else if (cmd === "right") moveColRight(idx);
 }
 
 /** 自动列样式（撑满剩余空间） */
@@ -288,9 +251,9 @@ function fixedWidthStyle(width) {
     class="list-settings-dialog"
     @close="handleClose"
   >
-    <p class="dialog-tip">
+    <!-- <p class="dialog-tip">
       备注：下拉单选和下拉多选，最多可添加 20 项，选项标题最多 20 字。
-    </p>
+    </p> -->
 
     <!-- 列宽调节：拖动列的右边缘 -->
     <div class="width-preview">
@@ -305,41 +268,59 @@ function fixedWidthStyle(width) {
       <div class="width-bars-scroll">
         <div ref="widthBarsRef" class="width-bars">
           <template v-for="(col, i) in draftCols" :key="col.id || i">
-            <!-- 占位条：拖到「在当前 col 之前」插入。
-                 排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」(overIdx === fromIdx + 1)。 -->
             <div
-              v-if="
-                reorderState &&
-                reorderState.overIdx === i &&
-                i !== reorderState.fromIdx &&
-                i !== reorderState.fromIdx + 1
-              "
-              class="width-bar-placeholder"
-            />
-            <div
-              :ref="(el) => (widthBarRefs[i] = el)"
               class="width-bar"
               :class="{
                 'is-auto': col.width == null,
                 'is-fixed': col.width != null,
-                // 仅标记「被拖的列」；目标插入位置已用 .width-bar-placeholder 占位条单独显示，不再叠加半透明
-                'is-dragging': reorderState && reorderState.fromIdx === i,
+                'is-dragging': resizeState?.idx === i,
               }"
               :style="
                 col.width != null ? fixedWidthStyle(col.width) : autoFlexStyle()
               "
             >
-              <el-icon
-                class="drag-grip"
-                title="拖动排序"
-                @mousedown="(e) => startReorder(e, i)"
-                ><Rank
-              /></el-icon>
+              <el-dropdown
+                trigger="click"
+                class="col-more"
+                @command="(cmd) => handleColCommand(cmd, i)"
+              >
+                <button
+                  type="button"
+                  class="col-more-btn"
+                  title="列操作"
+                  @mousedown.stop
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <circle cx="8" cy="3" r="1.4" />
+                    <circle cx="8" cy="8" r="1.4" />
+                    <circle cx="8" cy="13" r="1.4" />
+                  </svg>
+                </button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="left" :disabled="i === 0">
+                      左移
+                    </el-dropdown-item>
+                    <el-dropdown-item
+                      command="right"
+                      :disabled="i === draftCols.length - 1"
+                    >
+                      右移
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
               <span class="width-bar-name" :title="col.name">{{
                 col.name || `第${i + 1}列`
               }}</span>
               <span class="width-bar-px">
-                {{ col.width != null ? `${col.width}px` : "自动" }}
+                宽度-{{ col.width != null ? `${col.width}px` : "自动" }}
               </span>
               <span
                 class="width-bar-handle"
@@ -348,16 +329,6 @@ function fixedWidthStyle(width) {
               />
             </div>
           </template>
-          <!-- 占位条：拖到尾列后（overIdx === N）。同样排除「原地」与「紧邻原位之后」。 -->
-          <div
-            v-if="
-              reorderState &&
-              reorderState.overIdx === draftCols.length &&
-              reorderState.overIdx !== reorderState.fromIdx &&
-              reorderState.overIdx !== reorderState.fromIdx + 1
-            "
-            class="width-bar-placeholder"
-          />
         </div>
       </div>
     </div>
@@ -499,7 +470,7 @@ function fixedWidthStyle(width) {
 
   .width-bars-scroll {
     overflow-x: auto;
-    padding: var(--sp-2xs) var(--sp-xs);
+    padding: 0 var(--sp-xs);
     border: 1px solid var(--c-line);
     border-radius: var(--radius);
     background: var(--c-panel);
@@ -529,42 +500,10 @@ function fixedWidthStyle(width) {
       border-color var(--dur) var(--ease),
       color var(--dur) var(--ease);
 
-    /* 重排占位条：垂直方向的指示线。
-       用 box-shadow 渲染（不占布局空间，与题目拖动占位条一致）：
-       - 居中 3px 实色垂直线（offset-x:-1.5px, spread:1.5px → 阴影盒宽 3px，居中跨元素中线）
-       - 居中 3px 模糊蓝色光晕（blur:6px, spread:1.5px） */
-    &-placeholder {
-      flex-shrink: 0;
-      width: 0;
-      align-self: stretch;
-      pointer-events: none;
-      box-shadow:
-        -1.5px 0 0 1.5px var(--c-primary),
-        -1.5px 0 6px 1.5px rgba(37, 99, 235, 0.45);
-      z-index: 10;
-    }
-
-    /* 被拖动的 bar：主色高亮 + 虚线边框 + 漂浮阴影，区别于普通列 */
+    /* 列宽拖动中的 bar：仅高亮，不影响布局 */
     &.is-dragging {
       background: var(--c-primary-bg);
-      color: var(--c-primary);
       border-right-color: var(--c-primary);
-      /* 用 outline 而非 border，避免占据布局空间破坏 flex 等分 */
-      outline: 1px dashed var(--c-primary);
-      outline-offset: -1px;
-      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
-      z-index: 10;
-      border-radius: var(--radius-sm);
-      pointer-events: none;
-
-      .drag-grip {
-        color: var(--c-primary);
-      }
-
-      .width-bar-px {
-        color: var(--c-primary);
-        font-style: normal;
-      }
     }
 
     /* 自动列：撑满剩余空间，视觉上偏柔和 */
@@ -579,12 +518,38 @@ function fixedWidthStyle(width) {
       }
     }
 
-    &:hover {
-      background: var(--c-primary-bg);
-    }
+    // &:hover {
+    //   background: var(--c-primary-bg);
+    // }
 
     &:last-child {
       border-right: none;
+    }
+
+    /* 三点菜单按钮：替代旧 drag-grip，hover 时比 bar 自身背景略深 */
+    .col-more-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      color: var(--c-text-placeholder);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition:
+        background var(--dur) var(--ease),
+        color var(--dur) var(--ease);
+
+      &:hover,
+      &:focus-visible {
+        background: var(--c-fill);
+        color: var(--c-text-regular);
+        outline: none;
+      }
     }
 
     .width-bar-name {
