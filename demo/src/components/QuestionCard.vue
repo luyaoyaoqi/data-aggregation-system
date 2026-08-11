@@ -297,7 +297,7 @@ function openListSettings() {
       </span>
     </div>
 
-    <p v-if="question.desc" class="q-desc">{{ question.desc }}</p>
+    <!-- <p v-if="question.desc" class="q-desc">{{ question.desc }}</p> -->
 
     <!-- 题型内容区 -->
     <div class="q-body">
