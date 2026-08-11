@@ -33,6 +33,17 @@ const visible = computed({
 
 /** 弹框内的列副本（避免直接污染父级数据，确认后再回写） */
 const draftCols = ref([]);
+/**
+ * 每列的"输入文本"暂存 —— key = col.id
+ * - 弹框打开时从 col.options 一次性快照
+ * - el-input 用 v-model 绑这一项：用户每次按键只更新这里，**不联动** col.options
+ * - handleConfirm 时才把字符串拆回 col.options 并写回 question.listColumns
+ *
+ * 目的：避免每次按键触发 col.options 重建 → getOptionsText 覆盖 el-input 的 :model-value，
+ *       导致 `,` `;` ` ` 等字符被立即吞掉。
+ */
+const optionsTextMap = ref({});
+
 watch(
   () => [props.modelValue, props.question?.listColumns],
   ([v]) => {
@@ -42,6 +53,12 @@ watch(
       ...c,
       options: (c.options || []).map((o) => ({ ...o })),
     }));
+    // 同步初始化每列的输入文本快照
+    const map = {};
+    for (const c of draftCols.value) {
+      map[c.id] = (c.options || []).map((o) => o.label || "").join(";");
+    }
+    optionsTextMap.value = map;
   },
   { immediate: true },
 );
@@ -51,12 +68,19 @@ function needOptions(colType) {
   return colType === "radio" || colType === "checkbox";
 }
 
-/** 切换列类型时同步 options 字段 */
+/** 切换列类型时同步 options 与输入文本 */
 function onColTypeChange(col) {
-  if (needOptions(col.colType) && (!col.options || !col.options.length)) {
-    col.options = [createOption(1)];
-  } else if (!needOptions(col.colType)) {
+  if (needOptions(col.colType)) {
+    if (!col.options || !col.options.length) {
+      col.options = [createOption(1)];
+    }
+    // 把当前 options 同步到输入文本（覆盖可能残留的旧输入）
+    optionsTextMap.value[col.id] = col.options
+      .map((o) => o.label || "")
+      .join(";");
+  } else {
     col.options = [];
+    optionsTextMap.value[col.id] = "";
   }
 }
 
@@ -78,17 +102,48 @@ function removeCol(idx) {
   draftCols.value.splice(idx, 1);
 }
 
-/** 列内选项操作 */
-function addOption(col) {
-  if (col.options.length >= 20) {
-    ElMessage.warning("每列最多 20 个选项");
-    return;
-  }
-  col.options.push(createOption(col.options.length + 1));
+/* -------------------- 列选项：单输入框 + 分号分隔 -------------------- */
+/**
+ * 分隔符：半角/全角分号 + 半角/全角逗号
+ * - 兼容中文输入法在某些输入方案下把 ; 自动转成 ， 的情形
+ * - 与 QuestionCard.commitTag 的多分隔符方案对齐
+ */
+const OPTION_SEP_RE = /[,，;；]+/;
+/** 选项硬上限：最多 20 项，每项最多 20 字 */
+const OPTION_MAX_COUNT = 20;
+const OPTION_MAX_LEN = 20;
+
+/**
+ * 把 optionsTextMap 拆分为 col.options（仅在 handleConfirm 时执行一次）
+ * - 保留原有 id / isDefault / linkType / linkData / displayName / score 字段
+ * - 末尾或连续多个分隔符自动忽略（正则 + filter(Boolean) 双保险）
+ * - 不做长度 / 项数截断，完全交给用户
+ */
+function commitOptionsText(col) {
+  const text = optionsTextMap.value[col.id] ?? "";
+  const items = text
+    .split(OPTION_SEP_RE)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  col.options = items.map((label, i) => {
+    const prev = col.options?.[i];
+    return {
+      id: prev?.id ?? `o_${Date.now().toString(36)}_${i}`,
+      label,
+      isDefault: prev?.isDefault ?? false,
+      linkType: prev?.linkType ?? null,
+      linkData: prev?.linkData ?? null,
+      displayName: prev?.displayName ?? "",
+      score: prev?.score ?? null,
+    };
+  });
 }
 
-function removeOption(col, idx) {
-  col.options.splice(idx, 1);
+/** 实时计算当前输入文本可拆出的项数（用于计数器显示，不修改任何数据） */
+function getOptionsCount(col) {
+  const text = optionsTextMap.value[col.id];
+  if (!text) return 0;
+  return text.split(OPTION_SEP_RE).filter((s) => s.trim().length > 0).length;
 }
 
 /** 列名 input 校验：禁止为空，最长 20 字 */
@@ -123,6 +178,10 @@ function handleConfirm() {
       ElMessage.warning(`列名「${n}」超过 20 字`);
       return;
     }
+  }
+  // 把每列的输入文本同步到 col.options（仅在确认时一次性拆分）
+  for (const c of draftCols.value) {
+    commitOptionsText(c);
   }
   props.question.listColumns = draftCols.value.map((c) => ({
     ...c,
@@ -245,7 +304,7 @@ function fixedWidthStyle(width) {
 <template>
   <el-dialog
     v-model="visible"
-    title="列设置"
+    title="列表设置"
     width="1000px"
     align-center
     class="list-settings-dialog"
@@ -258,7 +317,7 @@ function fixedWidthStyle(width) {
     <!-- 列宽调节：拖动列的右边缘 -->
     <div class="width-preview">
       <div class="width-preview-head">
-        <span class="width-preview-title">列宽调节</span>
+        <span class="width-preview-title">列表项目</span>
         <span class="width-preview-tip">
           默认自动撑满；拖动列的右边缘可设为固定宽度（{{ COL_WIDTH_MIN }}-{{
             COL_WIDTH_MAX
@@ -380,41 +439,17 @@ function fixedWidthStyle(width) {
 
         <!-- 选项：仅 radio / checkbox 列展示 -->
         <div v-if="needOptions(col.colType)" class="col-options">
+          <el-input
+            v-model="optionsTextMap[col.id]"
+            placeholder="请输入选项，用半角或全角分号、逗号分隔（如：选项1;选项2,选项3）"
+            class="opt-text-input"
+          />
           <p class="options-tip">
-            配置该列的下拉选项（最多 20 项，每项最多 20 字）
+            <span class="opt-counter">
+              {{ getOptionsCount(col) }}/{{ OPTION_MAX_COUNT }}
+            </span>
+            <span> 配置该列的下拉选项（用半角或全角分号、逗号分隔） </span>
           </p>
-          <div
-            v-for="(opt, oi) in col.options"
-            :key="opt.id || oi"
-            class="opt-row"
-          >
-            <span class="opt-index">{{ oi + 1 }}</span>
-            <el-input
-              v-model="opt.label"
-              :maxlength="20"
-              show-word-limit
-              placeholder="请输入选项文字"
-              class="opt-name-input"
-            />
-            <el-button
-              v-if="col.options.length > 1"
-              type="button"
-              class="btn-icon-ghost opt-del"
-              title="删除选项"
-              @click="removeOption(col, oi)"
-            >
-              <el-icon><Close /></el-icon>
-            </el-button>
-          </div>
-          <button
-            v-if="col.options.length < 20"
-            type="button"
-            class="btn-text-primary-sm opt-add"
-            @click="addOption(col)"
-          >
-            <el-icon><Plus /></el-icon>
-            <span>添加选项</span>
-          </button>
         </div>
       </div>
     </div>
@@ -422,8 +457,7 @@ function fixedWidthStyle(width) {
     <button
       v-if="draftCols.length < 20"
       type="button"
-      class="btn-text-primary col-add"
-      style="font-size: var(--fs-13); margin-top: var(--sp-md);"
+      class="col-add"
       @click="addCol"
     >
       <el-icon><Plus /></el-icon>
@@ -634,51 +668,58 @@ function fixedWidthStyle(width) {
     flex-shrink: 0;
   }
 
-  /* 列选项 */
+  /* 列选项（单输入框 + 分号分隔） */
   .col-options {
     margin-top: var(--sp-md);
     padding-top: var(--sp-md);
     border-top: 1px dashed var(--c-line);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
 
-    .options-tip {
-      margin: 0 0 var(--sp-sm);
-      font-size: var(--fs-12);
-      color: var(--c-text-placeholder);
+  .options-tip {
+    flex-shrink: 0;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--fs-12);
+    color: var(--c-text-placeholder);
+    display: flex;
+    justify-content: space-between;
+    .opt-counter {
+      margin-left: var(--sp-xs);
     }
+  }
 
-    .opt-row {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-sm);
-      margin-bottom: var(--sp-sm);
-    }
-
-    .opt-name-input {
-      flex: 1;
-      min-width: 0;
-    }
-
-    /* opt-del 走全局 .btn-icon-ghost；此处仅设置固定尺寸 24×24 */
-    .opt-del {
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
-      font-size: var(--fs-12);
-    }
-
-    /* opt-add 走全局 .btn-text-primary-sm；此处仅补 gap */
-    .opt-add {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--sp-xs);
-    }
+  .opt-text-input {
+    flex: 1;
+    min-width: 0;
   }
 }
 
-/* col-add:走全局 .btn-text-primary,font-13 与 margin-top 在 inline style 已写 */
+/* 「添加列」:整行虚线描边按钮，与预览图「添加 1 行」一致 */
 .col-add {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--sp-xs);
+  width: 100%;
+  margin-top: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: var(--fs-13);
+  font-family: inherit;
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+
+  &:hover {
+    color: var(--c-primary);
+    border-color: var(--c-primary);
+  }
 }
 </style>

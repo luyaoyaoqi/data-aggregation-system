@@ -200,20 +200,17 @@ const colTypeLabelMap = Object.fromEntries(
   LIST_COL_TYPES.map((t) => [t.value, t.label])
 )
 /**
- * 单行文本 / 数字 / 日期 → 直接返回 label
- * 单选 / 多选 → "单选（下拉：选项1、选项2）"（把选项值拼到括号里）
+ * 列类型中文标签：直接返回基础 label（不再拼选项值）
+ * - 单行文本 / 数字 / 日期 → 原 label
+ * - 单选 / 多选 → "单选（下拉）" / "多选（下拉）"（下拉箭头图标在模板里另外渲染）
  */
 function getColTypeLabel(col) {
-  const label = colTypeLabelMap[col.colType] || ''
-  if (
-    (col.colType === 'radio' || col.colType === 'checkbox') &&
-    Array.isArray(col.options) &&
-    col.options.length
-  ) {
-    const optsText = col.options.map((o) => o.label || '').filter(Boolean).join('、')
-    return label.replace('（下拉）', `（下拉：${optsText}）`)
-  }
-  return label
+  return colTypeLabelMap[col.colType] || ''
+}
+
+/** 该列是否是下拉类（用于模板里追加下拉箭头图标） */
+function isDropdownCol(col) {
+  return col.colType === 'radio' || col.colType === 'checkbox'
 }
 
 /** 列表列设置弹框 */
@@ -457,10 +454,18 @@ function openListSettings() {
             >{{ question.tags.length }} / {{ question.maxTags }}</span>
           </div>
           <div v-else-if="question.type === 'list'" class="list-editor">
-            <p class="list-hint">
-              应用端填报时可增删行；单选/多选列以下拉选择。
-              <span v-if="listCols.length >= 20" class="list-warn">已达 20 列上限</span>
-            </p>
+            <!-- 提示行：提示文字 + 列设置按钮同行 -->
+            <div class="list-head">
+              <p class="list-hint">
+                应用端填报时可增删行；单选/多选列以下拉选择。
+                <span v-if="listCols.length >= 20" class="list-warn">已达 20 列上限</span>
+              </p>
+              <!-- 显式入口：避免用户不知道点预览图能进列设置 -->
+              <button type="button" class="btn-text-primary list-settings-btn" @click="openListSettings">
+                <el-icon><Plus /></el-icon>
+                <span>列设置</span>
+              </button>
+            </div>
 
             <!-- 列表预览图：撑满父容器，2 行（表头 + 1 行内容），点击进入列设置 -->
             <div class="table-preview list-table-preview" @click="openListSettings">
@@ -484,16 +489,21 @@ function openListSettings() {
                   :class="{ 'is-fixed': col.width != null }"
                   :style="col.width != null ? { width: col.width + 'px' } : null"
                 >
-                  <!-- 第 2 行：单行文本 / 数字 / 日期直接显示类型；单选 / 多选显示「类型（下拉：选项1、选项2）」 -->
-                  <div class="table-preview__cell-text">{{ getColTypeLabel(col) }}</div>
+                  <!-- 第 2 行：单行文本 / 数字 / 日期直接显示类型；单选 / 多选显示「类型（下拉）」+ 下拉箭头 -->
+                  <div class="table-preview__cell-text">
+                    <span>{{ getColTypeLabel(col) }}</span>
+                    <el-icon v-if="isDropdownCol(col)" class="cell-caret">
+                      <ArrowDown />
+                    </el-icon>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- 显式入口：避免用户不知道点预览图能进列设置 -->
-            <button type="button" class="btn-text-primary list-settings-btn" @click="openListSettings">
+            <!-- 「添加 1 行」：应用端填报时才生效；编辑器内仅作预览展示，不绑交互 -->
+            <button type="button" class="list-add-row" tabindex="-1" aria-disabled="true">
               <el-icon><Plus /></el-icon>
-              <span>列设置</span>
+              <span>添加 1 行</span>
             </button>
           </div>
           <div v-else-if="question.type === 'richtext'" class="rte">
@@ -656,6 +666,13 @@ function openListSettings() {
   .q-type-arrow {
     font-size: var(--fs-12);
     margin-left: var(--sp-2xs);
+  }
+
+  /* 单元格内下拉箭头：与 .q-type-arrow 同字号同间距，作为下拉列的视觉提示 */
+  .cell-caret {
+    font-size: var(--fs-12);
+    margin-left: var(--sp-2xs);
+    color: var(--c-text-placeholder);
   }
 
   /* 原 .el-dropdown-menu .q-type-icon(scoped 进不去,永不匹配)
@@ -881,7 +898,17 @@ function openListSettings() {
     gap: var(--sp-sm);
   }
 
+  /* 提示行：提示文字 + 列设置按钮同行（提示左、按钮右） */
+  .list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-sm);
+  }
+
   .list-hint {
+    flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: var(--fs-12);
     color: var(--c-text-placeholder);
@@ -893,12 +920,32 @@ function openListSettings() {
     color: var(--c-danger);
   }
 
-  /* list-settings-btn 走全局 .btn-text-primary;此处补 margin-top + gap */
+  /* list-settings-btn 走全局 .btn-text-primary;此处仅补 flex-shrink:0 + gap */
   .list-settings-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--sp-xs);
-    margin-top: var(--sp-md);
+    flex-shrink: 0;
+  }
+
+  /* 「添加 1 行」预览：中性虚线整行按钮，编辑器内仅展示，不可交互 */
+  .list-add-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-xs);
+    width: 100%;
+    margin-top: var(--sp-xs);
+    padding: var(--sp-sm) var(--sp-md);
+    font-size: var(--fs-13);
+    color: var(--c-text-placeholder);
+    background: transparent;
+    border: 1px dashed var(--c-line);
+    border-radius: var(--radius);
+    cursor: default;
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
   }
 
   /* 预览图：继承 global .table-preview,这里只补"可点击 → 主色 border"hover */
