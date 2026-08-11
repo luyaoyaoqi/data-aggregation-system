@@ -43,6 +43,8 @@ function exec(cmd, value) {
 /* -------------------- 答题数据 -------------------- */
 const answers = ref({})
 const listRows = ref({})
+const tagInputs = ref({})   // tag 题的输入框临时值（按 q.id）
+const imageInputs = ref({}) // image 题的隐藏 file input 引用（按 q.id）
 
 function getAnswer(q) {
   return answers.value[q.id]
@@ -70,6 +72,85 @@ function removeListRow(q, idx) {
   const rows = ensureRows(q)
   if (rows.length <= 1) return
   rows.splice(idx, 1)
+}
+
+/* -------------------- 图片题 -------------------- */
+function getImages(q) {
+  return Array.isArray(answers.value[q.id]) ? answers.value[q.id] : []
+}
+function canUploadMore(q) {
+  const max = q.maxImageCount || 9
+  return getImages(q).length < max
+}
+function pickImage(q) {
+  if (props.readonly) return
+  const el = imageInputs.value[q.id]
+  if (el) el.click()
+}
+function onImagePicked(q, e) {
+  if (props.readonly) return
+  const files = Array.from(e.target.files || [])
+  const cur = [...getImages(q)]
+  const max = q.maxImageCount || 9
+  const maxBytes = (q.maxImageSize || 5) * 1024 * 1024
+  for (const f of files) {
+    if (cur.length >= max) {
+      ElMessage.warning(`最多上传 ${max} 张图片`)
+      break
+    }
+    if (f.size > maxBytes) {
+      ElMessage.warning(`「${f.name}」超过 ${q.maxImageSize || 5}MB，已跳过`)
+      continue
+    }
+    cur.push({
+      key: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: f.name,
+      size: f.size,
+      url: URL.createObjectURL(f)
+    })
+  }
+  answers.value[q.id] = cur
+  e.target.value = '' // 允许重复选同一文件
+}
+function removeImage(q, idx) {
+  if (props.readonly) return
+  const cur = [...getImages(q)]
+  const removed = cur.splice(idx, 1)[0]
+  if (removed?.url) URL.revokeObjectURL(removed.url)
+  answers.value[q.id] = cur
+}
+
+/* -------------------- 标签题 -------------------- */
+function getTags(q) {
+  return Array.isArray(answers.value[q.id]) ? answers.value[q.id] : []
+}
+function canAddTag(q) {
+  if (q.maxTags == null) return true
+  return getTags(q).length < q.maxTags
+}
+function addTag(q) {
+  if (props.readonly) return
+  const raw = (tagInputs.value[q.id] || '').trim()
+  if (!raw) return
+  const cur = [...getTags(q)]
+  if (!q.allowDuplicate && cur.includes(raw)) {
+    ElMessage.warning('标签已存在')
+    tagInputs.value[q.id] = ''
+    return
+  }
+  if (q.maxTags != null && cur.length >= q.maxTags) {
+    ElMessage.warning(`最多 ${q.maxTags} 个标签`)
+    return
+  }
+  cur.push(raw)
+  answers.value[q.id] = cur
+  tagInputs.value[q.id] = ''
+}
+function removeTag(q, idx) {
+  if (props.readonly) return
+  const cur = [...getTags(q)]
+  cur.splice(idx, 1)
+  answers.value[q.id] = cur
 }
 
 /* -------------------- 题目序号 -------------------- */
@@ -218,7 +299,7 @@ defineExpose({
             :model-value="getAnswer(q) || ''"
             @update:model-value="(v) => setAnswer(q, v)"
             type="textarea"
-            :rows="q.rows || 3"
+            :autosize="{ minRows: q.rows || 2, maxRows: 8 }"
             :placeholder="q.placeholder || '请输入'"
             :maxlength="q.maxLength || undefined"
             :disabled="readonly"
@@ -233,29 +314,95 @@ defineExpose({
               :max="q.maxValue ?? undefined"
               :precision="q.precision ?? 0"
               :placeholder="q.placeholder || '请输入数字'"
-              controls-position="right"
+              controls-position="left"
               :disabled="readonly"
               class="ff-number-input"
             />
             <span v-if="q.unit" class="ff-suffix">{{ q.unit }}</span>
           </div>
 
-          <el-input
+          <el-date-picker
             v-else-if="q.type === 'datetime'"
+            type="datetime"
             :model-value="getAnswer(q) || ''"
             @update:model-value="(v) => setAnswer(q, v)"
             :placeholder="q.placeholder || '请选择日期时间'"
             :disabled="readonly"
+            value-format="YYYY-MM-DD HH:mm:ss"
             class="ff-input"
+            style="width: 100%"
           />
 
-          <div v-else-if="q.type === 'image'" class="upload-box">
-            <span>+ 上传图片</span>
+          <div v-else-if="q.type === 'image'" class="ff-image-list">
+            <div
+              v-for="(img, idx) in getImages(q)"
+              :key="img.key"
+              class="ff-image-thumb"
+            >
+              <img :src="img.url" :alt="img.name" />
+              <button
+                v-if="!readonly"
+                type="button"
+                class="ff-image-remove"
+                title="移除"
+                @click="removeImage(q, idx)"
+              >×</button>
+            </div>
+            <div
+              v-if="canUploadMore(q)"
+              class="upload-box"
+              role="button"
+              @click="pickImage(q)"
+            >
+              <span>+ 上传图片</span>
+              <span class="ff-image-counter">{{ getImages(q).length }}/{{ q.maxImageCount || 9 }}</span>
+            </div>
+            <input
+              :ref="(el) => { if (el) imageInputs[q.id] = el }"
+              type="file"
+              accept="image/*"
+              multiple
+              class="ff-file-hidden"
+              @change="(e) => onImagePicked(q, e)"
+            />
           </div>
 
-          <div v-else-if="q.type === 'tag'" class="ff-tags">
-            <span v-if="q.tags && q.tags.length" v-for="t in q.tags" :key="t" class="ff-tag">{{ t }}</span>
-            <span v-else class="ff-tag is-placeholder">暂未添加标签</span>
+          <div v-else-if="q.type === 'tag'" class="ff-tags-wrap">
+            <div class="ff-tags">
+              <span
+                v-for="(t, idx) in getTags(q)"
+                :key="t + '_' + idx"
+                class="ff-tag"
+              >
+                {{ t }}
+                <button
+                  v-if="!readonly"
+                  type="button"
+                  class="ff-tag-remove"
+                  title="移除"
+                  @click="removeTag(q, idx)"
+                >×</button>
+              </span>
+              <span
+                v-if="getTags(q).length === 0"
+                class="ff-tag is-placeholder"
+              >暂未添加标签</span>
+            </div>
+            <div v-if="!readonly && canAddTag(q)" class="ff-tag-input-wrap">
+              <el-input
+                v-model="tagInputs[q.id]"
+                size="small"
+                :placeholder="q.placeholder || '输入后回车添加'"
+                :maxlength="20"
+                class="ff-tag-input"
+                @keyup.enter="addTag(q)"
+              />
+              <button
+                type="button"
+                class="btn-text-primary-sm"
+                @click="addTag(q)"
+              >添加</button>
+            </div>
           </div>
 
           <div v-else-if="q.type === 'list'" class="ff-list-wrap">
@@ -506,6 +653,7 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
+  width: 100%; // 撑满 grid 单元 + el-radio__label,避免 hover 背景只覆盖中间
   font-size: var(--fs-14);
   color: var(--c-text-regular);
   cursor: pointer;
@@ -589,6 +737,9 @@ defineExpose({
 }
 
 .ff-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: var(--sp-2xs) var(--sp-sm);
   font-size: var(--fs-12);
   color: var(--c-text-regular);
@@ -600,6 +751,96 @@ defineExpose({
     color: var(--c-text-placeholder);
     border-style: dashed;
   }
+}
+
+.ff-tag-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all var(--dur) var(--ease);
+
+  &:hover {
+    opacity: 1;
+    color: var(--c-danger);
+  }
+}
+
+.ff-tags-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.ff-tag-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.ff-tag-input {
+  flex: 1;
+}
+
+/* ============ 图片 ============ */
+.ff-image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.ff-image-thumb {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--c-line);
+  background: var(--c-fill);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.ff-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur) var(--ease);
+
+  &:hover {
+    background: var(--c-danger);
+  }
+}
+
+.ff-image-counter {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ff-file-hidden {
+  display: none;
 }
 
 /* ============ 列表（自增表格）========== */
