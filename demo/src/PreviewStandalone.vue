@@ -1,0 +1,326 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import FormFill from './components/FormFill.vue'
+
+/**
+ * 独立窗口 —— 面向最终填表人。
+ *
+ * 职责（容器层）：
+ *  - 顶部 chrome：品牌 + 表单标题 + 副标题
+ *  - 翻页（上一页 / 下一页）+ 提交按钮
+ *  - 提交时调用 FormFill.getAnswers() 取数据
+ *
+ * 题目渲染、状态管理、序号计算 —— 全部交给 FormFill 共享组件。
+ */
+const STORAGE_KEY = 'preview-form-snapshot'
+
+const form = ref(null)
+const loadError = ref('')
+
+function loadSnapshot() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      loadError.value = '暂无表单数据，请从编辑器预览入口重新进入。'
+      return
+    }
+    const snap = JSON.parse(raw)
+    if (!snap?.form) {
+      loadError.value = '快照数据无效。'
+      return
+    }
+    form.value = snap.form
+    localStorage.removeItem(STORAGE_KEY)
+  } catch (e) {
+    loadError.value = '解析快照失败：' + (e?.message || '未知错误')
+  }
+}
+
+onMounted(() => {
+  loadSnapshot()
+})
+
+const allPages = computed(() => form.value?.pages || [])
+const currentPageIdx = ref(0)
+const currentPage = computed(() => allPages.value[currentPageIdx.value] || null)
+const formTitle = computed(() => form.value?.title || '未命名表单')
+const formDesc = computed(() => form.value?.description || '')
+const formBrand = computed(() => form.value?.brand || '采集通')
+
+const isFirstPage = computed(() => currentPageIdx.value <= 0)
+const isLastPage = computed(() => currentPageIdx.value >= allPages.value.length - 1)
+const hasQuestions = computed(
+  () => currentPage.value && currentPage.value.cards.some((c) => c.questions.length > 0)
+)
+
+function changePage(idx) {
+  if (idx < 0 || idx >= allPages.value.length) return
+  currentPageIdx.value = idx
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function goPrev() {
+  if (!isFirstPage.value) changePage(currentPageIdx.value - 1)
+}
+
+function goNext() {
+  if (!isLastPage.value) changePage(currentPageIdx.value + 1)
+}
+
+/* -------------------- 提交 -------------------- */
+const fillRef = ref(null)
+
+function handleSubmit() {
+  // 预收集数据（调试用,真实场景未来接接口）
+  const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} }
+  ElMessageBox.alert(
+    '这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 ' +
+      Object.keys(data.answers).length +
+      ' 道题目的答案。',
+    '预览模式',
+    {
+      type: 'warning',
+      confirmButtonText: '我知道了',
+      customClass: 'fill-msgbox'
+    }
+  ).catch(() => {})
+}
+</script>
+
+<template>
+  <div class="fill-page">
+    <!-- 顶部 chrome：品牌 + 表单标题 + 副标题 -->
+    <header class="fill-top">
+      <div class="fill-top__inner">
+        <!-- <span class="fill-brand">{{ formBrand }}</span> -->
+        <h1 class="fill-title">{{ formTitle }}</h1>
+        <p v-if="formDesc" class="fill-desc">{{ formDesc }}</p>
+      </div>
+    </header>
+
+    <!-- 空态 -->
+    <div v-if="loadError" class="fill-empty">
+      <p class="fill-empty__title">暂无法加载表单</p>
+      <p class="fill-empty__desc">{{ loadError }}</p>
+    </div>
+
+    <!-- 主区：响应式居中卡片,内嵌 FormFill -->
+    <main v-else-if="form" class="fill-main">
+      <div class="fill-card">
+        <FormFill
+          ref="fillRef"
+          :page="currentPage"
+          :pages="allPages"
+          :settings="form.settings || {}"
+          :current-page-idx="currentPageIdx"
+        />
+
+        <!-- 底部：分页 + 提交 -->
+        <div v-if="hasQuestions" class="fill-footer">
+          <div v-if="allPages.length > 1" class="fill-pager">
+            <button
+              v-if="!isFirstPage"
+              type="button"
+              class="fill-pager-btn"
+              @click="goPrev"
+            >
+              <el-icon><ArrowLeft /></el-icon>
+              <span>上一页</span>
+            </button>
+            <span v-else />
+
+            <button
+              v-if="!isLastPage"
+              type="button"
+              class="fill-pager-btn"
+              @click="goNext"
+            >
+              <span>下一页</span>
+              <el-icon><ArrowRight /></el-icon>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="fill-submit"
+              @click="handleSubmit"
+            >
+              提交
+            </button>
+          </div>
+          <button
+            v-else
+            type="button"
+            class="fill-submit"
+            @click="handleSubmit"
+          >
+            提交
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>
+
+<style scoped lang="less">
+/* ============ 顶层 ============ */
+.fill-page {
+  min-height: 100vh;
+  background: var(--c-page);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ 顶部 chrome ============ */
+.fill-top {
+  padding: var(--sp-lg);
+  background: var(--c-panel);
+  border-bottom: 1px solid var(--c-line-light);
+
+  &__inner {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+  }
+}
+
+.fill-brand {
+  display: inline-block;
+  font-family: var(--ff-display);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--c-primary);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--sp-sm);
+}
+
+.fill-title {
+  margin: 0;
+  font-family: var(--ff-display);
+  font-size: var(--fs-24);
+  font-weight: 600;
+  color: var(--c-text-strong);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.fill-desc {
+  margin: var(--sp-sm) 0 0;
+  font-size: var(--fs-14);
+  color: var(--c-text-secondary);
+  line-height: 1.5;
+}
+
+/* ============ 空态 ============ */
+.fill-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-2xl);
+
+  &__title {
+    margin: 0;
+    font-family: var(--ff-display);
+    font-size: var(--fs-18);
+    font-weight: 600;
+    color: var(--c-text-strong);
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: var(--fs-14);
+    color: var(--c-text-secondary);
+    text-align: center;
+    max-width: 480px;
+  }
+}
+
+/* ============ 主区：响应式居中卡片 ============ */
+.fill-main {
+  flex: 1;
+  padding: var(--sp-xl);
+}
+
+.fill-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--c-panel);
+  border: 1px solid var(--c-line-light);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-xl);
+  box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 1000px) {
+  .fill-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: var(--sp-md);
+  }
+}
+
+/* ============ 底部操作 ============ */
+.fill-footer {
+  margin-top: var(--sp-xl);
+  padding-top: var(--sp-lg);
+  border-top: 1px solid var(--c-line-light);
+}
+
+.fill-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+
+.fill-pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-md);
+  font-family: inherit;
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
+  background: var(--c-panel);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    color: var(--c-primary);
+    border-color: var(--c-primary);
+    background: var(--c-primary-bg);
+  }
+
+  &:disabled {
+    color: var(--c-text-placeholder);
+    background: var(--c-fill);
+    cursor: not-allowed;
+  }
+}
+
+.fill-submit {
+  display: block;
+  width: 100%;
+  height: 40px;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  font-weight: 500;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+
+  &:hover {
+    background: var(--c-primary-hover);
+  }
+}
+</style>

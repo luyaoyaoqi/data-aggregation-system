@@ -7,7 +7,6 @@ import ComponentLibrary, {
 } from '../components/ComponentLibrary.vue'
 import EditorArea from '../components/EditorArea.vue'
 import PropertyPanel from '../components/PropertyPanel.vue'
-import PreviewDialog from '../components/PreviewDialog.vue'
 import FormSettingsDialog from '../components/FormSettingsDialog.vue'
 
 /* ------------------------------ 表单数据 ------------------------------ */
@@ -21,8 +20,18 @@ function createInitialForm() {
     },
     pages: [createPage(1), createPage(2)]
   }
-  // 首页预置一道单选题，进入即有内容可看
-  form.pages[0].cards[0].questions.push(createQuestion('radio'))
+  // 首页预置全部 12 种题型,预览/独立窗口一次即可看完整渲染
+  const demoTypes = [
+    // 选项类
+    'radio', 'checkbox', 'radio-rate', 'checkbox-rate',
+    // 填空类
+    'text', 'textarea', 'number', 'datetime',
+    // 采集类
+    'image', 'tag', 'list', 'richtext'
+  ]
+  demoTypes.forEach((type) => {
+    form.pages[0].cards[0].questions.push(createQuestion(type))
+  })
   return reactive(form)
 }
 
@@ -31,7 +40,6 @@ const activePageId = ref(form.value.pages[0].id)
 const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id)
 const lastSavedAt = ref('2026-07-22 18:15')
 
-const previewVisible = ref(false)
 const settingsVisible = ref(false)
 
 const activePage = computed(
@@ -401,8 +409,18 @@ async function handleReset() {
   ElMessage.success('已重置')
 }
 
-function handlePreview() {
-  previewVisible.value = true
+/**
+ * 在独立窗口中打开预览（最终用户填表端）
+ * - 把当前 form 快照写入 localStorage,新窗口读取后清除(避免遗留)
+ * - /preview.html 是 Vite 多入口构建的独立预览页
+ */
+function openStandalone() {
+  const snapshot = {
+    ts: Date.now(),
+    form: JSON.parse(JSON.stringify(form.value))
+  }
+  localStorage.setItem('preview-form-snapshot', JSON.stringify(snapshot))
+  window.open('/preview.html', '_blank', 'noopener,noreferrer')
 }
 </script>
 
@@ -432,14 +450,12 @@ function handlePreview() {
         @reorder-question="handleReorderQuestion"
         @save="handleSave"
         @reset="handleReset"
-        @preview="handlePreview"
+        @preview="openStandalone"
         @settings="settingsVisible = true"
       />
 
       <PropertyPanel :question="activeQuestion" />
     </div>
-
-    <PreviewDialog v-model="previewVisible" :form="form" :page="activePage" />
 
     <FormSettingsDialog v-model="settingsVisible" :settings="form.settings" />
   </div>

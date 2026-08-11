@@ -1,0 +1,693 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { OPTION_TYPES } from './ComponentLibrary.vue'
+
+/**
+ * 填写端渲染组件 —— 共用于 PreviewDialog（开发者只读预览）和 PreviewStandalone（用户填写端）。
+ *
+ * 职责：
+ *  - 渲染当前页所有题目（题干 + 选项/输入控件 + 说明）
+ *  - 维护答题状态（answers + listRows）
+ *  - 计算全局题目序号
+ *
+ * 不负责：
+ *  - 容器 chrome（设备外壳 / 品牌 chrome）—— 由父组件决定
+ *  - 分页切换按钮 —— 由父组件控制 currentPageIdx
+ *  - 提交按钮 —— 由父组件调用 ref.getAnswers() 取答案
+ */
+const props = defineProps({
+  /** 当前页对象 */
+  page: { type: Object, default: null },
+  /** 所有页（用于跨页序号计算） */
+  pages: { type: [Array, Object], default: () => [] },
+  /** 全局设置（showIndex / crossPage / crossCard） */
+  settings: { type: Object, default: () => ({}) },
+  /** 当前页索引（用于展示 "第 N / M 页"） */
+  currentPageIdx: { type: Number, default: 0 },
+  /** 是否只读（true = 开发者预览，所有输入禁用） */
+  readonly: { type: Boolean, default: false },
+  /** 是否展示页码 */
+  showPageInfo: { type: Boolean, default: true },
+  /** 是否展示当前页主题 */
+  showTheme: { type: Boolean, default: true },
+  /** 是否展示空态提示 */
+  showEmptyTip: { type: Boolean, default: true }
+})
+
+const hasOptions = (type) => OPTION_TYPES.includes(type)
+
+function exec(cmd, value) {
+  document.execCommand(cmd, false, value)
+}
+
+/* -------------------- 答题数据 -------------------- */
+const answers = ref({})
+const listRows = ref({})
+
+function getAnswer(q) {
+  return answers.value[q.id]
+}
+function setAnswer(q, v) {
+  if (props.readonly) return
+  answers.value[q.id] = v
+}
+
+/** 列表题行容器：保证至少有 1 行 */
+function ensureRows(q) {
+  if (!listRows.value[q.id]) {
+    listRows.value[q.id] = [{}]
+  }
+  return listRows.value[q.id]
+}
+
+function addListRow(q) {
+  if (props.readonly) return
+  ensureRows(q).push({})
+}
+
+function removeListRow(q, idx) {
+  if (props.readonly) return
+  const rows = ensureRows(q)
+  if (rows.length <= 1) return
+  rows.splice(idx, 1)
+}
+
+/* -------------------- 题目序号 -------------------- */
+const pagesArr = computed(() => Array.isArray(props.pages) ? props.pages : [])
+
+const questionIndexMap = computed(() => {
+  const map = new Map()
+  const s = props.settings
+  if (!s || !s.showIndex) return map
+  let crossPageCounter = 0
+  for (let pIdx = 0; pIdx < pagesArr.value.length; pIdx++) {
+    const page = pagesArr.value[pIdx]
+    let cardCounter = 0
+    for (let cIdx = 0; cIdx < page.cards.length; cIdx++) {
+      const card = page.cards[cIdx]
+      if (!s.crossCard && cIdx > 0) cardCounter = 0
+      for (const q of card.questions) {
+        const idx = s.crossPage ? crossPageCounter : cardCounter
+        map.set(q.id, idx + 1)
+        crossPageCounter++
+        cardCounter++
+      }
+    }
+    if (!s.crossPage) crossPageCounter = 0
+  }
+  return map
+})
+
+/* -------------------- 父组件读答案 -------------------- */
+defineExpose({
+  getAnswers: () => ({
+    answers: { ...answers.value },
+    listRows: JSON.parse(JSON.stringify(listRows.value))
+  })
+})
+</script>
+
+<template>
+  <div class="form-fill">
+    <p v-if="showPageInfo && pagesArr.length > 1" class="ff-pageinfo">
+      第 {{ currentPageIdx + 1 }} / {{ pagesArr.length }} 页
+    </p>
+
+    <p v-if="showTheme && page?.theme" class="ff-theme">
+      {{ page.theme }}
+    </p>
+
+    <p
+      v-if="showEmptyTip && (!page || page.cards.length === 0 || page.cards.every((c) => c.questions.length === 0))"
+      class="ff-empty-tip"
+    >
+      当前页还没有题目
+    </p>
+
+    <section
+      v-for="card in (page ? page.cards : [])"
+      :key="card.id"
+      class="ff-card-group"
+    >
+      <p v-if="card.title" class="ff-card-title">{{ card.title }}</p>
+
+      <div v-for="q in card.questions" :key="q.id" class="ff-q">
+        <p class="ff-q-title">
+          <span v-if="questionIndexMap.get(q.id)" class="ff-q-index">{{ questionIndexMap.get(q.id) }}.</span>
+          <span>{{ q.title || '未命名题目' }}</span>
+          <span v-if="q.required" class="ff-q-required">*</span>
+        </p>
+        <p v-if="q.desc" class="ff-q-desc">{{ q.desc }}</p>
+
+        <!-- 选项类：单选 / 多选 / 评分 -->
+        <div
+          v-if="hasOptions(q.type)"
+          class="ff-options"
+          :class="{ 'is-double': q.columns === 'double' }"
+        >
+          <el-radio-group
+            v-if="q.type === 'radio' || q.type === 'radio-rate'"
+            :model-value="getAnswer(q) || ''"
+            @update:model-value="(v) => setAnswer(q, v)"
+            :disabled="readonly"
+            class="ff-hidden-group"
+          >
+            <el-radio
+              v-for="opt in q.options"
+              :key="opt.id"
+              :value="opt.id"
+              class="ff-option-input"
+            >
+              <span class="ff-option">
+                <span
+                  class="option-mark"
+                  :class="q.type.startsWith('checkbox') ? 'is-square' : ''"
+                />
+                <span class="ff-option-label">{{ opt.linkType ? (opt.displayName || opt.linkData?.name) : opt.label }}</span>
+                <span
+                  v-if="q.type.endsWith('-rate') && opt.score != null"
+                  class="ff-option-score"
+                >
+                  ({{ opt.score }} 分)
+                </span>
+              </span>
+            </el-radio>
+          </el-radio-group>
+
+          <el-checkbox-group
+            v-else
+            :model-value="getAnswer(q) || []"
+            @update:model-value="(v) => setAnswer(q, v)"
+            :disabled="readonly"
+            class="ff-hidden-group"
+          >
+            <el-checkbox
+              v-for="opt in q.options"
+              :key="opt.id"
+              :value="opt.id"
+              class="ff-option-input"
+            >
+              <span class="ff-option">
+                <span class="option-mark is-square" />
+                <span class="ff-option-label">{{ opt.linkType ? (opt.displayName || opt.linkData?.name) : opt.label }}</span>
+                <span
+                  v-if="q.type.endsWith('-rate') && opt.score != null"
+                  class="ff-option-score"
+                >
+                  ({{ opt.score }} 分)
+                </span>
+              </span>
+            </el-checkbox>
+          </el-checkbox-group>
+        </div>
+
+        <!-- 填空 / 采集类 -->
+        <template v-else>
+          <el-input
+            v-if="q.type === 'text'"
+            :model-value="getAnswer(q) || ''"
+            @update:model-value="(v) => setAnswer(q, v)"
+            :placeholder="q.placeholder || '请输入'"
+            :maxlength="q.maxLength || undefined"
+            :disabled="readonly"
+            class="ff-input"
+          />
+
+          <el-input
+            v-else-if="q.type === 'textarea'"
+            :model-value="getAnswer(q) || ''"
+            @update:model-value="(v) => setAnswer(q, v)"
+            type="textarea"
+            :rows="q.rows || 3"
+            :placeholder="q.placeholder || '请输入'"
+            :maxlength="q.maxLength || undefined"
+            :disabled="readonly"
+            class="ff-input"
+          />
+
+          <div v-else-if="q.type === 'number'" class="ff-input-wrap">
+            <el-input-number
+              :model-value="getAnswer(q) ?? null"
+              @update:model-value="(v) => setAnswer(q, v)"
+              :min="q.minValue ?? undefined"
+              :max="q.maxValue ?? undefined"
+              :precision="q.precision ?? 0"
+              :placeholder="q.placeholder || '请输入数字'"
+              controls-position="right"
+              :disabled="readonly"
+              class="ff-number-input"
+            />
+            <span v-if="q.unit" class="ff-suffix">{{ q.unit }}</span>
+          </div>
+
+          <el-input
+            v-else-if="q.type === 'datetime'"
+            :model-value="getAnswer(q) || ''"
+            @update:model-value="(v) => setAnswer(q, v)"
+            :placeholder="q.placeholder || '请选择日期时间'"
+            :disabled="readonly"
+            class="ff-input"
+          />
+
+          <div v-else-if="q.type === 'image'" class="upload-box">
+            <span>+ 上传图片</span>
+          </div>
+
+          <div v-else-if="q.type === 'tag'" class="ff-tags">
+            <span v-if="q.tags && q.tags.length" v-for="t in q.tags" :key="t" class="ff-tag">{{ t }}</span>
+            <span v-else class="ff-tag is-placeholder">暂未添加标签</span>
+          </div>
+
+          <div v-else-if="q.type === 'list'" class="ff-list-wrap">
+            <div class="ff-list-scroll">
+              <table class="table-preview">
+                <thead>
+                  <tr>
+                    <th
+                      v-for="col in (q.listColumns || [])"
+                      :key="col.id"
+                      :class="{ 'is-fixed': col.width != null }"
+                      :style="col.width != null ? { width: col.width + 'px' } : null"
+                    >
+                      <span>{{ col.name }}</span>
+                      <span v-if="col.required" class="table-preview__required">*</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rIdx) in ensureRows(q)" :key="rIdx">
+                    <td
+                      v-for="col in (q.listColumns || [])"
+                      :key="col.id"
+                      :class="{ 'is-fixed': col.width != null }"
+                      :style="col.width != null ? { width: col.width + 'px' } : null"
+                    >
+                      <input
+                        v-if="col.colType === 'text'"
+                        v-model="row[col.id]"
+                        class="ff-cell-input"
+                        :placeholder="col.name"
+                        :readonly="readonly"
+                      />
+                      <input
+                        v-else-if="col.colType === 'number'"
+                        v-model.number="row[col.id]"
+                        class="ff-cell-input"
+                        type="number"
+                        placeholder="0"
+                        :readonly="readonly"
+                      />
+                      <input
+                        v-else-if="col.colType === 'date'"
+                        v-model="row[col.id]"
+                        class="ff-cell-input"
+                        placeholder="年 - 月 - 日"
+                        :readonly="readonly"
+                      />
+                      <div
+                        v-else-if="col.colType === 'radio' || col.colType === 'checkbox'"
+                        class="ff-cell-select"
+                      >
+                        <span class="ff-cell-placeholder">请选择</span>
+                        <span class="ff-cell-arrow">▾</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button
+              v-if="!readonly"
+              type="button"
+              class="btn-text-primary-sm ff-list-add-row"
+              @click="addListRow(q)"
+            >
+              + 添加一行
+            </button>
+          </div>
+
+          <div v-else-if="q.type === 'richtext'" class="rte">
+            <div class="rte__toolbar">
+              <button type="button" class="rte__btn" @mousedown.prevent @click="exec('bold')">B</button>
+              <button type="button" class="rte__btn is-italic" @mousedown.prevent @click="exec('italic')">/</button>
+              <button type="button" class="rte__btn is-blue" @mousedown.prevent @click="exec('foreColor', '#2563EB')">蓝</button>
+              <button type="button" class="rte__btn is-red" @mousedown.prevent @click="exec('foreColor', '#dc2626')">红</button>
+              <button type="button" class="rte__btn is-list" @mousedown.prevent @click="exec('insertUnorderedList')"><span class="rte__dot" />列表</button>
+            </div>
+            <div
+              class="rte__area"
+              :contenteditable="!readonly"
+              data-ph="请输入内容（支持加粗、颜色等）"
+              @input="(e) => setAnswer(q, e.target.innerHTML)"
+              v-html="getAnswer(q) || ''"
+            />
+          </div>
+
+          <el-input
+            v-else
+            :model-value="getAnswer(q) || ''"
+            @update:model-value="(v) => setAnswer(q, v)"
+            placeholder="请输入内容"
+            :disabled="readonly"
+            class="ff-input"
+          />
+        </template>
+      </div>
+    </section>
+  </div>
+</template>
+
+<style scoped lang="less">
+/* ============ 顶层 ============ */
+.form-fill {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ 页码 / 主题 / 空态 ============ */
+.ff-pageinfo {
+  margin: 0 0 var(--sp-md);
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ff-theme {
+  margin: 0 0 var(--sp-lg);
+  font-size: var(--fs-14);
+  color: var(--c-text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ff-empty-tip {
+  margin: var(--sp-2xl) 0;
+  text-align: center;
+  font-size: var(--fs-14);
+  color: var(--c-text-placeholder);
+}
+
+/* ============ 卡片分组 ============ */
+.ff-card-group {
+  &:not(:last-child) {
+    margin-bottom: var(--sp-lg);
+    padding-bottom: var(--sp-lg);
+    border-bottom: 1px solid var(--c-line-light);
+  }
+}
+
+.ff-card-title {
+  margin: 0 0 var(--sp-md);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--c-text-strong);
+}
+
+/* ============ 题目 ============ */
+.ff-q {
+  &:not(:last-child) {
+    margin-bottom: var(--sp-lg);
+  }
+}
+
+.ff-q-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-xs);
+  margin: 0 0 var(--sp-sm);
+  font-family: var(--ff-display);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--c-text-strong);
+  line-height: 1.5;
+}
+
+.ff-q-index {
+  flex-shrink: 0;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  color: var(--c-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ff-q-required {
+  flex-shrink: 0;
+  color: var(--c-danger);
+}
+
+.ff-q-desc {
+  margin: 0 0 var(--sp-sm);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  line-height: 1.5;
+}
+
+/* ============ 选项 ============ */
+.ff-options {
+  display: grid;
+  gap: var(--sp-sm) var(--sp-xl);
+
+  &.is-double {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ff-options.is-double {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ff-hidden-group {
+  display: contents;
+}
+
+.ff-option-input {
+  margin-right: 0;
+
+  /* EP 默认 label 容器 —— 让它作为 flex 容器容纳自定义 .ff-option,
+     不能 display:none,否则 slot 内容也会被隐藏(选项不可见的 bug 根因) */
+  :deep(.el-radio__label),
+  :deep(.el-checkbox__label) {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-left: 0;
+    font-size: inherit;
+  }
+
+  /* EP 原生单选/多选圆点 —— 隐藏,用我们自定义的 .option-mark */
+  :deep(.el-radio__input),
+  :deep(.el-checkbox__input) {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  :deep(.el-radio__inner),
+  :deep(.el-checkbox__inner) {
+    display: none;
+  }
+
+  :deep(.el-radio),
+  :deep(.el-checkbox) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-right: 0;
+    white-space: normal;
+  }
+}
+
+.ff-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  font-size: var(--fs-14);
+  color: var(--c-text-regular);
+  cursor: pointer;
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--radius);
+  transition: background var(--dur) var(--ease);
+
+  &:hover {
+    background: var(--c-primary-bg);
+  }
+}
+
+.ff-option-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.ff-option-score {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-12);
+  color: var(--c-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 选中态 */
+.ff-option-input.is-checked .ff-option {
+  color: var(--c-primary);
+
+  .option-mark {
+    border-color: var(--c-primary);
+
+    &::after {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 8px;
+      margin: 2px auto;
+      background: var(--c-primary);
+      border-radius: 50%;
+    }
+
+    &.is-square::after {
+      border-radius: 2px;
+    }
+  }
+}
+
+/* ============ 输入 ============ */
+/* 填空/采集类输入框 —— 占满行宽
+   注意 .upload-box 排除,保留 global 的 96x96 小图标 */
+.ff-input,
+.ff-input-wrap,
+.ff-list-wrap,
+.ff-tags {
+  width: 100%;
+}
+
+.ff-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+
+  .ff-number-input {
+    flex: 1;
+  }
+
+  .ff-suffix {
+    flex-shrink: 0;
+    font-size: var(--fs-14);
+    color: var(--c-text-secondary);
+  }
+}
+
+/* ============ 标签 ============ */
+.ff-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.ff-tag {
+  padding: var(--sp-2xs) var(--sp-sm);
+  font-size: var(--fs-12);
+  color: var(--c-text-regular);
+  background: var(--c-fill);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+
+  &.is-placeholder {
+    color: var(--c-text-placeholder);
+    border-style: dashed;
+  }
+}
+
+/* ============ 列表（自增表格）========== */
+.ff-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+
+  .ff-list-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+  }
+
+  .ff-list-add-row {
+    align-self: flex-start;
+  }
+
+  .table-preview {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--c-panel);
+
+    th,
+    td {
+      min-width: 0;
+      flex: 1 1 0;
+      padding: var(--sp-sm) var(--sp-md);
+      font-size: var(--fs-13);
+      border-right: 1px solid var(--c-line-light);
+      border-bottom: 1px solid var(--c-line-light);
+      white-space: nowrap;
+
+      &:last-child {
+        border-right: none;
+      }
+
+      &.is-fixed {
+        flex: 0 0 auto;
+      }
+    }
+
+    th {
+      background: var(--c-fill);
+      font-weight: 500;
+      color: var(--c-text-strong);
+    }
+
+    td {
+      color: var(--c-text-regular);
+    }
+
+    &__required {
+      flex-shrink: 0;
+      color: var(--c-danger);
+    }
+  }
+}
+
+.ff-cell-input {
+  width: 100%;
+  min-width: 80px;
+  height: 26px;
+  font-family: inherit;
+  font-size: var(--fs-13);
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: var(--c-text-placeholder);
+  }
+}
+
+.ff-cell-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  font-size: var(--fs-13);
+  color: var(--c-text-placeholder);
+  cursor: not-allowed;
+
+  .ff-cell-arrow {
+    margin-left: var(--sp-sm);
+    font-size: var(--fs-12);
+  }
+}
+</style>
