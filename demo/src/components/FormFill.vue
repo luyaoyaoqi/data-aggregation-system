@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { OPTION_TYPES } from './ComponentLibrary.vue'
+import { Plus } from '@element-plus/icons-vue'
 
 /**
  * 填写端渲染组件 —— 共用于 PreviewDialog（开发者只读预览）和 PreviewStandalone（用户填写端）。
@@ -154,12 +155,22 @@ function removeTag(q, idx) {
 }
 
 /* -------------------- 题目序号 -------------------- */
+/**
+ * 全局题目序号（按 form.settings 计算）
+ * - showIndex=false → 序号整体不展示（模板里 v-if 控制）
+ * - crossPage=true  → 全表单累计
+ * - crossPage=false → 每页独立
+ * - crossCard=true  → 页内卡片累计
+ * - crossCard=false → 每张卡片独立
+ *
+ * settings 由父组件 PreviewStandalone.vue 透传 form.settings，禁止在 FormFill 内重复定义。
+ */
 const pagesArr = computed(() => Array.isArray(props.pages) ? props.pages : [])
 
 const questionIndexMap = computed(() => {
   const map = new Map()
-  const s = props.settings
-  if (!s || !s.showIndex) return map
+  const s = props.settings || {}
+  if (!s.showIndex) return map
   let crossPageCounter = 0
   for (let pIdx = 0; pIdx < pagesArr.value.length; pIdx++) {
     const page = pagesArr.value[pIdx]
@@ -314,7 +325,7 @@ defineExpose({
               :max="q.maxValue ?? undefined"
               :precision="q.precision ?? 0"
               :placeholder="q.placeholder || '请输入数字'"
-              controls-position="left"
+              controls-position="right"
               :disabled="readonly"
               class="ff-number-input"
             />
@@ -329,9 +340,10 @@ defineExpose({
             :placeholder="q.placeholder || '请选择日期时间'"
             :disabled="readonly"
             value-format="YYYY-MM-DD HH:mm:ss"
-            class="ff-input"
+            class="ff-input ff-date-input"
             style="width: 100%"
-          />
+          >
+          </el-date-picker>
 
           <div v-else-if="q.type === 'image'" class="ff-image-list">
             <div
@@ -348,14 +360,18 @@ defineExpose({
                 @click="removeImage(q, idx)"
               >×</button>
             </div>
-            <div
-              v-if="canUploadMore(q)"
-              class="upload-box"
-              role="button"
-              @click="pickImage(q)"
-            >
-              <span>+ 上传图片</span>
-              <span class="ff-image-counter">{{ getImages(q).length }}/{{ q.maxImageCount || 9 }}</span>
+            <div v-if="canUploadMore(q)" class="ff-image-uploader">
+              <div
+                class="upload-box"
+                role="button"
+                @click="pickImage(q)"
+              >
+                <el-icon><Plus /></el-icon>
+                <span>上传图片</span>
+              </div>
+              <span class="ff-image-counter">
+                {{ getImages(q).length }}/{{ q.maxImageCount || 9 }}
+              </span>
             </div>
             <input
               :ref="(el) => { if (el) imageInputs[q.id] = el }"
@@ -536,20 +552,31 @@ defineExpose({
   color: var(--c-text-placeholder);
 }
 
-/* ============ 卡片分组 ============ */
+/* ============ 卡片分组（独立 panel） ============ */
+/* 卡片容器：浅背景 + 边框 + 圆角 + 内边距，卡片之间留出视觉呼吸 */
 .ff-card-group {
-  &:not(:last-child) {
-    margin-bottom: var(--sp-lg);
-    padding-bottom: var(--sp-lg);
-    border-bottom: 1px solid var(--c-line-light);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+  background: var(--c-panel);
+  border: 1px solid var(--c-line-light);
+  border-radius: var(--radius);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 
+/* 卡片标题：panel header，与下方题目用虚线分隔 */
 .ff-card-title {
   margin: 0 0 var(--sp-md);
+  padding-bottom: var(--sp-sm);
   font-size: var(--fs-14);
   font-weight: 600;
   color: var(--c-text-strong);
+  border-bottom: 1px dashed var(--c-line-light);
 }
 
 /* ============ 题目 ============ */
@@ -574,7 +601,7 @@ defineExpose({
 .ff-q-index {
   flex-shrink: 0;
   font-family: var(--ff-mono);
-  font-size: var(--fs-12);
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--c-primary);
   font-variant-numeric: tabular-nums;
@@ -586,7 +613,7 @@ defineExpose({
 }
 
 .ff-q-desc {
-  margin: 0 0 var(--sp-sm);
+  margin: 0 0 var(--sp-sm) var(--sp-lg);
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
   line-height: 1.5;
@@ -837,6 +864,13 @@ defineExpose({
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+/* 图片上传 wrapper：upload-box 和计数器一行展示（box 在左，计数器在右） */
+.ff-image-uploader {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
 }
 
 .ff-file-hidden {

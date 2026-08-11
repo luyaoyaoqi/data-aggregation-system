@@ -9,6 +9,7 @@ import {
 } from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
 import ListQuestionSettings from './ListQuestionSettings.vue'
+import { Clock } from '@element-plus/icons-vue'
 
 /**
  * 切换：选项类 4 种题型互相切换的下拉数据
@@ -425,7 +426,11 @@ function openListSettings() {
             v-model="question.placeholder"
             :maxlength="question.maxLength || undefined"
             placeholder="年 - 月 - 日"
-          />
+          >
+            <template #prefix>
+              <el-icon><Clock /></el-icon>
+            </template>
+          </el-input>
           <div v-else-if="question.type === 'image'" class="upload-box">
             <el-icon><Plus /></el-icon>
             <span>上传图片</span>
