@@ -14,7 +14,7 @@ defineEmits(['pick'])
 <template>
   <div class="type-chip-grid">
     <div v-for="group in groups" :key="group.name" class="chip-group">
-      <p class="group-title">{{ group.name }}</p>
+      <p class="section-title group-title">{{ group.name }}</p>
       <div class="chip-row">
         <button
           v-for="item in group.items"
@@ -41,77 +41,76 @@ defineEmits(['pick'])
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .type-chip-grid {
   display: flex;
   flex-direction: column;
   gap: var(--sp-xl);
-}
 
-.chip-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-md);
-}
+  .chip-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+  }
 
-.group-title {
-  margin: 0;
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
+  /* group-title 直接复用 global .section-title,此处仅覆盖 margin(原本是 0) */
+  .group-title {
+    margin: 0;
+  }
 
-.chip-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: var(--sp-sm);
-}
+  .chip-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: var(--sp-sm);
+  }
 
-.type-chip {
-  /* height: 64px; */
-  padding: var(--sp-md) var(--sp-xs);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-text-regular);
-  background: var(--c-panel);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  overflow: hidden;
-}
+  .type-chip {
+    /* height: 64px; */
+    padding: var(--sp-md) var(--sp-xs);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-sm);
+    font-family: inherit;
+    font-size: var(--fs-12);
+    color: var(--c-text-regular);
+    background: var(--c-panel);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--dur) var(--ease);
+    white-space: nowrap;
+    overflow: hidden;
 
-.chip-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: var(--c-text-secondary);
-  transition: color 0.15s ease, transform 0.15s ease;
-}
+    &:hover {
+      color: var(--c-primary);
+      border-color: var(--c-primary-border);
+      background: var(--c-primary-bg);
+    }
 
-.chip-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
+    &:hover .chip-icon {
+      color: var(--c-primary);
+      transform: scale(1.08);
+    }
 
-.type-chip:hover {
-  color: var(--c-primary);
-  border-color: var(--c-primary-border);
-  background: var(--c-primary-bg);
-}
+    &:active {
+      transform: translateY(1px);
+    }
+  }
 
-.type-chip:hover .chip-icon {
-  color: var(--c-primary);
-  transform: scale(1.08);
-}
+  .chip-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--c-text-secondary);
+    transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
 
-.type-chip:active {
-  transform: translateY(1px);
+  .chip-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
 }
 </style>

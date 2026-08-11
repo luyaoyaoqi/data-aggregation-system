@@ -445,17 +445,17 @@ function handlePreview() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .editor-layout {
   height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--c-page);
-}
 
-.editor-main {
-  flex: 1;
-  min-height: 0;
-  display: flex;
+  .editor-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
 }
 </style>

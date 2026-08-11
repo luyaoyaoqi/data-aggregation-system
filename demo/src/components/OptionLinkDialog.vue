@@ -123,7 +123,7 @@ function handleCancel() {
     class="option-link-dialog"
     @close="errorTip = ''"
   >
-    <p class="link-tip">
+    <p class="link-tip alert is-warning">
       <el-icon class="link-tip-icon"><Warning /></el-icon>
       说明：症状或疾病，可任选1个关联，作为题目的选项
     </p>
@@ -191,35 +191,31 @@ function handleCancel() {
   </el-dialog>
 </template>
 
-<style scoped>
-.link-tip {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  margin: 0 0 var(--sp-lg);
-  padding: var(--sp-sm) var(--sp-md);
-  font-size: var(--fs-12);
-  color: #b45309;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: var(--radius-sm);
-}
+<style scoped lang="less">
+.option-link-dialog {
+  .link-tip {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin: 0 0 var(--sp-lg);
+  }
 
-.link-tip-icon {
-  color: var(--c-warning);
-}
+  .link-tip-icon {
+    color: var(--c-warning);
+  }
 
-.link-form {
-  padding: 0 var(--sp-xs);
-}
+  .link-form {
+    padding: 0 var(--sp-xs);
+  }
 
-.link-select {
-  width: 100%;
-}
+  .link-select {
+    width: 100%;
+  }
 
-.link-error {
-  margin: var(--sp-xs) 0 0;
-  font-size: var(--fs-12);
-  color: var(--c-danger);
+  .link-error {
+    margin: var(--sp-xs) 0 0;
+    font-size: var(--fs-12);
+    color: var(--c-danger);
+  }
 }
 </style>

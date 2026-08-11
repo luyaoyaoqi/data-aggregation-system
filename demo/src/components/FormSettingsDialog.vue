@@ -48,80 +48,71 @@ const visible = computed({
         </div>
       </div>
 
-      <p class="fsd-tip">
+      <p class="fsd-tip alert is-info">
         卡片新增、题目新增、删除、排序调整后，序号联动变更
       </p>
     </section>
   </el-dialog>
 </template>
 
-<style scoped>
-.form-settings-dialog :deep(.el-dialog__header) {
-  margin-right: 0;
-  padding: var(--sp-lg) var(--sp-xl);
-  border-bottom: 1px solid var(--c-line-light);
+<style scoped lang="less">
+.form-settings-dialog {
+  .fsd-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    font-size: var(--fs-16);
+    font-weight: 600;
+    color: var(--c-text);
+
+    .el-icon {
+      font-size: var(--fs-18);
+      color: var(--c-primary);
+    }
+  }
+
+  .fsd-section {
+    & + .fsd-section {
+      margin-top: var(--sp-xl);
+      padding-top: var(--sp-xl);
+      border-top: 1px solid var(--c-line-light);
+    }
+  }
+
+  .fsd-section-title {
+    margin: var(--sp-sm) 0 var(--sp-sm);
+    font-size: var(--fs-14);
+    font-weight: 600;
+    color: var(--c-text);
+  }
+
+  .fsd-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+  }
+
+  .fsd-subgroup {
+    margin-left: var(--sp-lg);
+    padding-left: var(--sp-md);
+    border-left: 2px solid var(--c-line-light);
+
+    .fsd-row {
+      height: 32px;
+    }
+  }
+
+  .fsd-row-label {
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+  }
+
+  .fsd-tip {
+    margin: var(--sp-md) 0 0;
+  }
 }
 
-.form-settings-dialog :deep(.el-dialog__body) {
-  padding: var(--sp-xl);
-}
-
-.fsd-head {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-  font-size: var(--fs-16);
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.fsd-head .el-icon {
-  font-size: 18px;
-  color: var(--c-primary);
-}
-
-.fsd-section + .fsd-section {
-  margin-top: var(--sp-xl);
-  padding-top: var(--sp-xl);
-  border-top: 1px solid var(--c-line-light);
-}
-
-.fsd-section-title {
-  margin: var(--sp-sm) 0 var(--sp-sm);
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.fsd-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 36px;
-}
-
-.fsd-subgroup {
-  margin-left: var(--sp-lg);
-  padding-left: var(--sp-md);
-  border-left: 2px solid var(--c-line-light);
-}
-
-.fsd-subgroup .fsd-row {
-  height: 32px;
-}
-
-.fsd-row-label {
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-}
-
-.fsd-tip {
-  margin: var(--sp-md) 0 0;
-  padding: var(--sp-sm) var(--sp-md);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  background: var(--c-fill);
-  border-radius: var(--radius-sm);
-  line-height: 18px;
-}
+/* 原 .form-settings-dialog :deep(.el-dialog__header/body) 两条 padding 已合并到
+   element-overrides.less 的 .el-dialog 全局覆盖中，无需保留 */
 </style>

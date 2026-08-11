@@ -128,8 +128,8 @@ watch(
       <div v-if="hasPropertySection" class="panel-section">
         <p class="section-title">属性</p>
         <!-- 必填：中间工具栏已有，右侧不再展示 -->
-        <div v-if="isRadioLike" class="switch-row">
-          <span class="switch-label">允许清空</span>
+        <div v-if="isRadioLike" class="row switch-row">
+          <span class="row-label switch-label">允许清空</span>
           <el-switch v-model="question.allowClear" />
         </div>
         <el-form
@@ -296,7 +296,7 @@ watch(
                 controls-position="right"
                 class="w-full"
               />
-              <span class="section-tip">0 表示整数</span>
+              <span class="tip section-tip">0 表示整数</span>
             </el-form-item>
             <el-form-item label="单位">
               <el-input
@@ -330,8 +330,8 @@ watch(
               <el-option label="年-月-日 时:分" value="ymdhm" />
             </el-select>
           </el-form-item>
-          <div class="switch-row">
-            <span class="switch-label">默认当天</span>
+          <div class="row switch-row">
+            <span class="row-label switch-label">默认当天</span>
             <el-switch v-model="question.defaultToday" />
           </div>
         </el-form>
@@ -351,7 +351,7 @@ watch(
               controls-position="right"
               class="w-full"
             />
-            <span class="section-tip">范围 1 - 99 张</span>
+            <span class="tip section-tip">范围 1 - 99 张</span>
           </el-form-item>
           <el-form-item label="单张大小上限（MB）">
             <el-input-number
@@ -362,7 +362,7 @@ watch(
               controls-position="right"
               class="w-full"
             />
-            <span class="section-tip">范围 1 - 20 MB</span>
+            <span class="tip section-tip">范围 1 - 20 MB</span>
           </el-form-item>
         </el-form>
 
@@ -379,11 +379,11 @@ watch(
                 class="w-full"
                 placeholder="留空不限"
               />
-              <span class="section-tip">留空表示不限</span>
+              <span class="tip section-tip">留空表示不限</span>
             </el-form-item>
           </el-form>
-          <div class="switch-row">
-            <span class="switch-label">允许重复</span>
+          <div class="row switch-row">
+            <span class="row-label switch-label">允许重复</span>
             <el-switch v-model="question.allowDuplicate" />
           </div>
         </template>
@@ -392,8 +392,8 @@ watch(
       <template v-if="!isImage">
         <div class="panel-section">
           <p class="section-title">查询条件</p>
-          <div class="switch-row">
-            <span class="switch-label">设为查询条件</span>
+          <div class="row switch-row">
+            <span class="row-label switch-label">设为查询条件</span>
             <el-switch v-model="question.asQuery" />
           </div>
           <el-form
@@ -408,23 +408,23 @@ watch(
               </el-select>
             </el-form-item>
           </el-form>
-          <p class="section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
+          <p class="tip section-tip">开启后该题目会出现在应用端数据的筛选栏</p>
         </div>
 
         <div class="panel-section">
           <p class="section-title">数据列表</p>
-          <div class="switch-row">
-            <span class="switch-label">在列表中显示</span>
+          <div class="row switch-row">
+            <span class="row-label switch-label">在列表中显示</span>
             <el-switch v-model="question.showInList" />
           </div>
-          <p class="section-tip">关闭后该题目仅在详情页展示</p>
+          <p class="tip section-tip">关闭后该题目仅在详情页展示</p>
         </div>
       </template>
     </el-scrollbar>
   </aside>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .property-panel {
   width: var(--w-property);
   flex-shrink: 0;
@@ -433,83 +433,79 @@ watch(
   border-left: 1px solid var(--c-line);
   display: flex;
   flex-direction: column;
-}
 
-.panel-head {
-  height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 var(--sp-lg);
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--c-text);
-  border-bottom: 1px solid var(--c-line-light);
-}
+  /* 原 element-overrides.css 的 .property-panel .el-form-item__label 颜色已迁回此处 */
+  :deep(.el-form-item__label) {
+    color: var(--c-text-regular);
+  }
 
-.panel-empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-}
+  .panel-head {
+    height: var(--h-panel-head);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--sp-lg);
+    font-size: var(--fs-14);
+    font-weight: 600;
+    color: var(--c-text);
+    border-bottom: 1px solid var(--c-line-light);
+  }
 
-.panel-body {
-  flex: 1;
-  min-height: 0;
-}
+  .panel-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-12);
+    color: var(--c-text-placeholder);
+  }
 
-.panel-form {
-  padding: var(--sp-lg) var(--sp-lg) 0;
-}
+  .panel-body {
+    flex: 1;
+    min-height: 0;
+  }
 
-.panel-section {
-  padding: var(--sp-lg);
-  border-top: 1px solid var(--c-line-light);
-}
+  .panel-form {
+    padding: var(--sp-lg) var(--sp-lg) 0;
+  }
 
-.section-title {
-  margin: 0 0 var(--sp-md);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
+  .panel-section {
+    padding: var(--sp-lg);
+    border-top: 1px solid var(--c-line-light);
 
-.switch-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 32px;
-}
+    .section-form {
+      margin-top: var(--sp-md);
+    }
+  }
 
-.switch-label {
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-}
+  /* .section-title 直接复用 global .section-title */
 
-.section-tip {
-  margin: var(--sp-sm) 0 0;
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-  line-height: 18px;
-}
+  /* 走全局 .row + .row-label,这里仅补"开关行"专属的 space-between + 32px 高度 */
+  .switch-row {
+    justify-content: space-between;
+    height: 32px;
+  }
 
-.section-form {
-  margin-top: var(--sp-md);
-}
+  .switch-label {
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+  }
 
-.w-full {
-  width: 100%;
-}
+  /* 走全局 .tip,这里仅补"section 末尾提示"的额外上间距 */
+  .section-tip {
+    margin: var(--sp-sm) 0 0;
+    color: var(--c-text-placeholder);
+  }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-md);
-}
+  /* 两列等宽表单行(最小/最大值、小数/单位等) */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-md);
 
-.form-row .el-form-item {
-  margin-bottom: var(--sp-lg);
+    :deep(.el-form-item) {
+      margin-bottom: var(--sp-lg);
+    }
+  }
 }
 </style>

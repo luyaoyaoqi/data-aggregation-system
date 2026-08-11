@@ -9,8 +9,10 @@ import 'element-plus/theme-chalk/el-message.css'
 import 'element-plus/theme-chalk/el-message-box.css'
 import 'element-plus/theme-chalk/el-overlay.css'
 
-// 设计 Token 与 Element Plus 主题覆盖（须晚于 EP 样式，保证覆盖生效）
-import './styles/tokens.css'
-import './styles/element-overrides.css'
+// 设计 Token / Element Plus 主题覆盖 / 跨组件业务样式
+// （须晚于 EP 样式，保证覆盖生效；EP 内部 class 主题化 → element-overrides，业务 class → global）
+import './styles/tokens.less'
+import './styles/element-overrides.less'
+import './styles/global.less'
 
 createApp(App).mount('#app')

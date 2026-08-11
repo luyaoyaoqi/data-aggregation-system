@@ -202,7 +202,7 @@ defineEmits(['pick'])
   </aside>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .component-library {
   width: var(--w-library);
   flex-shrink: 0;
@@ -211,30 +211,30 @@ defineEmits(['pick'])
   border-right: 1px solid var(--c-line);
   display: flex;
   flex-direction: column;
-}
 
-.lib-head {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  padding: 0 var(--sp-lg);
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--c-text);
-  border-bottom: 1px solid var(--c-line-light);
-}
+  .lib-head {
+    height: var(--h-panel-head);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--sp-lg);
+    font-size: var(--fs-14);
+    font-weight: 600;
+    color: var(--c-text);
+    border-bottom: 1px solid var(--c-line-light);
+  }
 
-.lib-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--sp-lg);
-}
+  .lib-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-lg);
+  }
 
-.lib-tip {
-  margin: 0;
-  padding: var(--sp-md) var(--sp-lg);
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-  border-top: 1px solid var(--c-line-light);
+  .lib-tip {
+    margin: 0;
+    padding: var(--sp-md) var(--sp-lg);
+    font-size: var(--fs-12);
+    color: var(--c-text-placeholder);
+    border-top: 1px solid var(--c-line-light);
+  }
 }
 </style>

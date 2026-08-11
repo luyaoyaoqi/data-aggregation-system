@@ -232,7 +232,7 @@ function openListSettings() {
   >
     <!-- 题干行 -->
     <div class="q-head">
-      <el-icon class="q-drag" title="拖动排序" @mousedown="handleGripDown"><Rank /></el-icon>
+      <el-icon class="drag-grip" title="拖动排序" @mousedown="handleGripDown"><Rank /></el-icon>
       <span v-if="index != null" class="q-index">{{ index }}.</span>
       <input
         v-model="question.title"
@@ -323,7 +323,7 @@ function openListSettings() {
               <span class="option-linked">
                 <span class="link-badge">←关联</span>
                 <span class="link-name">{{ opt.displayName || opt.linkData?.name }}</span>
-                <el-icon class="link-clear" title="删除关联" @click="clearLink(opt)">
+                <el-icon class="btn-icon-ghost link-clear" title="删除关联" @click="clearLink(opt)">
                   <Close />
                 </el-icon>
               </span>
@@ -365,7 +365,7 @@ function openListSettings() {
             <button
               v-if="showDefaultSwitch && question.defaultOption && !opt.isDefault"
               type="button"
-              class="opt-set-default"
+              class="btn-outline-dashed-primary opt-set-default"
               @click="setDefault(opt)"
             >
               设为默认
@@ -375,20 +375,20 @@ function openListSettings() {
             <button
               v-if="question.linkField && !opt.linkType"
               type="button"
-              class="opt-link-btn"
+              class="btn-outline-dashed-primary opt-link-btn"
               @click="openLinkDialog(opt)"
             >
               <el-icon><Link /></el-icon>
               <span>关联</span>
             </button>
 
-            <el-icon class="option-del" title="删除选项" @click="removeOption(opt.id)">
+            <el-icon class="btn-icon-ghost option-del" title="删除选项" @click="removeOption(opt.id)">
               <Close />
             </el-icon>
           </div>
         </div>
 
-        <button type="button" class="add-option" @click="addOption">
+        <button type="button" class="btn-text-primary add-option" style="margin-top: var(--sp-md);" @click="addOption">
           <el-icon><Plus /></el-icon>
           <span>添加选项</span>
         </button>
@@ -463,49 +463,49 @@ function openListSettings() {
             </p>
 
             <!-- 列表预览图：撑满父容器，2 行（表头 + 1 行内容），点击进入列设置 -->
-            <div class="list-table-preview" @click="openListSettings">
-              <div class="ltp-head">
+            <div class="table-preview list-table-preview" @click="openListSettings">
+              <div class="table-preview__head">
                 <div
                   v-for="col in listCols"
                   :key="col.id"
-                  class="ltp-th"
+                  class="table-preview__cell table-preview__cell--head"
                   :class="{ 'is-fixed': col.width != null }"
                   :style="col.width != null ? { width: col.width + 'px' } : null"
                 >
-                  <span class="ltp-name">{{ col.name || '未命名列' }}</span>
-                  <span v-if="col.required" class="ltp-required">*</span>
+                  <span class="table-preview__cell-text">{{ col.name || '未命名列' }}</span>
+                  <span v-if="col.required" class="table-preview__required">*</span>
                 </div>
               </div>
-              <div class="ltp-body">
+              <div class="table-preview__body">
                 <div
                   v-for="col in listCols"
                   :key="col.id"
-                  class="ltp-td"
+                  class="table-preview__cell table-preview__cell--body"
                   :class="{ 'is-fixed': col.width != null }"
                   :style="col.width != null ? { width: col.width + 'px' } : null"
                 >
                   <!-- 第 2 行：单行文本 / 数字 / 日期直接显示类型；单选 / 多选显示「类型（下拉：选项1、选项2）」 -->
-                  <div class="ltp-cell-text">{{ getColTypeLabel(col) }}</div>
+                  <div class="table-preview__cell-text">{{ getColTypeLabel(col) }}</div>
                 </div>
               </div>
             </div>
 
             <!-- 显式入口：避免用户不知道点预览图能进列设置 -->
-            <button type="button" class="list-settings-btn" @click="openListSettings">
+            <button type="button" class="btn-text-primary list-settings-btn" @click="openListSettings">
               <el-icon><Plus /></el-icon>
               <span>列设置</span>
             </button>
           </div>
-          <div v-else-if="question.type === 'richtext'" class="rich-box">
-            <div class="rich-toolbar">
-              <button type="button" class="rich-btn" @mousedown.prevent @click="exec('bold')">B</button>
-              <button type="button" class="rich-btn is-italic" @mousedown.prevent @click="exec('italic')">/</button>
-              <button type="button" class="rich-btn is-blue" @mousedown.prevent @click="exec('foreColor', '#2563EB')">蓝</button>
-              <button type="button" class="rich-btn is-red" @mousedown.prevent @click="exec('foreColor', '#dc2626')">红</button>
-              <button type="button" class="rich-btn is-list" @mousedown.prevent @click="exec('insertUnorderedList')"><span class="rich-dot" />列表</button>
+          <div v-else-if="question.type === 'richtext'" class="rte">
+            <div class="rte__toolbar">
+              <button type="button" class="rte__btn" @mousedown.prevent @click="exec('bold')">B</button>
+              <button type="button" class="rte__btn is-italic" @mousedown.prevent @click="exec('italic')">/</button>
+              <button type="button" class="rte__btn is-blue" @mousedown.prevent @click="exec('foreColor', '#2563EB')">蓝</button>
+              <button type="button" class="rte__btn is-red" @mousedown.prevent @click="exec('foreColor', '#dc2626')">红</button>
+              <button type="button" class="rte__btn is-list" @mousedown.prevent @click="exec('insertUnorderedList')"><span class="rte__dot" />列表</button>
             </div>
             <div
-              class="rich-area"
+              class="rte__area"
               contenteditable="true"
               data-ph="请输入内容（支持加粗、颜色等）"
             />
@@ -515,7 +515,7 @@ function openListSettings() {
     </div>
 
     <!-- 底部工具条 -->
-    <div class="q-tools">
+    <div class="toolbar q-tools">
       <el-checkbox v-model="question.required" size="small">必填</el-checkbox>
 
       <button type="button" class="tool-btn" @click="emit('duplicate', question.id)">
@@ -553,677 +553,359 @@ function openListSettings() {
   </section>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .question-card {
   padding: var(--sp-lg);
   background: var(--c-panel);
   border: 1px dashed var(--c-line);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.question-card:hover {
-  background: var(--c-fill);
-}
-
-.question-card.is-active {
-  border-color: var(--c-primary);
-  border-style: solid;
-  background: var(--c-panel);
-  box-shadow: 0 0 0 3px var(--c-primary-bg);
-}
-
-/* ---------- 题干 ---------- */
-.q-head {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-}
-
-.q-drag {
-  /* Element Plus 的 el-icon 不会自动撑开，需要显式尺寸 */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  font-size: 16px;
-  flex-shrink: 0;
-  color: var(--c-text-placeholder);
-  cursor: move;
-  border-radius: 4px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.q-drag:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-bg);
-}
-
-.q-index {
-  font-size: var(--fs-14);
-  color: var(--c-text);
-}
-
-.q-title-input {
-  flex: 1;
-  min-width: 0;
-  height: 28px;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-text);
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid transparent;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.q-title-input::placeholder {
-  color: var(--c-text-placeholder);
-}
-
-.q-title-input:hover:not(:focus) {
-  border-bottom-color: var(--c-line);
-}
-
-.q-title-input:focus {
-  border-bottom-color: var(--c-primary);
-}
-
-.q-required {
-  color: var(--c-danger);
-  font-size: var(--fs-16);
-  line-height: 1;
-}
-
-.q-type-tag {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: var(--sp-xs) var(--sp-sm);
-  font-size: var(--fs-14);
-  color: var(--c-text-secondary);
-  background: var(--c-fill);
-  border-radius: var(--radius-sm);
-}
-
-.q-type-tag.is-switchable {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.q-type-tag.is-switchable:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-bg);
-}
-
-.q-type-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-.q-type-arrow {
-  font-size: 10px;
-  margin-left: 2px;
-}
-
-/* el-dropdown 菜单项里也用同样的图标 */
-.el-dropdown-menu .q-type-icon {
-  vertical-align: -2px;
-  margin-right: 6px;
-}
-
-.q-desc {
-  margin: var(--sp-xs) 0 0 28px;
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
-
-/* ---------- 选项 ---------- */
-.q-body {
-  margin: var(--sp-md) 0 0 28px;
-}
-
-.option-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-sm);
-}
-
-.option-list.is-double {
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: var(--sp-3xl);
-}
-
-.option-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-}
-
-.option-mark {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid var(--c-text-placeholder);
-  border-radius: 50%;
-}
-
-.option-mark.is-square {
-  border-radius: 3px;
-}
-
-.option-input {
-  flex: 1;
-  min-width: 0;
-  height: 30px;
-  padding: 0 var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  outline: none;
-}
-
-.option-input:hover {
-  border-color: var(--c-line);
-}
-
-.option-input:focus {
-  border-color: var(--c-primary);
-  background: #fff;
-}
-
-.option-score-input {
-  flex-shrink: 0;
-  width: 96px;
-}
-
-/* 与 .option-input 视觉一致：透明底 + 悬浮显边框 + focus 主色 */
-.option-score-input :deep(.el-input__wrapper) {
-  padding: 1px 8px;
-  background: transparent;
-  box-shadow: 0 0 0 1px transparent inset;
-  border-radius: var(--radius-sm);
-  transition: all 0.15s ease;
-}
-
-.option-score-input:hover :deep(.el-input__wrapper) {
-  box-shadow: 0 0 0 1px var(--c-line) inset;
-}
-
-.option-score-input :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px var(--c-primary) inset;
-  background: #fff;
-}
-
-.option-score-input :deep(.el-input__inner) {
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.option-score-suffix {
-  font-size: var(--fs-14);
-  color: var(--c-text-secondary);
-  margin-left: 4px;
-}
-
-/* 已关联：展示名 + 关联标签 + 删除关联 */
-.option-linked {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-  min-width: 0;
-  height: 30px;
-  padding: 0 var(--sp-sm);
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-  background: var(--c-primary-bg);
-  border: 1px solid var(--c-primary-border);
-  border-radius: var(--radius-sm);
-  cursor: default;
-}
-
-.link-badge {
-  flex-shrink: 0;
-  padding: 0 var(--sp-xs);
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  background: #fff;
-  border-radius: var(--radius-sm);
-}
-
-.link-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.link-clear {
-  flex-shrink: 0;
-  color: var(--c-text-secondary);
-  cursor: pointer;
-}
-
-.link-clear:hover {
-  color: var(--c-danger);
-}
-
-/* 默认项标签 */
-.opt-default-tag {
-  flex-shrink: 0;
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  font-weight: 500;
-}
-
-/* 设为默认按钮 */
-.opt-set-default {
-  flex-shrink: 0;
-  padding: 2px var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  background: transparent;
-  border: 1px dashed var(--c-primary-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.opt-set-default:hover {
-  background: var(--c-primary-bg);
-}
-
-/* 关联按钮 */
-.opt-link-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2xs);
-  padding: 2px var(--sp-sm);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  background: transparent;
-  border: 1px dashed var(--c-primary-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.opt-link-btn:hover {
-  background: var(--c-primary-bg);
-}
-
-.option-del {
-  color: var(--c-text-placeholder);
-  cursor: pointer;
-}
-
-.option-del:hover {
-  color: var(--c-danger);
-}
-
-.add-option {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  margin-top: var(--sp-md);
-  padding: 0;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-primary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.add-option:hover {
-  color: var(--c-primary-hover);
-}
-
-/* ---------- 其它题型预览 ---------- */
-.q-preview {
-  /* 填空类默认拉满 q-body 宽度；采集类有各自固定宽度 */
-  width: 100%;
-}
-
-.upload-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-xs);
-  width: 96px;
-  height: 96px;
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  background: var(--c-fill);
-  border: 1px dashed var(--c-line);
-  border-radius: var(--radius);
-}
-
-.tag-row {
-  display: flex;
-  gap: var(--sp-sm);
-}
-
-/* 标签文本：标签 + 输入框一行 */
-.tag-input-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-sm);
-  min-height: 30px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--c-line-light);
-  transition: border-color 0.15s ease;
-}
-
-.tag-input-wrap:focus-within {
-  border-bottom-color: var(--c-primary);
-  border-bottom-style: solid;
-}
-
-.tag-chip {
-  margin-right: 0;
-}
-
-.tag-input {
-  flex: 1;
-  min-width: 120px;
-  height: 28px;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-  background: transparent;
-  border: none;
-  outline: none;
-}
-
-.tag-input::placeholder {
-  color: var(--c-text-placeholder);
-}
-
-.tag-counter {
-  flex-shrink: 0;
-  font-family: var(--ff-mono);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  font-variant-numeric: tabular-nums;
-  padding-left: var(--sp-sm);
-  border-left: 1px solid var(--c-line-light);
-  margin-left: auto;
-}
-
-.tag-counter.is-full {
-  color: var(--c-danger);
-}
-
-.list-editor {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm);
-}
-
-.list-cols {
-  display: none;
-}
-
-.list-hint {
-  margin: 0;
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-  line-height: 18px;
-}
-
-.list-warn {
-  margin-left: var(--sp-sm);
-  color: var(--c-danger);
-}
-
-/* 列设置显式入口：和 add-option 视觉一致（主色 + 主色 hover） */
-.list-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  margin-top: var(--sp-md);
-  padding: 0;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-primary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.list-settings-btn:hover {
-  color: var(--c-primary-hover);
-}
-
-/* ---------- 列表预览图（替代原 chip + 列设置按钮）---------- */
-.list-table-preview {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  background: var(--c-panel);
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.list-table-preview:hover {
-  border-color: var(--c-primary);
-}
-
-.ltp-head,
-.ltp-body {
-  display: flex;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.ltp-head {
-  background: var(--c-fill);
-  border-bottom: 1px solid var(--c-line);
-}
-
-.ltp-th,
-.ltp-td {
-  min-width: 0;
-  flex: 1 1 0;
-  padding: var(--sp-sm) var(--sp-md);
-  font-size: var(--fs-13);
-  border-right: 1px solid var(--c-line-light);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ltp-th:last-child,
-.ltp-td:last-child {
-  border-right: none;
-}
-
-.ltp-th.is-fixed,
-.ltp-td.is-fixed {
-  flex: 0 0 auto;
-}
-
-.ltp-th {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 500;
-  color: var(--c-text);
-}
-
-.ltp-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ltp-required {
-  flex-shrink: 0;
-  color: var(--c-danger);
-}
-
-.ltp-td {
-  color: var(--c-text-regular);
-}
-
-/* 第 2 行直接显示类型名称（单行文本 / 数字 / 日期 / 单选（下拉：选项1、选项2）/ 多选（下拉：...）） */
-.ltp-cell-text {
-  font-size: var(--fs-13);
-  color: var(--c-text-placeholder);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 列设置按钮已删除，预览图替代 */
-
-.list-box {
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.list-row {
-  padding: var(--sp-sm) var(--sp-md);
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-}
-
-.list-row + .list-row {
-  border-top: 1px solid var(--c-line-light);
-}
-
-.rich-box {
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  background: var(--c-panel);
-  transition: border-color 0.15s ease;
-}
-
-.rich-box:focus-within {
-  border-color: var(--c-primary);
-}
-
-.rich-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  padding: var(--sp-xs) var(--sp-sm);
-  border-bottom: 1px solid var(--c-line-light);
-}
-
-.rich-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 24px;
-  padding: 0 var(--sp-xs);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  font-weight: 600;
-  color: var(--c-text-regular);
-  background: transparent;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.rich-btn:hover {
-  color: var(--c-primary);
-  border-color: var(--c-primary);
-  background: var(--c-primary-bg);
-}
-
-.rich-btn.is-italic {
-  font-style: italic;
-  font-weight: 400;
-}
-
-.rich-btn.is-blue {
-  color: #2563EB;
-}
-
-.rich-btn.is-blue:hover {
-  color: #ffffff;
-  background: #2563EB;
-}
-
-.rich-btn.is-red {
-  color: #dc2626;
-}
-
-.rich-btn.is-red:hover {
-  color: #ffffff;
-  background: #dc2626;
-}
-
-.rich-btn.is-list {
-  gap: 4px;
-}
-
-.rich-dot {
-  width: 4px;
-  height: 4px;
-  background: currentColor;
-  border-radius: 50%;
-}
-
-.rich-area {
-  padding: var(--sp-md);
-  min-height: 72px;
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-  outline: none;
-}
-
-.rich-area:empty::before {
-  content: attr(data-ph);
-  color: var(--c-text-placeholder);
-  pointer-events: none;
-}
-
-/* ---------- 工具条 ---------- */
-.q-tools {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--sp-lg);
-  margin: var(--sp-lg) 0 0 28px;
-  padding-top: var(--sp-md);
-  border-top: 1px dashed var(--c-line-light);
-}
-
-.tool-divider {
-  width: 1px;
-  height: 12px;
-  background: var(--c-line);
-}
-
-.tool-label {
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
+  transition: all var(--dur) var(--ease);
+
+  &:hover {
+    background: var(--c-fill);
+  }
+
+  &.is-active {
+    border-color: var(--c-primary);
+    border-style: solid;
+    background: var(--c-panel);
+    box-shadow: 0 0 0 3px var(--c-primary-bg);
+  }
+
+  /* ---------- 题干 ---------- */
+  .q-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+  }
+
+  /* .drag-grip 由 global 提供(20×20 + 主色 hover);此处补足 el-icon 显式尺寸 */
+  .drag-grip {
+    /* Element Plus 的 el-icon 不会自动撑开，需要显式尺寸 */
+    width: 20px;
+    height: 20px;
+    font-size: var(--fs-16);
+  }
+
+  .q-index {
+    font-size: var(--fs-14);
+    color: var(--c-text);
+  }
+
+  .q-title-input {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-text);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
+    transition: border-color var(--dur) var(--ease);
+
+    &::placeholder {
+      color: var(--c-text-placeholder);
+    }
+
+    &:hover:not(:focus) {
+      border-bottom-color: var(--c-line);
+    }
+
+    &:focus {
+      border-bottom-color: var(--c-primary);
+    }
+  }
+
+  .q-required {
+    color: var(--c-danger);
+    font-size: var(--fs-16);
+    line-height: 1;
+  }
+
+  .q-type-tag {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-sm);
+    font-size: var(--fs-14);
+    color: var(--c-text-secondary);
+    background: var(--c-fill);
+    border-radius: var(--radius-sm);
+
+    &.is-switchable {
+      cursor: pointer;
+      transition: background var(--dur) var(--ease);
+
+      &:hover {
+        color: var(--c-primary);
+        background: var(--c-primary-bg);
+      }
+    }
+  }
+
+  .q-type-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .q-type-arrow {
+    font-size: var(--fs-12);
+    margin-left: var(--sp-2xs);
+  }
+
+  /* 原 .el-dropdown-menu .q-type-icon(scoped 进不去,永不匹配)
+     已迁到 element-overrides.less 全局 — 见 bug #6 */
+
+  .q-desc {
+    margin: var(--sp-xs) 0 0 28px;
+    font-size: var(--fs-12);
+    color: var(--c-text-secondary);
+  }
+
+  /* ---------- 选项 ---------- */
+  .q-body {
+    margin: var(--sp-md) 0 0 28px;
+  }
+
+  .option-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+
+    &.is-double {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--sp-3xl);
+    }
+  }
+
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+  }
+
+  /* .option-mark 由 global 提供;仅覆盖单选/多选切换的圆/方 */
+  .option-input {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    padding: 0 var(--sp-sm);
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    outline: none;
+
+    &:hover {
+      border-color: var(--c-line);
+    }
+
+    &:focus {
+      border-color: var(--c-primary);
+      background: var(--c-panel);
+    }
+  }
+
+  .option-score-input {
+    flex-shrink: 0;
+    width: 96px;
+
+    /* 与 .option-input 视觉一致：透明底 + 悬浮显边框 + focus 主色 */
+    :deep(.el-input__wrapper) {
+      padding: 1px 8px;
+      background: transparent;
+      box-shadow: 0 0 0 1px transparent inset;
+      border-radius: var(--radius-sm);
+      transition: all var(--dur) var(--ease);
+    }
+
+    &:hover :deep(.el-input__wrapper) {
+      box-shadow: 0 0 0 1px var(--c-line) inset;
+    }
+
+    :deep(.el-input__wrapper.is-focus) {
+      box-shadow: 0 0 0 1px var(--c-primary) inset;
+      background: var(--c-panel);
+    }
+
+    :deep(.el-input__inner) {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .option-score-suffix {
+    font-size: var(--fs-14);
+    color: var(--c-text-secondary);
+    margin-left: var(--sp-xs);
+  }
+
+  /* 已关联：展示名 + 关联标签 + 删除关联 */
+  .option-linked {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    min-width: 0;
+    height: 30px;
+    padding: 0 var(--sp-sm);
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+    background: var(--c-primary-bg);
+    border: 1px solid var(--c-primary-border);
+    border-radius: var(--radius-sm);
+    cursor: default;
+  }
+
+  .link-badge {
+    flex-shrink: 0;
+    padding: 0 var(--sp-xs);
+    font-size: var(--fs-12);
+    color: var(--c-primary);
+    background: var(--c-panel);
+    border-radius: var(--radius-sm);
+  }
+
+  .link-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* link-clear 走全局 .btn-icon-ghost(覆盖中性色 → danger);此处仅恢复中性色,避免和 primary-bg 冲突 */
+  .link-clear {
+    color: var(--c-text-secondary);
+
+    &:hover {
+      color: var(--c-danger);
+      background: transparent;
+    }
+  }
+
+  /* 默认项标签 */
+  .opt-default-tag {
+    flex-shrink: 0;
+    font-size: var(--fs-12);
+    color: var(--c-primary);
+    font-weight: 500;
+  }
+
+  /* .opt-set-default / .opt-link-btn 走全局 .btn-outline-dashed-primary;此处仅强制 flex-shrink:0 */
+
+  /* option-del 走全局 .btn-icon-ghost */
+  .option-del {
+    color: var(--c-text-placeholder);
+  }
+
+  /* add-option 按钮走全局 .btn-text-primary,layout 通过 inline style 提供 margin-top */
+
+  /* ---------- 其它题型预览 ---------- */
+  .q-preview {
+    /* 填空类默认拉满 q-body 宽度；采集类有各自固定宽度 */
+    width: 100%;
+  }
+
+  /* .upload-box 走全局,无需额外样式 */
+
+  /* 标签文本：标签 + 输入框一行 */
+  .tag-input-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-sm);
+    min-height: 30px;
+    padding: var(--sp-xs) 0;
+    border-bottom: 1px solid var(--c-line-light);
+    transition: border-color var(--dur) var(--ease);
+
+    &:focus-within {
+      border-bottom-color: var(--c-primary);
+      border-bottom-style: solid;
+    }
+  }
+
+  .tag-chip {
+    margin-right: 0;
+  }
+
+  .tag-input {
+    flex: 1;
+    min-width: 120px;
+    height: 28px;
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+    background: transparent;
+    border: none;
+    outline: none;
+
+    &::placeholder {
+      color: var(--c-text-placeholder);
+    }
+  }
+
+  .tag-counter {
+    flex-shrink: 0;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-12);
+    color: var(--c-text-secondary);
+    font-variant-numeric: tabular-nums;
+    padding-left: var(--sp-sm);
+    border-left: 1px solid var(--c-line-light);
+    margin-left: auto;
+
+    &.is-full {
+      color: var(--c-danger);
+    }
+  }
+
+  /* ---------- 列表题 ---------- */
+  .list-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  .list-hint {
+    margin: 0;
+    font-size: var(--fs-12);
+    color: var(--c-text-placeholder);
+    line-height: var(--lh-tip);
+  }
+
+  .list-warn {
+    margin-left: var(--sp-sm);
+    color: var(--c-danger);
+  }
+
+  /* list-settings-btn 走全局 .btn-text-primary;此处补 margin-top + gap */
+  .list-settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin-top: var(--sp-md);
+  }
+
+  /* 预览图：继承 global .table-preview,这里只补"可点击 → 主色 border"hover */
+  .list-table-preview {
+    cursor: pointer;
+    transition: border-color var(--dur) var(--ease);
+
+    &:hover {
+      border-color: var(--c-primary);
+    }
+  }
+}
+
+/* ---------- 工具条容器 ---------- */
+/* 走全局 .toolbar;此处无新增样式,标记 .q-tools 别名以便追踪 */
 </style>

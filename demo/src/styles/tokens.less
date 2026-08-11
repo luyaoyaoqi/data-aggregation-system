@@ -1,0 +1,298 @@
+// ==========================================================================
+// 设计 Token —— 与 uno.config.js theme 保持一致
+// 详见 ../../../DESIGN.md
+//
+// 分层:
+//   1) 品牌层   --c-primary / --c-success / --c-warning / --c-danger / --c-info
+//      + 中性层 --c-page / --c-panel / --c-line / --c-text-* / --c-fill / ...
+//      + 形状层 --fs-* / --sp-* / --radius-* / --shadow-* / --dur / --ease
+//   2) EP 桥接层 --el-color-* / --el-text-color-* / --el-border-color-* / --el-fill-color-* / ...
+//      全部由品牌层 + 中性层派生,改 brand 自动跟随整库
+//
+// 改动规范:
+//   - 改颜色/字号/间距/圆角 → 先改品牌层,EP 桥接层勿动
+//   - 新增 token → 先想清楚属于哪一层再加
+// ==========================================================================
+
+// ============================ 1. 品牌层 + 形状层 ============================
+:root {
+  /* ---------- 主色 Brand — indigo-600 ---------- */
+  --c-primary: #2563EB;
+  --c-primary-rgb: 37, 99, 235;
+  --c-primary-hover: #1D4ED8;
+  --c-primary-active: #1E40AF;
+  --c-primary-bg: #EFF6FF;
+  --c-primary-border: #BFDBFE;
+  --c-on-primary: #FFFFFF;
+
+  /* ---------- 顶部导航(白底 + 1px 边框)---------- */
+  --c-nav: #FFFFFF;
+  --c-nav-text: #0F172A;
+  --c-nav-hover: #F1F5F9;
+
+  /* ---------- 中性 — Slate ---------- */
+  --c-page: #F8FAFC;
+  --c-stage: #EEF1F6; // 预览舞台底色 (深于 page)
+  --c-panel: #FFFFFF;
+  --c-line: #E2E8F0;
+  --c-line-light: #F1F5F9;
+  --c-fill: #F1F5F9;
+  --c-fill-hover: #F8FAFC;
+  --c-scroll-thumb: #CBD5E1;
+  --c-scroll-thumb-hover: #94A3B8;
+
+  /* ---------- 文本 ---------- */
+  --c-text-strong: #0F172A;
+  --c-text: #1E293B;
+  --c-text-regular: #475569;
+  --c-text-secondary: #64748B;
+  --c-text-placeholder: #94A3B8;
+  --c-text-disabled: #CBD5E1;
+
+  /* ---------- 语义色: success ---------- */
+  --c-success: #10B981;
+  --c-success-rgb: 16, 185, 129;
+  --c-success-hover: #059669;
+  --c-success-bg: #ECFDF5;
+  --c-success-border: #A7F3D0;
+  --c-on-success: #FFFFFF;
+
+  /* ---------- 语义色: warning ---------- */
+  --c-warning: #F59E0B;
+  --c-warning-rgb: 245, 158, 11;
+  --c-warning-hover: #D97706;
+  --c-warning-text: #B45309; // 深 amber,用于提示条文字(amber-700)
+  --c-warning-bg: #FFFBEB;
+  --c-warning-border: #FDE68A;
+  --c-on-warning: #FFFFFF;
+
+  /* ---------- 语义色: danger ---------- */
+  --c-danger: #EF4444;
+  --c-danger-rgb: 239, 68, 68;
+  --c-danger-hover: #DC2626;
+  --c-danger-strong: #DC2626; // red-600,深红(RTE 红字按钮、删除强提示)
+  --c-danger-bg: #FEF2F2;
+  --c-danger-border: #FECACA;
+  --c-on-danger: #FFFFFF;
+
+  /* ---------- 语义色: info ---------- */
+  --c-info: #3B82F6;
+  --c-info-rgb: 59, 130, 246;
+  --c-info-hover: #2563EB;
+  --c-info-bg: #EFF6FF;
+  --c-info-border: #BFDBFE;
+  --c-on-info: #FFFFFF;
+
+  /* ---------- 字体 ---------- */
+  --ff-display: 'Instrument Sans', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ff-body: 'Satoshi', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --ff-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* ---------- 字号档(11/13/15 为新增,原 8 处硬编码)---------- */
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+
+  /* ---------- 间距基准 4px ---------- */
+  --sp-2xs: 2px;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-2xl: 32px;
+  --sp-3xl: 48px;
+
+  /* ---------- 圆角(新增 xs=3 / md=6)---------- */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* ---------- 阴影 — 极轻三层 + drag/float ---------- */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 12px 32px rgba(15, 23, 42, 0.10);
+  --shadow-float: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-drag: 0 8px 20px rgba(37, 99, 235, 0.25);
+  --shadow-drag-edge: 0 0 1px rgba(37, 99, 235, 0.45);
+
+  /* ---------- 动效 ---------- */
+  --dur: 0.15s;
+  --dur-slow: 0.2s;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------- 布局尺寸 ---------- */
+  --h-nav: 56px;
+  --h-panel-head: 48px;
+  --w-library: 240px;
+  --w-property: 320px;
+  --h-footer: 56px;
+
+  /* ---------- 行高 ---------- */
+  --lh-tip: 18px;
+}
+
+// ============================ 2. Element Plus 桥接层 ============================
+// 全部由品牌层派生,改 brand token 自动跟随整库
+:root {
+  /* ---- 主色 primary ---- */
+  --el-color-primary: var(--c-primary);
+  --el-color-primary-light-3: color-mix(in srgb, var(--c-primary) 60%, white);
+  --el-color-primary-light-5: color-mix(in srgb, var(--c-primary) 80%, white);
+  --el-color-primary-light-7: color-mix(in srgb, var(--c-primary) 90%, white);
+  --el-color-primary-light-8: color-mix(in srgb, var(--c-primary) 95%, white);
+  --el-color-primary-light-9: var(--c-primary-bg);
+  --el-color-primary-dark-2: var(--c-primary-hover);
+
+  /* ---- 成功 success ---- */
+  --el-color-success: var(--c-success);
+  --el-color-success-light-3: color-mix(in srgb, var(--c-success) 60%, white);
+  --el-color-success-light-5: color-mix(in srgb, var(--c-success) 80%, white);
+  --el-color-success-light-7: color-mix(in srgb, var(--c-success) 90%, white);
+  --el-color-success-light-8: color-mix(in srgb, var(--c-success) 95%, white);
+  --el-color-success-light-9: var(--c-success-bg);
+  --el-color-success-dark-2: var(--c-success-hover);
+
+  /* ---- 警告 warning ---- */
+  --el-color-warning: var(--c-warning);
+  --el-color-warning-light-3: color-mix(in srgb, var(--c-warning) 60%, white);
+  --el-color-warning-light-5: color-mix(in srgb, var(--c-warning) 80%, white);
+  --el-color-warning-light-7: color-mix(in srgb, var(--c-warning) 90%, white);
+  --el-color-warning-light-8: color-mix(in srgb, var(--c-warning) 95%, white);
+  --el-color-warning-light-9: var(--c-warning-bg);
+  --el-color-warning-dark-2: var(--c-warning-hover);
+
+  /* ---- 危险 danger (含 error 别名,EP 历史原因两个名都存在)---- */
+  --el-color-danger: var(--c-danger);
+  --el-color-danger-light-3: color-mix(in srgb, var(--c-danger) 60%, white);
+  --el-color-danger-light-5: color-mix(in srgb, var(--c-danger) 80%, white);
+  --el-color-danger-light-7: color-mix(in srgb, var(--c-danger) 90%, white);
+  --el-color-danger-light-8: color-mix(in srgb, var(--c-danger) 95%, white);
+  --el-color-danger-light-9: var(--c-danger-bg);
+  --el-color-danger-dark-2: var(--c-danger-hover);
+  --el-color-error: var(--el-color-danger);
+  --el-color-error-light-3: var(--el-color-danger-light-3);
+  --el-color-error-light-5: var(--el-color-danger-light-5);
+  --el-color-error-light-7: var(--el-color-danger-light-7);
+  --el-color-error-light-8: var(--el-color-danger-light-8);
+  --el-color-error-light-9: var(--el-color-danger-light-9);
+  --el-color-error-dark-2: var(--el-color-danger-dark-2);
+
+  /* ---- 信息 info ---- */
+  --el-color-info: var(--c-info);
+  --el-color-info-light-3: color-mix(in srgb, var(--c-info) 60%, white);
+  --el-color-info-light-5: color-mix(in srgb, var(--c-info) 80%, white);
+  --el-color-info-light-7: color-mix(in srgb, var(--c-info) 90%, white);
+  --el-color-info-light-8: color-mix(in srgb, var(--c-info) 95%, white);
+  --el-color-info-light-9: var(--c-info-bg);
+  --el-color-info-dark-2: var(--c-info-hover);
+
+  /* ---- 文本色 ---- */
+  --el-text-color-primary: var(--c-text-strong);
+  --el-text-color-regular: var(--c-text);
+  --el-text-color-secondary: var(--c-text-regular);
+  --el-text-color-placeholder: var(--c-text-placeholder);
+  --el-text-color-disabled: var(--c-text-disabled);
+
+  /* ---- 边框色 ---- */
+  --el-border-color: var(--c-line);
+  --el-border-color-light: var(--c-line-light);
+  --el-border-color-lighter: var(--c-line-light);
+  --el-border-color-extra-light: var(--c-line-light);
+  --el-border-color-dark: var(--c-text-secondary);
+  --el-border-color-darker: var(--c-text-secondary);
+  --el-border-color-hover: var(--c-primary);
+
+  /* ---- 填充色 ---- */
+  --el-fill-color: var(--c-fill);
+  --el-fill-color-light: var(--c-fill);
+  --el-fill-color-lighter: var(--c-fill-hover);
+  --el-fill-color-extra-light: var(--c-fill-hover);
+  --el-fill-color-dark: var(--c-line);
+  --el-fill-color-darker: var(--c-text-placeholder);
+  --el-fill-color-blank: var(--c-panel);
+
+  /* ---- 背景 ---- */
+  --el-bg-color: var(--c-panel);
+  --el-bg-color-page: var(--c-page);
+  --el-bg-color-overlay: var(--c-panel);
+
+  /* ---- 遮罩(mask/modal 背后的灰)---- */
+  --el-mask-color: rgba(15, 23, 42, 0.50);
+  --el-mask-color-light: rgba(15, 23, 42, 0.30);
+  --el-mask-color-lighter: rgba(15, 23, 42, 0.10);
+  --el-mask-color-extra-light: rgba(15, 23, 42, 0.05);
+
+  /* ---- 禁用 ---- */
+  --el-disabled-bg-color: var(--c-fill);
+  --el-disabled-text-color: var(--c-text-placeholder);
+  --el-disabled-border-color: var(--c-line-light);
+
+  /* ---- 形状 / 字体 ---- */
+  --el-border-radius-base: var(--radius);
+  --el-border-radius-small: var(--radius-sm);
+  --el-border-radius-round: var(--radius-pill);
+  --el-font-family: var(--ff-body);
+  --el-font-size-base: var(--fs-14);
+}
+
+// ============================ 3. 全局基础 ============================
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--ff-body);
+  font-size: var(--fs-14);
+  color: var(--c-text);
+  background: var(--c-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+// ============================ 4. 工具类 ============================
+.t-disp {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-mono {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+// ============================ 5. 滚动条 ============================
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-scroll-thumb);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-scroll-thumb-hover);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

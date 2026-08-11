@@ -330,7 +330,7 @@ function fixedWidthStyle(width) {
               "
             >
               <el-icon
-                class="width-bar-grip"
+                class="drag-grip"
                 title="拖动排序"
                 @mousedown="(e) => startReorder(e, i)"
                 ><Rank
@@ -428,7 +428,7 @@ function fixedWidthStyle(width) {
             <el-button
               v-if="col.options.length > 1"
               type="button"
-              class="opt-del"
+              class="btn-icon-ghost opt-del"
               title="删除选项"
               @click="removeOption(col, oi)"
             >
@@ -438,7 +438,7 @@ function fixedWidthStyle(width) {
           <button
             v-if="col.options.length < 20"
             type="button"
-            class="opt-add"
+            class="btn-text-primary-sm opt-add"
             @click="addOption(col)"
           >
             <el-icon><Plus /></el-icon>
@@ -451,7 +451,8 @@ function fixedWidthStyle(width) {
     <button
       v-if="draftCols.length < 20"
       type="button"
-      class="col-add"
+      class="btn-text-primary col-add"
+      style="font-size: var(--fs-13); margin-top: var(--sp-md);"
       @click="addCol"
     >
       <el-icon><Plus /></el-icon>
@@ -465,185 +466,162 @@ function fixedWidthStyle(width) {
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .dialog-tip {
   margin: 0 0 var(--sp-md);
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
-  line-height: 18px;
+  line-height: var(--lh-tip);
 }
 
 /* ---------- 列宽调节可视化预览 ---------- */
 .width-preview {
   margin-bottom: var(--sp-lg);
+
+  .width-preview-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-sm);
+    margin-bottom: var(--sp-sm);
+  }
+
+  .width-preview-title {
+    font-size: var(--fs-13);
+    font-weight: 500;
+    color: var(--c-text);
+  }
+
+  .width-preview-tip {
+    font-size: var(--fs-12);
+    color: var(--c-text-placeholder);
+  }
+
+  .width-bars-scroll {
+    overflow-x: auto;
+    padding: var(--sp-2xs) var(--sp-xs);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    background: var(--c-panel);
+  }
+
+  .width-bars {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 36px;
+  }
+
+  .width-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: 0 var(--sp-sm);
+    font-size: var(--fs-14);
+    color: var(--c-text-regular);
+    background: var(--c-fill);
+    border-right: 1px solid var(--c-line);
+    white-space: nowrap;
+    transition:
+      background var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+
+    /* 重排占位条：垂直方向的指示线。
+       用 box-shadow 渲染（不占布局空间，与题目拖动占位条一致）：
+       - 居中 3px 实色垂直线（offset-x:-1.5px, spread:1.5px → 阴影盒宽 3px，居中跨元素中线）
+       - 居中 3px 模糊蓝色光晕（blur:6px, spread:1.5px） */
+    &-placeholder {
+      flex-shrink: 0;
+      width: 0;
+      align-self: stretch;
+      pointer-events: none;
+      box-shadow:
+        -1.5px 0 0 1.5px var(--c-primary),
+        -1.5px 0 6px 1.5px rgba(37, 99, 235, 0.45);
+      z-index: 10;
+    }
+
+    /* 被拖动的 bar：主色高亮 + 虚线边框 + 漂浮阴影，区别于普通列 */
+    &.is-dragging {
+      background: var(--c-primary-bg);
+      color: var(--c-primary);
+      border-right-color: var(--c-primary);
+      /* 用 outline 而非 border，避免占据布局空间破坏 flex 等分 */
+      outline: 1px dashed var(--c-primary);
+      outline-offset: -1px;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+      z-index: 10;
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+
+      .drag-grip {
+        color: var(--c-primary);
+      }
+
+      .width-bar-px {
+        color: var(--c-primary);
+        font-style: normal;
+      }
+    }
+
+    /* 自动列：撑满剩余空间，视觉上偏柔和 */
+    &.is-auto {
+      background: transparent;
+      color: var(--c-text-secondary);
+      border-right-style: dashed;
+
+      .width-bar-px {
+        color: var(--c-text-placeholder);
+        font-style: italic;
+      }
+    }
+
+    &:hover {
+      background: var(--c-primary-bg);
+    }
+
+    &:last-child {
+      border-right: none;
+    }
+
+    .width-bar-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .width-bar-px {
+      flex-shrink: 0;
+      font-family: var(--ff-mono);
+      font-size: var(--fs-11);
+      color: var(--c-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .width-bar-handle {
+      position: absolute;
+      top: 0;
+      right: -3px;
+      width: 6px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 1;
+      transition: background var(--dur) var(--ease);
+
+      &:hover,
+      &.is-dragging {
+        background: var(--c-primary);
+        opacity: 0.5;
+      }
+    }
+  }
 }
 
-.width-preview-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-sm);
-  margin-bottom: var(--sp-sm);
-}
-
-.width-preview-title {
-  font-size: var(--fs-13);
-  font-weight: 500;
-  color: var(--c-text);
-}
-
-.width-preview-tip {
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-}
-
-.width-bars-scroll {
-  overflow-x: auto;
-  padding: 2px 4px;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  background: var(--c-panel);
-}
-
-.width-bars {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  min-height: 36px;
-}
-
-.width-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  padding: 0 var(--sp-sm);
-  font-size: var(--fs-14);
-  color: var(--c-text-regular);
-  background: var(--c-fill);
-  border-right: 1px solid var(--c-line);
-  white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-/* 重排占位条：垂直方向的指示线。
- 用 box-shadow 渲染（不占布局空间，与题目拖动占位条一致）：
- - 居中 3px 实色垂直线（offset-x:-1.5px, spread:1.5px → 阴影盒宽 3px，居中跨元素中线）
- - 居中 3px 模糊蓝色光晕（blur:6px, spread:1.5px） */
-.width-bar-placeholder {
-  flex-shrink: 0;
-  width: 0;
-  align-self: stretch;
-  pointer-events: none;
-  box-shadow:
-    -1.5px 0 0 1.5px var(--c-primary),
-    -1.5px 0 6px 1.5px rgba(37, 99, 235, 0.45);
-  z-index: 10;
-}
-
-/* 被拖动的 bar：主色高亮 + 虚线边框 + 漂浮阴影，区别于普通列 */
-.width-bar.is-dragging {
-  background: var(--c-primary-bg);
-  color: var(--c-primary);
-  border-right-color: var(--c-primary);
-  /* 用 outline 而非 border，避免占据布局空间破坏 flex 等分 */
-  outline: 1px dashed var(--c-primary);
-  outline-offset: -1px;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
-  z-index: 10;
-  border-radius: var(--radius-sm);
-  pointer-events: none;
-}
-
-.width-bar.is-dragging .width-bar-grip {
-  color: var(--c-primary);
-}
-
-.width-bar.is-dragging .width-bar-px {
-  color: var(--c-primary);
-  font-style: normal;
-}
-
-/* 自动列：撑满剩余空间，视觉上偏柔和 */
-.width-bar.is-auto {
-  background: transparent;
-  color: var(--c-text-secondary);
-  border-right-style: dashed;
-}
-
-.width-bar:hover {
-  background: var(--c-primary-bg);
-}
-
-.width-bar:last-child {
-  border-right: none;
-}
-
-.width-bar-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.width-bar-px {
-  flex-shrink: 0;
-  font-family: var(--ff-mono);
-  font-size: 11px;
-  color: var(--c-text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.width-bar.is-auto .width-bar-px {
-  color: var(--c-text-placeholder);
-  font-style: italic;
-}
-
-.width-bar-handle {
-  position: absolute;
-  top: 0;
-  right: -3px;
-  width: 6px;
-  height: 100%;
-  cursor: col-resize;
-  z-index: 1;
-  transition: background 0.15s ease;
-}
-
-.width-bar-handle:hover,
-.width-bar-handle.is-dragging {
-  background: var(--c-primary);
-  opacity: 0.5;
-}
-
-/* 左侧拖拽手柄：整列重排（与表单题目卡 .q-drag 保持一致：box + hover 蓝底） */
-.width-bar-grip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  font-size: 16px;
-  flex-shrink: 0;
-  color: var(--c-text-placeholder);
-  cursor: move;
-  border-radius: 4px;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-
-.width-bar-grip:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-bg);
-}
-
-/* 拖动中：保持 move，cursor 由 body 全局锁定为 grabbing，避免反复切换 */
-
+/* ---------- 列清单 ---------- */
 .col-list {
   display: flex;
   flex-direction: column;
@@ -651,144 +629,91 @@ function fixedWidthStyle(width) {
   max-height: 460px;
   overflow-y: auto;
   padding-right: var(--sp-xs);
+
+  .col-item {
+    padding: var(--sp-md);
+    background: var(--c-fill);
+    border-radius: var(--radius);
+  }
+
+  .col-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-lg);
+  }
+
+  /* 列序号 / 选项序号：相同字号 + 数字字体 + tabular-nums，合并规则 */
+  .col-index,
+  .opt-index {
+    flex-shrink: 0;
+    width: 22px;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-12);
+    color: var(--c-text-secondary);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .col-name-input {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .col-type-select {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .col-width-input {
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  /* 列选项 */
+  .col-options {
+    margin-top: var(--sp-md);
+    padding-top: var(--sp-md);
+    border-top: 1px dashed var(--c-line);
+
+    .options-tip {
+      margin: 0 0 var(--sp-sm);
+      font-size: var(--fs-12);
+      color: var(--c-text-placeholder);
+    }
+
+    .opt-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      margin-bottom: var(--sp-sm);
+    }
+
+    .opt-name-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* opt-del 走全局 .btn-icon-ghost；此处仅设置固定尺寸 24×24 */
+    .opt-del {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      font-size: var(--fs-12);
+    }
+
+    /* opt-add 走全局 .btn-text-primary-sm；此处仅补 gap */
+    .opt-add {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-xs);
+    }
+  }
 }
 
-.col-item {
-  padding: var(--sp-md);
-  background: var(--c-fill);
-  border-radius: var(--radius);
-}
-
-.col-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-lg);
-}
-
-.col-index {
-  flex-shrink: 0;
-  width: 22px;
-  font-family: var(--ff-mono);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-.col-name-input {
-  flex: 1;
-  min-width: 120px;
-}
-
-.col-type-select {
-  width: 240px;
-  flex-shrink: 0;
-}
-
-.col-width-input {
-  width: 120px;
-  flex-shrink: 0;
-}
-
-/* 列选项 */
-.col-options {
-  margin-top: var(--sp-md);
-  padding-top: var(--sp-md);
-  border-top: 1px dashed var(--c-line);
-}
-
-.options-tip {
-  margin: 0 0 var(--sp-sm);
-  font-size: var(--fs-12);
-  color: var(--c-text-placeholder);
-}
-
-.opt-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-  margin-bottom: var(--sp-sm);
-}
-
-.opt-index {
-  flex-shrink: 0;
-  width: 22px;
-  font-family: var(--ff-mono);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-.opt-name-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.opt-del {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  font-size: 12px;
-  color: var(--c-text-placeholder);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.opt-del:hover {
-  color: var(--c-danger);
-  background: #fef2f2;
-}
-
-.opt-add,
+/* col-add:走全局 .btn-text-primary,font-13 与 margin-top 在 inline style 已写 */
 .col-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-primary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-
-.opt-add:hover,
-.col-add:hover {
-  color: var(--c-primary-hover);
-}
-
-.col-add {
-  margin-top: var(--sp-md);
-  font-size: var(--fs-13);
-}
-
-.tool-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-xs);
-  padding: 0;
-  font-family: inherit;
-  font-size: var(--fs-12);
-  color: var(--c-text-regular);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.tool-btn:hover {
-  color: var(--c-primary);
-}
-
-.tool-btn.is-danger:hover {
-  color: var(--c-danger);
 }
 </style>

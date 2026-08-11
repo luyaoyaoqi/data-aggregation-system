@@ -6,7 +6,7 @@ import Editor from './views/Editor.vue'
   <Editor />
 </template>
 
-<style>
+<style scoped lang="less">
 #app {
   height: 100%;
 }

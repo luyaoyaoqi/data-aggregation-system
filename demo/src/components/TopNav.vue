@@ -37,7 +37,7 @@ const active = ref('form')
   </header>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .top-nav {
   height: var(--h-nav);
   flex-shrink: 0;
@@ -48,90 +48,91 @@ const active = ref('form')
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--sp-2xl);
-}
 
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-lg);
-}
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-lg);
+  }
 
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-family: inherit;
-  font-size: 16px;
-  color: var(--c-nav-text);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.15s var(--ease);
-}
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-family: inherit;
+    font-size: var(--fs-16);
+    color: var(--c-nav-text);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease);
 
-.back-btn:hover {
-  background: var(--c-nav-hover);
-}
+    &:hover {
+      background: var(--c-nav-hover);
+    }
+  }
 
-.nav-title {
-  margin: 0;
-  font-family: var(--ff-display);
-  font-size: var(--fs-16);
-  font-weight: 700;
-  color: var(--c-nav-text);
-  letter-spacing: -0.01em;
-}
+  .nav-title {
+    margin: 0;
+    font-family: var(--ff-display);
+    font-size: var(--fs-16);
+    font-weight: 700;
+    color: var(--c-nav-text);
+    letter-spacing: -0.01em;
+  }
 
-.nav-menu {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-}
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+  }
 
-.nav-item {
-  height: 32px;
-  padding: 0 var(--sp-lg);
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-text-secondary);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s var(--ease);
-}
+  /* .nav-item.is-active 是主色字 + 主色浅底 → 故意不复用 .pill-active(实底白字) */
+  .nav-item {
+    height: 32px;
+    padding: 0 var(--sp-lg);
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--dur) var(--ease);
 
-.nav-item:hover {
-  color: var(--c-text-strong);
-  background: var(--c-nav-hover);
-}
+    &:hover {
+      color: var(--c-text-strong);
+      background: var(--c-nav-hover);
+    }
 
-.nav-item.is-active {
-  color: var(--c-primary);
-  background: var(--c-primary-bg);
-  font-weight: 500;
-}
+    &.is-active {
+      color: var(--c-primary);
+      background: var(--c-primary-bg);
+      font-weight: 500;
+    }
+  }
 
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
-}
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+  }
 
-.nav-avatar {
-  background: var(--c-primary) !important;
-  color: #fff;
-  font-family: var(--ff-display);
-  font-weight: 600;
-  font-size: var(--fs-12);
-}
+  .nav-avatar {
+    background: var(--c-primary) !important;
+    color: var(--c-on-primary);
+    font-family: var(--ff-display);
+    font-weight: 600;
+    font-size: var(--fs-12);
+  }
 
-.nav-user {
-  font-size: var(--fs-14);
-  color: var(--c-text-strong);
-  font-weight: 500;
+  .nav-user {
+    font-size: var(--fs-14);
+    color: var(--c-text-strong);
+    font-weight: 500;
+  }
 }
 </style>

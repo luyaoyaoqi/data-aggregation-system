@@ -159,7 +159,7 @@ function endReorder() {
               />
               <button
                 type="button"
-                class="card-del"
+                class="btn-icon-ghost card-del"
                 @click="emit('remove-card', card.id)"
               >
                 <el-icon><Delete /></el-icon>
@@ -258,7 +258,7 @@ function endReorder() {
   </main>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .editor-area {
   flex: 1;
   min-width: 0;
@@ -266,132 +266,235 @@ function endReorder() {
   display: flex;
   flex-direction: column;
   background: var(--c-page);
+
+  .canvas-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .canvas {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--sp-xl) var(--sp-xl) 48px;
+  }
+
+  /* ---------- 标题 ---------- */
+  .form-title-input {
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin-bottom: var(--sp-lg);
+    font-family: inherit;
+    font-size: var(--fs-20);
+    font-weight: 600;
+    color: var(--c-text);
+    /* text-align: center; */
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    outline: none;
+    transition: border-color var(--dur) var(--ease);
+
+    &:hover:not(:focus) {
+      border-bottom-color: var(--c-line);
+    }
+
+    &:focus {
+      border-bottom-color: var(--c-primary);
+    }
+
+    &::placeholder {
+      color: var(--c-text-placeholder);
+      font-weight: 400;
+    }
+  }
+
+  .canvas-divider {
+    height: 1px;
+    margin: var(--sp-lg) 0;
+    background: var(--c-line);
+  }
+
+  .page-theme-input {
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin-bottom: var(--sp-lg);
+    font-family: inherit;
+    font-size: var(--fs-16);
+    color: var(--c-text);
+    /* text-align: center; */
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    outline: none;
+    transition: border-color var(--dur) var(--ease);
+
+    &:hover:not(:focus) {
+      border-bottom-color: var(--c-line);
+    }
+
+    &:focus {
+      border-bottom-color: var(--c-primary);
+    }
+
+    &::placeholder {
+      color: var(--c-text-placeholder);
+    }
+  }
+
+  /* ---------- 卡片 ---------- */
+  .form-card {
+    margin-bottom: var(--sp-lg);
+    background: var(--c-panel);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-md);
+    padding: var(--sp-md) var(--sp-lg);
+    border-bottom: 1px solid var(--c-line-light);
+  }
+
+  .card-title-input {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-text);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    outline: none;
+    transition: border-color var(--dur) var(--ease);
+
+    &:hover:not(:focus) {
+      border-bottom-color: var(--c-line);
+    }
+
+    &:focus {
+      border-bottom-color: var(--c-primary);
+    }
+
+    &::placeholder {
+      color: var(--c-text-placeholder);
+    }
+  }
+
+  .card-body {
+    /* 不再用 flex + gap：因为占位条要插入到题目之间，flex gap 会强制让出空隙导致布局抖动；
+       改用 block + 子元素自管 margin，让占位条 height:0 时不影响其他元素位置。 */
+    padding: var(--sp-md);
+
+    /* 「添加题目」按钮（卡片内）需与最后一个 wrapper 保持 sm 间距（原本由 flex gap 提供） */
+    .dashed-btn {
+      margin-top: var(--sp-sm);
+    }
+  }
+
+  .card-empty {
+    margin: 0;
+    padding: var(--sp-xl) 0;
+    text-align: center;
+    font-size: var(--fs-14);
+    color: var(--c-text-placeholder);
+  }
+
+  /* ---------- 虚线按钮 ---------- */
+  .dashed-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-xs);
+    width: 100%;
+    height: 40px;
+    font-family: inherit;
+    font-size: var(--fs-14);
+    color: var(--c-primary);
+    background: transparent;
+    border: 1px dashed var(--c-line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--dur) var(--ease);
+
+    &:hover {
+      border-color: var(--c-primary);
+      background: var(--c-primary-bg);
+    }
+
+    &.is-page {
+      height: 44px;
+      background: var(--c-panel);
+    }
+  }
+
+  /* ---------- 题目拖动排序（wrapper + 占位条）---------- */
+  /* wrapper 间距由自身 margin 提供（不再依赖 .card-body 的 flex gap） */
+  .q-drag-wrap {
+    margin-bottom: var(--sp-sm);
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+
+    /* 被拖的题：主色高亮 + 虚线外框 + 漂浮阴影 */
+    &.is-dragging {
+      opacity: 0.55;
+      outline: 1px dashed var(--c-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-drag);
+      cursor: grabbing;
+    }
+  }
+
+  /* 占位条：height: 0 + border-top 视觉蓝线 → 不占布局空间，题目不会因占位条出现/消失而上下跳 */
+  .q-placeholder {
+    height: 0;
+    margin: 0;
+    border-top: 3px solid var(--c-primary);
+    border-radius: 2px;
+    box-shadow: var(--shadow-drag-edge);
+    pointer-events: none;
+    margin-bottom: var(--sp-sm);
+    /* 紧跟其后的 .q-drag-wrap margin-bottom 提供与下一题的间距 */
+  }
+
+  /* ---------- 底部条 ---------- */
+  .editor-footer {
+    height: var(--h-footer);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--sp-xl);
+    background: var(--c-panel);
+    border-top: 1px solid var(--c-line);
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .save-time {
+      font-size: var(--fs-12);
+      color: var(--c-text-secondary);
+      margin-right: var(--sp-lg);
+    }
+  }
 }
 
-.canvas-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.canvas {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--sp-xl) var(--sp-xl) 48px;
-}
-
-/* ---------- 标题 ---------- */
-.form-title-input {
-  display: block;
-  width: 100%;
-  height: 44px;
-  margin-bottom: var(--sp-lg);
-  font-family: inherit;
-  font-size: var(--fs-20);
-  font-weight: 600;
-  color: var(--c-text);
-  /* text-align: center; */
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid transparent;
-  border-radius: 0;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.form-title-input:hover:not(:focus) {
-  border-bottom-color: var(--c-line);
-}
-
-.form-title-input:focus {
-  border-bottom-color: var(--c-primary);
-}
-
-.form-title-input::placeholder {
-  color: var(--c-text-placeholder);
-  font-weight: 400;
-}
-
-.canvas-divider {
-  height: 1px;
-  margin: var(--sp-lg) 0;
-  background: var(--c-line);
-}
-
-.page-theme-input {
-  display: block;
-  width: 100%;
-  height: 32px;
-  margin-bottom: var(--sp-lg);
-  font-family: inherit;
-  font-size: var(--fs-16);
-  color: var(--c-text);
-  /* text-align: center; */
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid transparent;
-  border-radius: 0;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.page-theme-input:hover:not(:focus) {
-  border-bottom-color: var(--c-line);
-}
-
-.page-theme-input:focus {
-  border-bottom-color: var(--c-primary);
-}
-
-.page-theme-input::placeholder {
-  color: var(--c-text-placeholder);
-}
-
-/* ---------- 卡片 ---------- */
-.form-card {
-  margin-bottom: var(--sp-lg);
-  background: var(--c-panel);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-.card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-md);
-  padding: var(--sp-md) var(--sp-lg);
-  border-bottom: 1px solid var(--c-line-light);
-}
-
-.card-title-input {
-  flex: 1;
-  min-width: 0;
-  height: 28px;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-text);
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid transparent;
-  border-radius: 0;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.card-title-input:hover:not(:focus) {
-  border-bottom-color: var(--c-line);
-}
-
-.card-title-input:focus {
-  border-bottom-color: var(--c-primary);
-}
-
-.card-title-input::placeholder {
-  color: var(--c-text-placeholder);
-}
-
+/* 「删除卡片」按钮：走全局 .btn-icon-ghost */
 .card-del {
   display: inline-flex;
   align-items: center;
@@ -400,128 +503,10 @@ function endReorder() {
   padding: 0;
   font-family: inherit;
   font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.card-del:hover {
-  color: var(--c-danger);
-}
-
-.card-body {
-  /* 不再用 flex + gap：因为占位条要插入到题目之间，flex gap 会强制让出空隙导致布局抖动；
-     改用 block + 子元素自管 margin，让占位条 height:0 时不影响其他元素位置。 */
-  padding: var(--sp-md);
-}
-
-.card-empty {
-  margin: 0;
-  padding: var(--sp-xl) 0;
-  text-align: center;
-  font-size: var(--fs-14);
-  color: var(--c-text-placeholder);
-}
-
-/* ---------- 虚线按钮 ---------- */
-.dashed-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-xs);
-  width: 100%;
-  height: 40px;
-  font-family: inherit;
-  font-size: var(--fs-14);
-  color: var(--c-primary);
-  background: transparent;
-  border: 1px dashed var(--c-line);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.dashed-btn:hover {
-  border-color: var(--c-primary);
-  background: var(--c-primary-light);
-}
-
-.dashed-btn.is-page {
-  height: 44px;
-  background: var(--c-panel);
-}
-
-/* 「添加题目」按钮（卡片内）需与最后一个 wrapper 保持 sm 间距（原本由 flex gap 提供） */
-.card-body .dashed-btn {
-  margin-top: var(--sp-sm);
-}
-
-/* ---------- 题目拖动排序（wrapper + 占位条）---------- */
-/* wrapper 间距由自身 margin 提供（不再依赖 .card-body 的 flex gap） */
-.q-drag-wrap {
-  margin-bottom: var(--sp-sm);
-}
-
-.q-drag-wrap:last-of-type {
-  margin-bottom: 0;
-}
-
-/* 被拖的题：主色高亮 + 虚线外框 + 漂浮阴影 */
-.q-drag-wrap.is-dragging {
-  opacity: 0.55;
-  outline: 1px dashed var(--c-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
-  cursor: grabbing;
-}
-
-/* 占位条：height: 0 + border-top 视觉蓝线 → 不占布局空间，题目不会因占位条出现/消失而上下跳 */
-.q-placeholder {
-  height: 0;
-  margin: 0;
-  border-top: 3px solid var(--c-primary);
-  border-radius: 2px;
-  box-shadow: 0 0 1px rgba(37, 99, 235, 0.45);
-  pointer-events: none;
-  margin-bottom: var(--sp-sm);
-  /* 紧跟其后的 .q-drag-wrap margin-bottom 提供与下一题的间距 */
-}
-
-/* ---------- 底部条 ---------- */
-.editor-footer {
-  height: var(--h-footer);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--sp-xl);
-  background: var(--c-panel);
-  border-top: 1px solid var(--c-line);
-}
-
-.footer-right {
-  display: flex;
-  align-items: center;
-}
-
-.save-time {
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-  margin-right: var(--sp-lg);
 }
 </style>
 
-<style>
-/* el-popover portal 到 body，scoped 样式进不去，写到全局 */
-.add-question-popover .el-popover__content {
-  padding: var(--sp-lg);
-}
-
-.add-question-popover .popover-tip {
-  margin: 0 0 var(--sp-lg);
-  font-size: var(--fs-12);
-  color: var(--c-text-secondary);
-}
-</style>
+<!--
+  el-popover portal 到 body，scoped 样式进不去 → 已在 element-overrides.less 全局处理
+  原非 scoped <style> 块（.add-question-popover .el-popover__content 等）已迁移并删除
+-->
