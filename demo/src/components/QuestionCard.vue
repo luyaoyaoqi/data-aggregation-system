@@ -489,6 +489,12 @@ function openListSettings() {
                 </div>
               </div>
             </div>
+
+            <!-- 显式入口：避免用户不知道点预览图能进列设置 -->
+            <button type="button" class="list-settings-btn" @click="openListSettings">
+              <el-icon><Plus /></el-icon>
+              <span>列设置</span>
+            </button>
           </div>
           <div v-else-if="question.type === 'richtext'" class="rich-box">
             <div class="rich-toolbar">
@@ -987,6 +993,25 @@ function openListSettings() {
 .list-warn {
   margin-left: var(--sp-sm);
   color: var(--c-danger);
+}
+
+/* 列设置显式入口：和 add-option 视觉一致（主色 + 主色 hover） */
+.list-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  margin-top: var(--sp-md);
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  color: var(--c-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.list-settings-btn:hover {
+  color: var(--c-primary-hover);
 }
 
 /* ---------- 列表预览图（替代原 chip + 列设置按钮）---------- */
