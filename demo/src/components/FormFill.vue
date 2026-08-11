@@ -701,8 +701,8 @@ defineExpose({
 
 .ff-theme {
   margin: 0 0 var(--sp-lg);
-  font-size: var(--fs-14);
-  color: var(--c-text-secondary);
+  font-size: var(--fs-16);
+  color: var(--c-text-primary);
   text-align: center;
   line-height: 1.5;
 }

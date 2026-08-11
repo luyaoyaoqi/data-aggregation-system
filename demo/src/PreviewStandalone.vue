@@ -7,7 +7,6 @@ import FormFill from './components/FormFill.vue'
  * 独立窗口 —— 面向最终填表人。
  *
  * 职责（容器层）：
- *  - 顶部 chrome：品牌 + 表单标题 + 副标题
  *  - 翻页（上一页 / 下一页）+ 提交按钮
  *  - 提交时调用 FormFill.getAnswers() 取数据
  *
@@ -44,9 +43,6 @@ onMounted(() => {
 const allPages = computed(() => form.value?.pages || [])
 const currentPageIdx = ref(0)
 const currentPage = computed(() => allPages.value[currentPageIdx.value] || null)
-const formTitle = computed(() => form.value?.title || '未命名表单')
-const formDesc = computed(() => form.value?.description || '')
-const formBrand = computed(() => form.value?.brand || '采集通')
 
 const isFirstPage = computed(() => currentPageIdx.value <= 0)
 const isLastPage = computed(() => currentPageIdx.value >= allPages.value.length - 1)
@@ -90,15 +86,6 @@ function handleSubmit() {
 
 <template>
   <div class="fill-page">
-    <!-- 顶部 chrome：品牌 + 表单标题 + 副标题 -->
-    <header class="fill-top">
-      <div class="fill-top__inner">
-        <!-- <span class="fill-brand">{{ formBrand }}</span> -->
-        <h1 class="fill-title">{{ formTitle }}</h1>
-        <p v-if="formDesc" class="fill-desc">{{ formDesc }}</p>
-      </div>
-    </header>
-
     <!-- 空态 -->
     <div v-if="loadError" class="fill-empty">
       <p class="fill-empty__title">暂无法加载表单</p>
@@ -171,46 +158,6 @@ function handleSubmit() {
   flex-direction: column;
 }
 
-/* ============ 顶部 chrome ============ */
-.fill-top {
-  padding: var(--sp-lg);
-  background: var(--c-panel);
-  border-bottom: 1px solid var(--c-line-light);
-
-  &__inner {
-    max-width: 640px;
-    margin: 0 auto;
-    text-align: center;
-  }
-}
-
-.fill-brand {
-  display: inline-block;
-  font-family: var(--ff-display);
-  font-size: var(--fs-12);
-  font-weight: 600;
-  color: var(--c-primary);
-  letter-spacing: 0.05em;
-  margin-bottom: var(--sp-sm);
-}
-
-.fill-title {
-  margin: 0;
-  font-family: var(--ff-display);
-  font-size: var(--fs-24);
-  font-weight: 600;
-  color: var(--c-text-strong);
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-}
-
-.fill-desc {
-  margin: var(--sp-sm) 0 0;
-  font-size: var(--fs-14);
-  color: var(--c-text-secondary);
-  line-height: 1.5;
-}
-
 /* ============ 空态 ============ */
 .fill-empty {
   flex: 1;
@@ -241,17 +188,17 @@ function handleSubmit() {
 /* ============ 主区：响应式居中卡片 ============ */
 .fill-main {
   flex: 1;
-  padding: var(--sp-xl);
+  // padding: var(--sp-xl);
 }
 
 .fill-card {
   max-width: 1000px;
   margin: 0 auto;
-  background: var(--c-panel);
-  border: 1px solid var(--c-line-light);
+  // background: var(--c-panel);
+  // border: 1px solid var(--c-line-light);
   border-radius: var(--radius-lg);
   padding: var(--sp-xl);
-  box-shadow: var(--shadow-card);
+  // box-shadow: var(--shadow-card);
 }
 
 @media (max-width: 1000px) {
