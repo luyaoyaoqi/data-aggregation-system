@@ -2,61 +2,74 @@
 import ComponentLibrary, {
   createPage,
   createCard,
-  createQuestion
-} from '../components/ComponentLibrary.vue'
-import EditorArea from '../components/EditorArea.vue'
-import PropertyPanel from '../components/PropertyPanel.vue'
-import FormSettingsDialog from '../components/FormSettingsDialog.vue'
+  createQuestion,
+} from "../components/ComponentLibrary.vue";
+import EditorArea from "../components/EditorArea.vue";
+import PropertyPanel from "../components/PropertyPanel.vue";
+import FormSettingsDialog from "../components/FormSettingsDialog.vue";
+import { loadForm, saveForm, clearForm } from "../utils/storage";
 
 /* ------------------------------ 表单数据 ------------------------------ */
 function createInitialForm() {
   const form = {
-    title: '',
+    title: "",
     settings: {
       showIndex: true, // 是否展示序号
       crossPage: false, // 跨页连续（仅 showIndex=true 生效）
-      crossCard: false // 跨卡片连续（仅 showIndex=true 生效）
+      crossCard: false, // 跨卡片连续（仅 showIndex=true 生效）
     },
-    pages: [createPage(1), createPage(2)]
-  }
+    pages: [createPage(1), createPage(2)],
+  };
   // 首页预置全部 12 种题型,预览/独立窗口一次即可看完整渲染
-  // const demoTypes = [
-  //   // 选项类
-  //   'radio', 'checkbox', 'radio-rate', 'checkbox-rate',
-  //   // 填空类
-  //   'text', 'textarea', 'number', 'datetime',
-  //   // 采集类
-  //   'image', 'tag', 'list', 'richtext'
-  // ]
-    const demoTypes = [
-    'list'
-  ]
+  const demoTypes = [
+    // 选项类
+    "radio",
+    // "checkbox",
+    // "radio-rate",
+    // "checkbox-rate",
+    // 填空类
+    // "text",
+    // "textarea",
+    // "number",
+    // "datetime",
+    // 采集类
+    // "image",
+    // "tag",
+    // "list",
+    // "richtext",
+  ];
   demoTypes.forEach((type) => {
-    form.pages[0].cards[0].questions.push(createQuestion(type))
-  })
-  return reactive(form)
+    form.pages[0].cards[0].questions.push(createQuestion(type));
+  });
+  return reactive(form);
 }
 
-const form = ref(createInitialForm())
-const activePageId = ref(form.value.pages[0].id)
-const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id)
-const lastSavedAt = ref('2026-07-22 18:15')
+/**
+ * 启动时尝试从 localStorage 恢复表单数据
+ * - 命中且合法：用存档覆盖默认（含 12 种题型的演示页会被存档覆盖，符合用户预期）
+ * - 未命中 / 解析失败：使用默认（包含全 12 种题型的演示页）
+ * - 静默恢复，不弹 toast（避免每次刷新都打扰）
+ */
+const form = ref(loadForm() || createInitialForm());
+const activePageId = ref(form.value.pages[0].id);
+const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id);
+const lastSavedAt = ref("2026-07-22 18:15");
 
-const settingsVisible = ref(false)
+const settingsVisible = ref(false);
 
 const activePage = computed(
-  () => form.value.pages.find((p) => p.id === activePageId.value) || null
-)
+  () => form.value.pages.find((p) => p.id === activePageId.value) || null,
+);
 
 const activeQuestion = computed(() => {
   for (const page of form.value.pages) {
     for (const card of page.cards) {
-      const q = card.questions.find((x) => x.id === activeQuestionId.value)
-      if (q) return q
+      const q = card.questions.find((x) => x.id === activeQuestionId.value);
+      if (q) return q;
     }
   }
-  return null
-})
+  return null;
+});
 
 /**
  * 全局题目序号（按 form.settings 计算）
@@ -66,115 +79,123 @@ const activeQuestion = computed(() => {
  * - 题目的增删改、卡片/页的增删会自动重算
  */
 const questionIndexMap = computed(() => {
-  const map = new Map()
-  const s = form.value.settings
-  if (!s || !s.showIndex) return map
-  let crossPageCounter = 0
+  const map = new Map();
+  const s = form.value.settings;
+  if (!s || !s.showIndex) return map;
+  let crossPageCounter = 0;
   for (let pIdx = 0; pIdx < form.value.pages.length; pIdx++) {
-    const page = form.value.pages[pIdx]
-    let cardCounter = 0
+    const page = form.value.pages[pIdx];
+    let cardCounter = 0;
     for (let cIdx = 0; cIdx < page.cards.length; cIdx++) {
-      const card = page.cards[cIdx]
-      if (!s.crossCard && cIdx > 0) cardCounter = 0
+      const card = page.cards[cIdx];
+      if (!s.crossCard && cIdx > 0) cardCounter = 0;
       for (const q of card.questions) {
-        const idx = s.crossPage ? crossPageCounter : cardCounter
-        map.set(q.id, idx + 1)
-        crossPageCounter++
-        cardCounter++
+        const idx = s.crossPage ? crossPageCounter : cardCounter;
+        map.set(q.id, idx + 1);
+        crossPageCounter++;
+        cardCounter++;
       }
     }
-    if (!s.crossPage) crossPageCounter = 0
+    if (!s.crossPage) crossPageCounter = 0;
   }
-  return map
-})
+  return map;
+});
 
 /* ------------------------------ 分页操作 ------------------------------ */
 function handleChangePage(id) {
-  activePageId.value = id
+  activePageId.value = id;
 }
 
 function handleAddPage() {
-  const page = createPage(form.value.pages.length + 1)
-  form.value.pages.push(page)
-  activePageId.value = page.id
-  ElMessage.success(`已新增「${page.name}」`)
+  const page = createPage(form.value.pages.length + 1);
+  form.value.pages.push(page);
+  activePageId.value = page.id;
+  ElMessage.success(`已新增「${page.name}」`);
 }
 
 async function handleRemovePage(id) {
   if (form.value.pages.length <= 1) {
-    ElMessage.warning('至少保留一页')
-    return
+    ElMessage.warning("至少保留一页");
+    return;
   }
-  const page = form.value.pages.find((p) => p.id === id)
+  const page = form.value.pages.find((p) => p.id === id);
   try {
     await ElMessageBox.confirm(
       `删除「${page.name}」后，该页下的卡片与题目会一并移除，是否继续？`,
-      '删除确认',
-      { type: 'warning', confirmButtonText: '确认删除', cancelButtonText: '取消' }
-    )
+      "删除确认",
+      {
+        type: "warning",
+        confirmButtonText: "确认删除",
+        cancelButtonText: "取消",
+      },
+    );
   } catch {
-    return
+    return;
   }
-  const index = form.value.pages.findIndex((p) => p.id === id)
-  form.value.pages.splice(index, 1)
+  const index = form.value.pages.findIndex((p) => p.id === id);
+  form.value.pages.splice(index, 1);
   if (activePageId.value === id) {
-    activePageId.value = form.value.pages[Math.max(0, index - 1)].id
+    activePageId.value = form.value.pages[Math.max(0, index - 1)].id;
   }
-  ElMessage.success('已删除该页')
+  ElMessage.success("已删除该页");
 }
 
 /* ------------------------------ 卡片操作 ------------------------------ */
 function handleAddCard() {
-  if (!activePage.value) return
-  activePage.value.cards.push(createCard())
+  if (!activePage.value) return;
+  activePage.value.cards.push(createCard());
 }
 
 async function handleRemoveCard(cardId) {
-  if (!activePage.value) return
+  if (!activePage.value) return;
   if (activePage.value.cards.length <= 1) {
-    ElMessage.warning('当前页至少保留一张卡片')
-    return
+    ElMessage.warning("当前页至少保留一张卡片");
+    return;
   }
   try {
-    await ElMessageBox.confirm('删除卡片会同时移除卡片内的题目，是否继续？', '删除确认', {
-      type: 'warning',
-      confirmButtonText: '确认删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      "删除卡片会同时移除卡片内的题目，是否继续？",
+      "删除确认",
+      {
+        type: "warning",
+        confirmButtonText: "确认删除",
+        cancelButtonText: "取消",
+      },
+    );
   } catch {
-    return
+    return;
   }
-  const i = activePage.value.cards.findIndex((c) => c.id === cardId)
-  if (i > -1) activePage.value.cards.splice(i, 1)
-  ElMessage.success('已删除卡片')
+  const i = activePage.value.cards.findIndex((c) => c.id === cardId);
+  if (i > -1) activePage.value.cards.splice(i, 1);
+  ElMessage.success("已删除卡片");
 }
 
 /* ------------------------------ 题目操作 ------------------------------ */
 /** 左侧组件库点击：插入到当前页最后一张卡片 */
 function handlePickFromLibrary(type) {
-  if (!activePage.value) return
-  const card = activePage.value.cards[activePage.value.cards.length - 1]
-  insertQuestion(card, type)
+  if (!activePage.value) return;
+  const card = activePage.value.cards[activePage.value.cards.length - 1];
+  insertQuestion(card, type);
 }
 
 /** 中间「+ 添加题目」popover 选中题型：插入到指定卡片 */
 function handlePickType({ cardId, type }) {
-  if (!activePage.value) return
+  if (!activePage.value) return;
   const card =
     activePage.value.cards.find((c) => c.id === cardId) ||
-    activePage.value.cards[activePage.value.cards.length - 1]
-  insertQuestion(card, type)
+    activePage.value.cards[activePage.value.cards.length - 1];
+  insertQuestion(card, type);
 }
 
 function insertQuestion(card, type) {
-  if (!card) return
-  const q = createQuestion(type)
-  card.questions.push(q)
-  activeQuestionId.value = q.id
+  if (!card) return;
+  const q = createQuestion(type);
+  card.questions.push(q);
+  activeQuestionId.value = q.id;
 }
 
 function handleSelectQuestion(id) {
-  activeQuestionId.value = id
+  activeQuestionId.value = id;
 }
 
 /**
@@ -183,90 +204,92 @@ function handleSelectQuestion(id) {
  * insertAt 是 splice 索引（已扣除 fromIdx 偏移）
  */
 function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
-  if (!activePage.value) return
-  const card = activePage.value.cards[cardIdx]
-  if (!card) return
-  const qs = card.questions
-  if (fromIdx < 0 || fromIdx >= qs.length) return
-  if (fromIdx === insertAt) return
-  const [moved] = qs.splice(fromIdx, 1)
+  if (!activePage.value) return;
+  const card = activePage.value.cards[cardIdx];
+  if (!card) return;
+  const qs = card.questions;
+  if (fromIdx < 0 || fromIdx >= qs.length) return;
+  if (fromIdx === insertAt) return;
+  const [moved] = qs.splice(fromIdx, 1);
   // 重新夹紧 insertAt，splice 后数组长度变化，原值可能越界
-  const target = Math.max(0, Math.min(qs.length, insertAt))
-  qs.splice(target, 0, moved)
-  ElMessage.success(`已调整题目顺序：${moved.title || '未命名题目'}`)
+  const target = Math.max(0, Math.min(qs.length, insertAt));
+  qs.splice(target, 0, moved);
+  ElMessage.success(`已调整题目顺序：${moved.title || "未命名题目"}`);
 }
 
 async function handleRemoveQuestion({ cardId, questionId }) {
-  const card = activePage.value?.cards.find((c) => c.id === cardId)
-  if (!card) return
-  const q = card.questions.find((x) => x.id === questionId)
-  if (!q) return
+  const card = activePage.value?.cards.find((c) => c.id === cardId);
+  if (!card) return;
+  const q = card.questions.find((x) => x.id === questionId);
+  if (!q) return;
   try {
-    await ElMessageBox.confirm('确认删除该题目？', '删除确认', {
-      type: 'warning',
-      confirmButtonText: '确认删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm("确认删除该题目？", "删除确认", {
+      type: "warning",
+      confirmButtonText: "确认删除",
+      cancelButtonText: "取消",
+    });
   } catch {
-    return
+    return;
   }
-  const i = card.questions.findIndex((x) => x.id === questionId)
-  if (i > -1) card.questions.splice(i, 1)
-  if (activeQuestionId.value === questionId) activeQuestionId.value = ''
-  ElMessage.success('已删除题目')
+  const i = card.questions.findIndex((x) => x.id === questionId);
+  if (i > -1) card.questions.splice(i, 1);
+  if (activeQuestionId.value === questionId) activeQuestionId.value = "";
+  ElMessage.success("已删除题目");
 }
 
 function handleDuplicateQuestion({ cardId, questionId }) {
-  const card = activePage.value?.cards.find((c) => c.id === cardId)
-  if (!card) return
-  const i = card.questions.findIndex((q) => q.id === questionId)
-  if (i < 0) return
-  const source = card.questions[i]
-  const copy = createQuestion(source.type)
-  copy.title = source.title
-  copy.desc = source.desc
-  copy.required = source.required
-  copy.columns = source.columns
-  copy.placeholder = source.placeholder
-  copy.defaultValue = source.defaultValue
-  copy.maxLength = source.maxLength
-  copy.format = source.format
+  const card = activePage.value?.cards.find((c) => c.id === cardId);
+  if (!card) return;
+  const i = card.questions.findIndex((q) => q.id === questionId);
+  if (i < 0) return;
+  const source = card.questions[i];
+  const copy = createQuestion(source.type);
+  copy.title = source.title;
+  copy.desc = source.desc;
+  copy.required = source.required;
+  copy.columns = source.columns;
+  copy.placeholder = source.placeholder;
+  copy.defaultValue = source.defaultValue;
+  copy.maxLength = source.maxLength;
+  copy.format = source.format;
   // 多行文本
-  copy.rows = source.rows
+  copy.rows = source.rows;
   // 数字
-  copy.minValue = source.minValue
-  copy.maxValue = source.maxValue
-  copy.precision = source.precision
-  copy.unit = source.unit
+  copy.minValue = source.minValue;
+  copy.maxValue = source.maxValue;
+  copy.precision = source.precision;
+  copy.unit = source.unit;
   // 日期时间
-  copy.datePrecision = source.datePrecision
-  copy.defaultToday = source.defaultToday
+  copy.datePrecision = source.datePrecision;
+  copy.defaultToday = source.defaultToday;
   // 图片
-  copy.maxImageCount = source.maxImageCount
-  copy.maxImageSize = source.maxImageSize
+  copy.maxImageCount = source.maxImageCount;
+  copy.maxImageSize = source.maxImageSize;
   // 标签文本
-  copy.maxTags = source.maxTags
-  copy.allowDuplicate = source.allowDuplicate
-  copy.tags = Array.isArray(source.tags) ? [...source.tags] : []
+  copy.maxTags = source.maxTags;
+  copy.allowDuplicate = source.allowDuplicate;
+  copy.tags = Array.isArray(source.tags) ? [...source.tags] : [];
   // 列表（自增表格）
   copy.listColumns = Array.isArray(source.listColumns)
     ? source.listColumns.map((c) => ({
         ...c,
-        options: Array.isArray(c.options) ? c.options.map((o) => ({ ...o })) : []
+        options: Array.isArray(c.options)
+          ? c.options.map((o) => ({ ...o }))
+          : [],
       }))
-    : []
+    : [];
   copy.options = source.options.map((o, idx) => ({
     id: `${copy.id}_o${idx}`,
     label: o.label,
     isDefault: !!o.isDefault,
     linkType: o.linkType || null,
     linkData: o.linkData || null,
-    displayName: o.displayName || '',
-    score: o.score ?? null
-  }))
-  card.questions.splice(i + 1, 0, copy)
-  activeQuestionId.value = copy.id
-  ElMessage.success('已复制题目')
+    displayName: o.displayName || "",
+    score: o.score ?? null,
+  }));
+  card.questions.splice(i + 1, 0, copy);
+  activeQuestionId.value = copy.id;
+  ElMessage.success("已复制题目");
 }
 
 /**
@@ -275,87 +298,93 @@ function handleDuplicateQuestion({ cardId, questionId }) {
  * - 单选 ↔ 多选（radio↔checkbox / radio-rate↔checkbox-rate）时清掉 isDefault
  */
 function handleSwitchQuestionType({ cardId, questionId, newType }) {
-  const card = activePage.value?.cards.find((c) => c.id === cardId)
-  if (!card) return
-  const q = card.questions.find((x) => x.id === questionId)
-  if (!q || q.type === newType) return
-  const oldIsRadio =
-    q.type === 'radio' || q.type === 'radio-rate'
-  const newIsRadio =
-    newType === 'radio' || newType === 'radio-rate'
-  q.type = newType
+  const card = activePage.value?.cards.find((c) => c.id === cardId);
+  if (!card) return;
+  const q = card.questions.find((x) => x.id === questionId);
+  if (!q || q.type === newType) return;
+  const oldIsRadio = q.type === "radio" || q.type === "radio-rate";
+  const newIsRadio = newType === "radio" || newType === "radio-rate";
+  q.type = newType;
   // 单选↔多选时，多选无「默认」概念，清掉
   if (oldIsRadio !== newIsRadio && q.options?.length) {
-    q.options.forEach((o) => (o.isDefault = false))
+    q.options.forEach((o) => (o.isDefault = false));
   }
-  ElMessage.success('已切换题型')
+  ElMessage.success("已切换题型");
 }
 
 /* ------------------------------ 全局操作 ------------------------------ */
 function handleSave() {
-  const title = (form.value.title || '').trim()
+  const title = (form.value.title || "").trim();
   if (!title) {
-    ElMessage.error('标题未填写，请检查')
-    return
+    ElMessage.error("标题未填写，请检查");
+    return;
   }
   if (title.length > 20) {
-    ElMessage.error('标题超过长度限制，请检查')
-    return
+    ElMessage.error("标题超过长度限制，请检查");
+    return;
   }
-  const bad = []
+  const bad = [];
   for (const page of form.value.pages) {
     for (const card of page.cards) {
       for (const q of card.questions) {
-        const qName = q.title?.trim() || '未命名题目'
+        const qName = q.title?.trim() || "未命名题目";
         // 数字：最大值 ≤ 最小值
-        if (q.type === 'number') {
-          const { minValue, maxValue } = q
-          if (
-            minValue != null &&
-            maxValue != null &&
-            maxValue <= minValue
-          ) {
+        if (q.type === "number") {
+          const { minValue, maxValue } = q;
+          if (minValue != null && maxValue != null && maxValue <= minValue) {
             bad.push({
               title: qName,
-              reason: `最大值 ${maxValue} 不大于最小值 ${minValue}`
-            })
+              reason: `最大值 ${maxValue} 不大于最小值 ${minValue}`,
+            });
           }
         }
         // 图片：必填项不能为空（maxImageCount / maxImageSize 已有默认值 9 / 5，但仍校验兜底）
-        if (q.type === 'image') {
+        if (q.type === "image") {
           if (!q.maxImageCount || q.maxImageCount < 1) {
-            bad.push({ title: qName, reason: '数量上限未填写或不合法' })
+            bad.push({ title: qName, reason: "数量上限未填写或不合法" });
           }
           if (!q.maxImageSize || q.maxImageSize < 1) {
-            bad.push({ title: qName, reason: '单张大小上限未填写或不合法' })
+            bad.push({ title: qName, reason: "单张大小上限未填写或不合法" });
           }
         }
         // 列表：至少 1 列；列名必填且 ≤ 20 字；下拉列至少 1 个选项；列宽 80-600
-        if (q.type === 'list') {
-          const cols = q.listColumns || []
+        if (q.type === "list") {
+          const cols = q.listColumns || [];
           if (cols.length < 1) {
-            bad.push({ title: qName, reason: '至少保留 1 列' })
+            bad.push({ title: qName, reason: "至少保留 1 列" });
           }
           for (let ci = 0; ci < cols.length; ci++) {
-            const c = cols[ci]
-            const name = (c.name || '').trim()
+            const c = cols[ci];
+            const name = (c.name || "").trim();
             if (!name) {
-              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称为空` })
+              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称为空` });
             } else if (name.length > 20) {
-              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称超过 20 字` })
+              bad.push({
+                title: qName,
+                reason: `第 ${ci + 1} 列名称超过 20 字`,
+              });
             }
-            if ((c.colType === 'radio' || c.colType === 'checkbox') && (!c.options || c.options.length < 1)) {
-              bad.push({ title: qName, reason: `第 ${ci + 1} 列（下拉）至少 1 个选项` })
+            if (
+              (c.colType === "radio" || c.colType === "checkbox") &&
+              (!c.options || c.options.length < 1)
+            ) {
+              bad.push({
+                title: qName,
+                reason: `第 ${ci + 1} 列（下拉）至少 1 个选项`,
+              });
             }
             if (c.width != null && (c.width < 80 || c.width > 600)) {
-              bad.push({ title: qName, reason: `第 ${ci + 1} 列宽需在 80-600 之间` })
+              bad.push({
+                title: qName,
+                reason: `第 ${ci + 1} 列宽需在 80-600 之间`,
+              });
             }
             // width == null 视为「自动撑满」，合法
           }
         }
-        if (!q.required) continue
-        const len = q.options?.length ?? 0
-        const { minSelect, maxSelect, defaultValue, maxLength } = q
+        if (!q.required) continue;
+        const len = q.options?.length ?? 0;
+        const { minSelect, maxSelect, defaultValue, maxLength } = q;
         // 多选题：选择数 超出选项数
         if (
           (minSelect != null && minSelect > len) ||
@@ -363,52 +392,57 @@ function handleSave() {
         ) {
           bad.push({
             title: qName,
-            reason: '选择数超出选项数量'
-          })
+            reason: "选择数超出选项数量",
+          });
         }
         // 填空类：默认值 超出最大长度（仅 maxLength > 0 时校验）
-        if (
-          maxLength > 0 &&
-          defaultValue &&
-          defaultValue.length > maxLength
-        ) {
+        if (maxLength > 0 && defaultValue && defaultValue.length > maxLength) {
           bad.push({
             title: qName,
-            reason: `默认值长度 ${defaultValue.length} 超过 ${maxLength}`
-          })
+            reason: `默认值长度 ${defaultValue.length} 超过 ${maxLength}`,
+          });
         }
       }
     }
   }
   if (bad.length) {
-    const msg = bad
-      .map((b) => `${b.title}（${b.reason}）`)
-      .join('；')
-    ElMessage.error(`保存校验未通过：${msg}，请调整后再保存`)
-    return
+    const msg = bad.map((b) => `${b.title}（${b.reason}）`).join("；");
+    ElMessage.error(`保存校验未通过：${msg}，请调整后再保存`);
+    return;
   }
-  const now = new Date()
-  const pad = (n) => String(n).padStart(2, '0')
+  // 写入 localStorage（校验已通过，深拷贝后再写，避免 Vue Proxy / 循环引用被序列化）
+  const result = saveForm(JSON.parse(JSON.stringify(form.value)));
+  if (!result.ok) {
+    ElMessage.error(`保存失败：${result.error}`);
+    return;
+  }
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
   lastSavedAt.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate()
-  )} ${pad(now.getHours())}:${pad(now.getMinutes())}`
-  ElMessage.success('保存成功')
+    now.getDate(),
+  )} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  ElMessage.success("保存成功");
 }
 
 async function handleReset() {
   try {
-    await ElMessageBox.confirm('重置会清空当前所有编辑内容，是否继续？', '重置确认', {
-      type: 'warning',
-      confirmButtonText: '确认重置',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      "重置会清空当前所有编辑内容（包括 localStorage 存档），是否继续？",
+      "重置确认",
+      {
+        type: "warning",
+        confirmButtonText: "确认重置",
+        cancelButtonText: "取消",
+      },
+    );
   } catch {
-    return
+    return;
   }
-  form.value = createInitialForm()
-  activePageId.value = form.value.pages[0].id
-  activeQuestionId.value = form.value.pages[0].cards[0].questions[0].id
-  ElMessage.success('已重置')
+  clearForm(); // 先清 localStorage，确保下次刷新不会复活旧存档
+  form.value = createInitialForm();
+  activePageId.value = form.value.pages[0].id;
+  activeQuestionId.value = form.value.pages[0].cards[0].questions[0].id;
+  ElMessage.success("已重置");
 }
 
 /**
@@ -419,16 +453,15 @@ async function handleReset() {
 function openStandalone() {
   const snapshot = {
     ts: Date.now(),
-    form: JSON.parse(JSON.stringify(form.value))
-  }
-  localStorage.setItem('preview-form-snapshot', JSON.stringify(snapshot))
-  window.open('/preview.html', '_blank', 'noopener,noreferrer')
+    form: JSON.parse(JSON.stringify(form.value)),
+  };
+  localStorage.setItem("preview-form-snapshot", JSON.stringify(snapshot));
+  window.open("/preview.html", "_blank", "noopener,noreferrer");
 }
 </script>
 
 <template>
   <div class="editor-layout">
-
     <div class="editor-main">
       <ComponentLibrary @pick="handlePickFromLibrary" />
 
