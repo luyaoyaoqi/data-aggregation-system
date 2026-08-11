@@ -563,7 +563,7 @@ function openListSettings() {
   transition: all var(--dur) var(--ease);
 
   &:hover {
-    background: var(--c-fill);
+    background: var(--c-fill-hover);
   }
 
   &.is-active {
@@ -816,20 +816,26 @@ function openListSettings() {
 
   /* .upload-box 走全局,无需额外样式 */
 
-  /* 标签文本：标签 + 输入框一行 */
+  /* 标签文本：标签 + 输入框,与单行文本一致的输入框样式 */
   .tag-input-wrap {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-sm);
-    min-height: 30px;
-    padding: var(--sp-xs) 0;
-    border-bottom: 1px solid var(--c-line-light);
+    gap: var(--sp-xs);
+    min-height: 32px;
+    padding: 4px 11px;
+    border: 1px solid var(--c-line-light);
+    border-radius: var(--radius);
+    background: var(--c-bg);
     transition: border-color var(--dur) var(--ease);
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: var(--c-text-placeholder);
+    }
 
     &:focus-within {
-      border-bottom-color: var(--c-primary);
-      border-bottom-style: solid;
+      border-color: var(--c-primary);
     }
   }
 

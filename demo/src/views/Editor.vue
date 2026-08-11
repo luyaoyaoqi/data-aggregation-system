@@ -20,13 +20,16 @@ function createInitialForm() {
     pages: [createPage(1), createPage(2)]
   }
   // 首页预置全部 12 种题型,预览/独立窗口一次即可看完整渲染
-  const demoTypes = [
-    // 选项类
-    'radio', 'checkbox', 'radio-rate', 'checkbox-rate',
-    // 填空类
-    'text', 'textarea', 'number', 'datetime',
-    // 采集类
-    'image', 'tag', 'list', 'richtext'
+  // const demoTypes = [
+  //   // 选项类
+  //   'radio', 'checkbox', 'radio-rate', 'checkbox-rate',
+  //   // 填空类
+  //   'text', 'textarea', 'number', 'datetime',
+  //   // 采集类
+  //   'image', 'tag', 'list', 'richtext'
+  // ]
+    const demoTypes = [
+    'list'
   ]
   demoTypes.forEach((type) => {
     form.pages[0].cards[0].questions.push(createQuestion(type))
