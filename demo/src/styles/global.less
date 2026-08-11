@@ -62,6 +62,31 @@
   }
 }
 
+// 虚线描边整行按钮 — 100% 宽 + 中性虚线边 + hover 主色边（列表"添加一行"等）
+.btn-dashed-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-xs);
+  width: 100%;
+  padding: var(--sp-sm) var(--sp-md);
+  font-family: inherit;
+  font-size: var(--fs-13);
+  color: var(--c-primary);
+  background: transparent;
+  border: 1px dashed var(--c-line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+
+  &:hover {
+    color: var(--c-primary);
+    border-color: var(--c-primary);
+  }
+}
+
 // 1px 中性图标按钮(删除类)— 中性色 + hover 危险
 .btn-icon-ghost {
   flex-shrink: 0;
@@ -397,7 +422,7 @@
 
   &__area {
     padding: var(--sp-md);
-    min-height: 72px;
+    min-height: 100px;
     font-size: var(--fs-14);
     color: var(--c-text-regular);
     outline: none;
@@ -458,10 +483,17 @@
     gap: var(--sp-xs);
     font-weight: 500;
     color: var(--c-text);
+    border-right: 1px solid var(--c-line);
   }
 
   &__cell--body {
     color: var(--c-text-regular);
+  }
+
+  /* 单元格内文本容器：行内 flex 让图标与文字垂直居中 */
+  &__cell-text {
+    display: inline-flex;
+    align-items: center;
   }
 
   &__required {

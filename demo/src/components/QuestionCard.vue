@@ -9,7 +9,7 @@ import {
 } from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
 import ListQuestionSettings from './ListQuestionSettings.vue'
-import { Clock } from '@element-plus/icons-vue'
+import { Calendar } from '@element-plus/icons-vue'
 
 /**
  * 切换：选项类 4 种题型互相切换的下拉数据
@@ -496,6 +496,9 @@ function openListSettings() {
                 >
                   <!-- 第 2 行：单行文本 / 数字 / 日期直接显示类型；单选 / 多选显示「类型（下拉）」+ 下拉箭头 -->
                   <div class="table-preview__cell-text">
+                    <el-icon v-if="col.colType === 'date'" class="cell-date-icon">
+                      <Calendar />
+                    </el-icon>
                     <span>{{ getColTypeLabel(col) }}</span>
                     <el-icon v-if="isDropdownCol(col)" class="cell-caret">
                       <ArrowDown />
@@ -677,6 +680,13 @@ function openListSettings() {
   .cell-caret {
     font-size: var(--fs-12);
     margin-left: var(--sp-2xs);
+    color: var(--c-text-placeholder);
+  }
+
+  /* 单元格内日期图标：与 .cell-caret 同字号同颜色，作为日期列的视觉提示 */
+  .cell-date-icon {
+    font-size: var(--fs-12);
+    margin-right: var(--sp-2xs);
     color: var(--c-text-placeholder);
   }
 
