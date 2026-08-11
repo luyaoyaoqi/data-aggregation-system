@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
-import FormFill from './components/FormFill.vue'
+import { ref, computed, onMounted } from "vue";
+import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
+import FormFill from "./components/FormFill.vue";
 
 /**
  * 独立窗口 —— 面向最终填表人。
@@ -12,75 +12,81 @@ import FormFill from './components/FormFill.vue'
  *
  * 题目渲染、状态管理、序号计算 —— 全部交给 FormFill 共享组件。
  */
-const STORAGE_KEY = 'preview-form-snapshot'
+const STORAGE_KEY = "preview-form-snapshot";
 
-const form = ref(null)
-const loadError = ref('')
+const form = ref(null);
+const loadError = ref("");
 
 function loadSnapshot() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      loadError.value = '暂无表单数据，请从编辑器预览入口重新进入。'
-      return
+      loadError.value = "暂无表单数据，请从编辑器预览入口重新进入。";
+      return;
     }
-    const snap = JSON.parse(raw)
+    const snap = JSON.parse(raw);
     if (!snap?.form) {
-      loadError.value = '快照数据无效。'
-      return
+      loadError.value = "快照数据无效。";
+      return;
     }
-    form.value = snap.form
-    localStorage.removeItem(STORAGE_KEY)
+    form.value = snap.form;
+    localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
-    loadError.value = '解析快照失败：' + (e?.message || '未知错误')
+    loadError.value = "解析快照失败：" + (e?.message || "未知错误");
   }
 }
 
 onMounted(() => {
-  loadSnapshot()
-})
+  loadSnapshot();
+});
 
-const allPages = computed(() => form.value?.pages || [])
-const currentPageIdx = ref(0)
-const currentPage = computed(() => allPages.value[currentPageIdx.value] || null)
+const allPages = computed(() => form.value?.pages || []);
+const currentPageIdx = ref(0);
+const currentPage = computed(
+  () => allPages.value[currentPageIdx.value] || null,
+);
 
-const isFirstPage = computed(() => currentPageIdx.value <= 0)
-const isLastPage = computed(() => currentPageIdx.value >= allPages.value.length - 1)
+const isFirstPage = computed(() => currentPageIdx.value <= 0);
+const isLastPage = computed(
+  () => currentPageIdx.value >= allPages.value.length - 1,
+);
 const hasQuestions = computed(
-  () => currentPage.value && currentPage.value.cards.some((c) => c.questions.length > 0)
-)
+  () =>
+    currentPage.value &&
+    currentPage.value.cards.some((c) => c.questions.length > 0),
+);
 
 function changePage(idx) {
-  if (idx < 0 || idx >= allPages.value.length) return
-  currentPageIdx.value = idx
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (idx < 0 || idx >= allPages.value.length) return;
+  currentPageIdx.value = idx;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function goPrev() {
-  if (!isFirstPage.value) changePage(currentPageIdx.value - 1)
+  if (!isFirstPage.value) changePage(currentPageIdx.value - 1);
 }
 
 function goNext() {
-  if (!isLastPage.value) changePage(currentPageIdx.value + 1)
+  if (!isLastPage.value) changePage(currentPageIdx.value + 1);
 }
 
 /* -------------------- 提交 -------------------- */
-const fillRef = ref(null)
+const fillRef = ref(null);
 
 function handleSubmit() {
   // 预收集数据（调试用,真实场景未来接接口）
-  const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} }
+  const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} };
   ElMessageBox.alert(
-    '这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 ' +
+    "这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 " +
       Object.keys(data.answers).length +
-      ' 道题目的答案。',
-    '预览模式',
+      " 道题目的答案。",
+    "预览模式",
     {
-      type: 'warning',
-      confirmButtonText: '我知道了',
-      customClass: 'fill-msgbox'
-    }
-  ).catch(() => {})
+      type: "warning",
+      confirmButtonText: "我知道了",
+      customClass: "fill-msgbox",
+    },
+  ).catch(() => {});
 }
 </script>
 
@@ -115,7 +121,6 @@ function handleSubmit() {
               <el-icon><ArrowLeft /></el-icon>
               <span>上一页</span>
             </button>
-            <span v-else />
 
             <button
               v-if="!isLastPage"
@@ -213,15 +218,21 @@ function handleSubmit() {
 /* ============ 底部操作 ============ */
 .fill-footer {
   margin-top: var(--sp-xl);
-  padding-top: var(--sp-lg);
-  border-top: 1px solid var(--c-line-light);
+  padding: var(--sp-lg);
+  border: 1px solid var(--c-line-light);
+  border-radius: var(--radius);
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  display: flex;
 }
 
 .fill-pager {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--sp-md);
+  width: 100%;
 }
 
 .fill-pager-btn {
@@ -230,7 +241,6 @@ function handleSubmit() {
   gap: var(--sp-xs);
   padding: var(--sp-xs) var(--sp-md);
   font-family: inherit;
-  font-size: var(--fs-13);
   color: var(--c-text-regular);
   background: var(--c-panel);
   border: 1px solid var(--c-line);
@@ -238,11 +248,17 @@ function handleSubmit() {
   cursor: pointer;
   transition: all var(--dur) var(--ease);
   white-space: nowrap;
+  height: 40px;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  flex: 0 0 120px;
+  justify-content: center;
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+  background: var(--c-primary-bg);
 
   &:hover:not(:disabled) {
-    color: var(--c-primary);
-    border-color: var(--c-primary);
-    background: var(--c-primary-bg);
+   opacity: 0.8;
   }
 
   &:disabled {
@@ -254,7 +270,7 @@ function handleSubmit() {
 
 .fill-submit {
   display: block;
-  width: 100%;
+  flex: 0 0 120px;
   height: 40px;
   font-family: inherit;
   font-size: var(--fs-14);

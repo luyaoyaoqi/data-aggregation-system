@@ -705,6 +705,7 @@ defineExpose({
   color: var(--c-text-primary);
   text-align: center;
   line-height: 1.5;
+  font-weight: 700;
 }
 
 .ff-empty-tip {
