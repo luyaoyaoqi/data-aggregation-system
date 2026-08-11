@@ -1,5 +1,4 @@
 <script setup>
-import TopNav from '../components/TopNav.vue'
 import ComponentLibrary, {
   createPage,
   createCard,
@@ -426,7 +425,6 @@ function openStandalone() {
 
 <template>
   <div class="editor-layout">
-    <TopNav />
 
     <div class="editor-main">
       <ComponentLibrary @pick="handlePickFromLibrary" />
