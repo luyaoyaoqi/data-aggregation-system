@@ -9,7 +9,7 @@ import {
 } from './ComponentLibrary.vue'
 import OptionLinkDialog from './OptionLinkDialog.vue'
 import ListQuestionSettings from './ListQuestionSettings.vue'
-import { Calendar } from '@element-plus/icons-vue'
+import { Calendar, Clock } from '@element-plus/icons-vue'
 
 /**
  * 切换：选项类 4 种题型互相切换的下拉数据
