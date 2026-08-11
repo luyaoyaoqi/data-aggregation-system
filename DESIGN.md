@@ -56,10 +56,13 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 
 | Token | Size | Line height | 用途 |
 |---|---|---|---|
+| `fs-11` | 11px | 1.4 | 极小辅助（列宽标签、表格次级） |
 | `fs-12` | 12px | 1.4 | 辅助文字、标签、tag |
+| `fs-13` | 13px | 1.4 | 预览表格 / 列设置小字（介于 12 与 14 之间） |
 | `fs-14` | 14px | 1.5 | **正文默认**、按钮、输入 |
+| `fs-15` | 15px | 1.5 | 备用档（暂未使用） |
 | `fs-16` | 16px | 1.5 | 卡片标题、tab |
-| `fs-18` | 18px | 1.4 | 表单字段说明 |
+| `fs-18` | 18px | 1.4 | 表单字段说明、对话框头图标 |
 | `fs-20` | 20px | 1.4 | 副标题 |
 | `fs-24` | 24px | 1.3 | **页面标题**、填写端主题 |
 | `fs-32` | 32px | 1.2 | 欢迎页、统计数字 |
@@ -82,10 +85,12 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 | Token | Hex | 用途 |
 |---|---|---|
 | `primary` | `#2563EB` | CTA、激活、聚焦环 |
+| `primary-rgb` | `37,99,235` | 拖拽阴影 / 透明色派生（alpha 通道用） |
 | `primary-hover` | `#1D4ED8` | 按钮悬停 |
 | `primary-active` | `#1E40AF` | 按钮按下 |
-| `primary-bg` | `#EFF6FF` | 选中底色、轻微填充 |
+| `primary-bg` | `#EFF6FF` | 选中底色、轻微填充（也作 `--c-primary-light` 别名） |
 | `primary-border` | `#BFDBFE` | 输入框聚焦边框 |
+| `on-primary` | `#FFFFFF` | 主色实底上的文字（如 Pill 激活态） |
 
 **为什么选 indigo-600（不用 #4A90E2 / sky-500）**:
 - W3C AA 对比 4.69:1（白底 14px），比 #4A90E2（3.18:1）更稳
@@ -101,20 +106,45 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 | `text-regular` | `#475569` | 正文 |
 | `text-secondary` | `#64748B` | 辅助、说明 |
 | `text-placeholder` | `#94A3B8` | 输入占位 |
+| `text-disabled` | `#CBD5E1` | 禁用态文字 |
 | `border` | `#E2E8F0` | 默认边框 |
 | `border-light` | `#F1F5F9` | 卡片内分隔 |
 | `fill` | `#F1F5F9` | hover 浅底 |
+| `fill-hover` | `#F8FAFC` | 更浅的悬浮态（消除 `--c-fill` 在白底上的对比不足） |
 | `panel` | `#FFFFFF` | 卡片、表单背景 |
 | `page` | `#F8FAFC` | 画布底 |
+| `stage` | `#EEF1F6` | 预览舞台底色（深于 page，区分"嵌入式预览"） |
+| `scroll-thumb` | `#CBD5E1` | 滚动条滑块 |
+| `scroll-thumb-hover` | `#94A3B8` | 滚动条滑块 hover |
 
 ### Semantic
+
+每个语义色都有完整的「色值 - hover - 浅底 - 描边 - 反白」5 件套，可直接对应 Element Plus 同名变量。
 
 | Token | Hex | 用途 |
 |---|---|---|
 | `success` | `#10B981` | 成功、已发布 |
+| `success-hover` | `#059669` | success 按钮悬停 |
+| `success-bg` | `#ECFDF5` | success 浅底 |
+| `success-border` | `#A7F3D0` | success 描边 |
+| `on-success` | `#FFFFFF` | success 实底上的文字 |
 | `warning` | `#F59E0B` | 待审核、警告 |
+| `warning-hover` | `#D97706` | warning 按钮悬停 |
+| `warning-text` | `#B45309` | warning 提示条文字（amber-700，比 warning 主色更深更易读） |
+| `warning-bg` | `#FFFBEB` | warning 浅底 |
+| `warning-border` | `#FDE68A` | warning 描边 |
+| `on-warning` | `#FFFFFF` | warning 实底上的文字 |
 | `danger` | `#EF4444` | 删除、错误、必填星号 |
+| `danger-strong` | `#DC2626` | 深红（red-600，RTE 红字按钮、删除强提示） |
+| `danger-hover` | `#DC2626` | danger 按钮悬停 |
+| `danger-bg` | `#FEF2F2` | danger 浅底 |
+| `danger-border` | `#FECACA` | danger 描边 |
+| `on-danger` | `#FFFFFF` | danger 实底上的文字 |
 | `info` | `#3B82F6` | 提示、链接 |
+| `info-hover` | `#2563EB` | info 按钮悬停 |
+| `info-bg` | `#EFF6FF` | info 浅底 |
+| `info-border` | `#BFDBFE` | info 描边 |
+| `on-info` | `#FFFFFF` | info 实底上的文字 |
 
 **约束**: 语义色只能用于其语义场景，**不能** 拿来当装饰。
 
@@ -151,14 +181,19 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 - **Approach**: grid-disciplined（严格 8px 网格）
 - **Grid**: 编辑器 3 栏（240 / 自适应 / 320），填写端单列居中（max 640px）
 - **Border radius hierarchy**:
+  - `xs: 3px` — 选项标记方框（多选）、dense 标记
   - `sm: 4px` — 标签、dense 控件
-  - `md: 8px` — **默认** — 按钮、输入框、卡片、chip
+  - `md: 6px` — 小号按钮（`--el-button--small`）
   - `lg: 12px` — 对话框、抽屉
   - `pill: 9999px` — 头像、状态点
-- **Shadow**: 极轻三层
+  - **默认** `8px`（`--radius`）—— 按钮、输入框、卡片、chip
+- **Shadow**: 6 层（从极轻到浮起）
   - `card: 0 1px 2px rgba(15,23,42,.04)` — 卡片静止
   - `hover: 0 2px 6px rgba(15,23,42,.06)` — 卡片悬停
   - `modal: 0 12px 32px rgba(15,23,42,.10)` — 抽屉、对话框
+  - `float: 0 8px 24px rgba(15,23,42,.12)` — 设备框、悬浮元素
+  - `drag: 0 8px 20px rgba(37,99,235,.25)` — 拖拽中主体
+  - `drag-edge: 0 0 1px rgba(37,99,235,.45)` — 拖拽中边线 / 占位条
 
 ### 编辑器栅格
 
@@ -192,11 +227,11 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 ## Motion
 
 - **Approach**: minimal-functional
-- **Easing**: `cubic-bezier(0.4, 0, 0.2, 1)`（Material standard）— 所有过渡统一用这一个
-- **Duration 档**:
-  - micro: 50-100ms（hover、focus）
-  - short: 150-200ms（按钮按下、卡片激活）
-  - medium: 250-400ms（卡片展开、对话框）
+- **Easing**: `cubic-bezier(0.4, 0, 0.2, 1)`（Material standard）— 暴露为 token `--ease`
+- **Duration 档**（暴露为 token，组件写法统一 `transition: all var(--dur) var(--ease)`）：
+  - `--dur: 0.15s` — 默认 / 短动画（hover、focus、按钮按下）
+  - `--dur-slow: 0.2s` — 中等动画（设备框切换宽度）
+  - 长动画（250-400ms）项目内罕见，暂不暴露 token，按需内联
 - **不使用**:
   - 渐变过渡
   - scroll-driven 动画
@@ -209,6 +244,47 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 - 选项增删 → 100ms 动画到位
 - 拖拽排序 → 实时跟随，无延迟
 - 保存 → toast 200ms 内出现，2s 自动消失
+
+---
+
+## Style Architecture
+
+CSS 分三层,职责严格分离。新增样式必须先判断归属,不要混用。
+
+| 文件 | 职责 | 谁来改 |
+|---|---|---|
+| `tokens.less` | 设计 Token 真源 · 分两层:品牌层 (`--c-*` / `--fs-*` / `--sp-*` / `--radius-*` / `--shadow-*` / `--dur` / `--ease`) + EP 桥接层 (`--el-color-*` / `--el-text-color-*` / `--el-border-color-*` / `--el-fill-color-*` / `--el-mask-color-*` / `--el-disabled-*`)。所有 EP 颜色由品牌层派生 | 设计师 / 设计 owner |
+| `element-overrides.less` | EP 内部 class 主题化（`.el-input__wrapper` 圆角、`.el-dialog` padding、`.el-dropdown-menu` 对齐等）。**只放 `.el-*` 选择器**,业务 class 全部搬到 global.less | 开发 |
+| `global.less` | 跨组件复用的**业务 class** —— 按钮、工具条、提示、表格预览、富文本、上传框等。无 EP 内部 class | 开发 |
+
+### 全局业务 class 清单（global.less）
+
+**命名约定**:`.btn-*` 按钮 · `.tool-*` 工具条 · `.u-*` 通用 utility · `.rte-*` 富文本 · `.alert-*` 提示 · `.table-preview-*` 列表预览 · `.pill-active` 激活态 · `.option-mark` · `.drag-grip`
+
+| Class | 替代的旧局部 class | 用途 |
+|---|---|---|
+| `.btn-text-primary` | `.add-option` `.list-settings-btn` `.pq-list-add-row` | 主色文字按钮（hover 主色深） |
+| `.btn-text-primary-sm` | `.opt-add` `.col-add` | 同上的小号变体（font-12） |
+| `.btn-outline-dashed-primary` | `.opt-set-default` `.opt-link-btn` | 主色虚线描边按钮 |
+| `.btn-icon-ghost` | `.option-del` `.link-clear` `.card-del` `.tab-close` `.opt-del` | 中性图标按钮（hover 变 danger） |
+| `.tool-btn` `.tool-divider` `.tool-label` `.toolbar` | `.q-tools` `.tool-*` 局部副本 | 题目底部 / 列设置底部工具条 |
+| `.row` `.row-tight` `.row-label` | `.switch-row` `.switch-label` `.col-row` | flex 横行 + 行内 label |
+| `.tip` `.tip.is-warn` `.tip.is-muted` | `.section-tip` `.list-hint` `.list-warn` | 灰色提示文本 |
+| `.section-title` | `.group-title` | section 分组小标题 |
+| `.w-full` | 各处 `width: 100%` | 100% 宽度 |
+| `.option-mark` `.is-square` | `.option-mark` `.pq-mark` | 单选/多选圆点/方框 |
+| `.drag-grip` | `.q-drag` `.width-bar-grip` | 拖拽手柄 |
+| `.alert` `.is-warning` `.is-info` | `.link-tip` `.fsd-tip` | 提示条 |
+| `.upload-box` | `.upload-box` `.pq-upload` | 上传占位框 |
+| `.rte` `.rte__toolbar` `.rte__btn` `.rte__btn.is-blue/.is-red/.is-italic/.is-list` `.rte__dot` `.rte__area` | `.rich-*` `.pq-rte-*` | 富文本编辑器（两套重复样式合并） |
+| `.table-preview` `.table-preview__head` `.table-preview__cell` `.table-preview__cell--head` `.table-preview__cell--body` `.table-preview__required` | `.ltp-*` `.pq-list-table` | 列表预览表格 |
+| `.pill-active` | `.tab-item.is-active` `.page-tab.is-active` | 主色实底白字激活态 |
+
+**新增样式的工作流**:
+1. 跨组件复用 → 提到 `global.less`,命名走上述前缀
+2. 仅当前组件用 → 写在组件 `<style scoped lang="less">`
+3. 涉及 EP 内部 class → 写 `element-overrides.less`（注意 teleport 组件 dropdown/popover/message 等必须在全局）
+4. 涉及 EP 颜色变量 → 写 `tokens.less` 的 EP 桥接层
 
 ---
 
@@ -340,7 +416,8 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 
 ## How to use this file
 
-- **新建组件前**：先查 token，不直接写硬编码色值/字号
-- **调整设计**：先改 DESIGN.md 决策，再同步 `demo/src/styles/tokens.css`
-- **Code Review**：提交前 `git diff` 检查是否动到 token，token 改动必须有 DESIGN.md 同步
+- **新建组件前**：先查 [Style Architecture](#style-architecture) 与全局 class 清单；若已存在对应 class（如 `.btn-text-primary`），直接复用，不要在 scoped 里重写
+- **调整设计**：先改 DESIGN.md 决策（含 token 表 / class 清单），再同步 `demo/src/styles/tokens.less` → `element-overrides.less` → `global.less`；组件 `<style scoped lang="less">` 不要动
+- **新增业务样式**：先判断归属（全局 / 当前组件 / EP 内部 class），不要把跨组件样式塞进 scoped
+- **Code Review**：提交前 `git diff demo/src/styles/` 检查是否动到 token 或全局 class，token 改动必须有 DESIGN.md 同步
 - **QA 模式**：UI 不符 DESIGN.md 视为 bug

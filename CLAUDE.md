@@ -52,15 +52,18 @@
 /DESIGN.md                 ← 设计系统（真源）
 /CLAUDE.md                 ← 本文件
 /demo/                     ← 可运行原型
-  /src/styles/tokens.css   ← CSS 变量定义
-  /src/styles/element-overrides.css ← Element Plus 主题覆盖
-  /preview/d5.html         ← 设计系统预览（最新）
+  /src/styles/tokens.less           ← 设计 Token 真源（品牌层 + EP 桥接层）
+  /src/styles/element-overrides.less ← Element Plus 内部 class 主题化（只放 .el-*）
+  /src/styles/global.less           ← 跨组件复用的业务 class（按钮/工具条/提示/表格预览/RTE）
+  /preview/d5.html                  ← 设计系统预览（最新）
 ```
 
 ---
 
 ## 关键工作流
 
-- **改 token**：先改 `DESIGN.md` 决策 → 同步 `demo/src/styles/tokens.css` → 不动组件
-- **新建组件**：先查 `DESIGN.md` 现有 token，不直接写硬编码
-- **提交前**：`git diff demo/src/styles/` 检查是否动到 token，token 改动必须有 DESIGN.md 同步
+- **改 token**：先改 `DESIGN.md` 决策 → 同步 `demo/src/styles/tokens.less` → 不动组件
+- **新增全局业务样式**：先查 `global.less` 是否已有同类 class → 没有则按命名约定（`.btn-*` / `.tool-*` / `.rte-*` / `.alert-*` / `.table-preview-*` / `.pill-active` 等）添加
+- **涉及 EP 内部 class**（`.el-*`）：写 `element-overrides.less`。注意 teleport 组件（dropdown / popover / message）必须全局，不能放 scoped
+- **新建组件**：先查 `DESIGN.md` 现有 token + `global.less` 已有 class，不直接写硬编码
+- **提交前**：`git diff demo/src/styles/` 检查是否动到样式档案，token 改动必须有 DESIGN.md 同步
