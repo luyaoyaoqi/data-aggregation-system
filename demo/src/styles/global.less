@@ -279,6 +279,12 @@
   // background: var(--c-fill);
   border: 1px dashed var(--c-line);
   border-radius: var(--radius);
+  background: #fff;
+  cursor: pointer;
+
+  &.is-readonly {
+    cursor: default;
+  }
 }
 
 // ============================ 标签文本输入 ============================
@@ -290,11 +296,11 @@
   gap: var(--sp-xs);
   min-height: 32px;
   padding: 4px 11px;
-  border: 1px solid var(--c-line-light);
+  border: 1px solid var(--c-line);
   border-radius: var(--radius);
-  background: var(--c-bg);
   transition: border-color var(--dur) var(--ease);
   box-sizing: border-box;
+  background: #fff;
 
   &:hover {
     border-color: var(--c-text-placeholder);
@@ -302,6 +308,15 @@
 
   &:focus-within {
     border-color: var(--c-primary);
+  }
+
+  /* 只读态：编辑器内中间编辑区用，输入框不可输入 —— 屏蔽 hover/focus 描边反馈 */
+  &.is-readonly {
+
+    &:hover,
+    &:focus-within {
+      border-color: var(--c-line);
+    }
   }
 }
 
@@ -322,6 +337,12 @@
 
   &::placeholder {
     color: var(--c-text-placeholder);
+  }
+
+  /* 只读态：编辑器内中间编辑区用 —— 不显示文本光标，禁用文本选择 */
+  &:read-only {
+    cursor: default;
+    user-select: none;
   }
 }
 

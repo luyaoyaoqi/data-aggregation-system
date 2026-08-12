@@ -435,6 +435,8 @@ function openListSettings() {
             :maxlength="question.maxLength || undefined"
             show-word-limit
             placeholder="请输入"
+            readonly
+            class="q-preview-input"
           />
           <el-input
             v-else-if="question.type === 'textarea'"
@@ -444,12 +446,16 @@ function openListSettings() {
             :maxlength="question.maxLength || undefined"
             show-word-limit
             placeholder="请输入"
+            readonly
+            class="q-preview-input"
           />
           <el-input
             v-else-if="question.type === 'number'"
             v-model="question.placeholder"
             :maxlength="question.maxLength || undefined"
             placeholder="请输入数字"
+            readonly
+            class="q-preview-input"
           >
             <template #suffix>
               <span v-if="question.unit" class="option-score-suffix">{{
@@ -462,16 +468,21 @@ function openListSettings() {
             v-model="question.placeholder"
             :maxlength="question.maxLength || undefined"
             placeholder="年 - 月 - 日"
+            readonly
+            class="q-preview-input"
           >
             <template #prefix>
               <el-icon><Clock /></el-icon>
             </template>
           </el-input>
-          <div v-else-if="question.type === 'image'" class="upload-box">
+          <div v-else-if="question.type === 'image'" class="upload-box is-readonly">
             <el-icon><Plus /></el-icon>
             <span>上传图片</span>
           </div>
-          <div v-else-if="question.type === 'tag'" class="tag-input-wrap">
+          <div
+            v-else-if="question.type === 'tag'"
+            class="tag-input-wrap is-readonly"
+          >
             <el-tag
               v-for="(t, i) in question.tags"
               :key="t"
@@ -492,6 +503,7 @@ function openListSettings() {
               @keydown.enter.prevent="commitTag"
               @keydown="handleTagKeydown"
               @blur="commitTag"
+              readonly
             />
             <span
               v-if="question.maxTags != null"
@@ -995,6 +1007,46 @@ function openListSettings() {
   .q-preview {
     /* 填空类默认拉满 q-body 宽度；采集类有各自固定宽度 */
     width: 100%;
+  }
+
+  /* 预览输入框：只读，隐藏所有交互反馈（hover/focus/word-limit/clear/textarea resize） */
+  .q-preview-input {
+    cursor: default;
+
+    :deep(.el-input__wrapper),
+    :deep(.el-textarea__inner) {
+      cursor: default;
+
+      &:hover,
+      &:focus,
+      &:focus-within,
+      &.is-focus {
+        box-shadow: 0 0 0 1px
+          var(--el-input-border-color, var(--el-border-color)) inset !important;
+        background: #fff !important;
+      }
+    }
+
+    :deep(.el-input__inner),
+    :deep(.el-textarea__inner) {
+      cursor: default;
+    }
+
+    /* 隐藏字数统计 */
+    :deep(.el-input__count),
+    :deep(.el-textarea__count) {
+      display: none;
+    }
+
+    /* 隐藏 clear 按钮 */
+    :deep(.el-input__clear) {
+      display: none;
+    }
+
+    /* textarea 屏蔽 resize 抓手 */
+    :deep(.el-textarea__inner) {
+      resize: none;
+    }
   }
 
   /* .upload-box 走全局,无需额外样式 */

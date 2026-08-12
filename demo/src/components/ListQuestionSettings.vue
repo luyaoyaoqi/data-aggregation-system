@@ -503,11 +503,11 @@ function fixedWidthStyle(width) {
   }
 
   .width-bars-scroll {
-    overflow-x: auto;
-    padding: 0 var(--sp-xs);
+    padding: 0;
     border: 1px solid var(--c-line);
     border-radius: var(--radius);
     background: var(--c-panel);
+    overflow: hidden;
   }
 
   .width-bars {
