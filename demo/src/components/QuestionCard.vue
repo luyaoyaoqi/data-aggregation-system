@@ -45,7 +45,6 @@ const emit = defineEmits([
   "remove",
   "duplicate",
   "switch-type",
-  "grip-down",
 ]);
 
 const hasOptions = computed(() => OPTION_TYPES.includes(props.question.type));
@@ -64,13 +63,6 @@ const canSwitchType = computed(() =>
 function handleSwitchType(newType) {
   if (newType === props.question.type) return;
   emit("switch-type", newType);
-}
-
-/** 拖动手柄按下：阻止默认行为 + 冒泡，emit 给父级协调重排 */
-function handleGripDown(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  emit("grip-down", e, props.question.id);
 }
 
 /** 是否在当前题目上启用「设为默认选项」（仅 radio / radio-rate） */
@@ -234,7 +226,7 @@ function openListSettings() {
   >
     <!-- 题干行 -->
     <div class="q-head">
-      <el-icon class="drag-grip" title="拖动排序" @mousedown="handleGripDown"
+      <el-icon class="drag-grip" title="拖动排序"
         ><Rank
       /></el-icon>
       <span v-if="index != null" class="q-index">{{ index }}.</span>
@@ -751,7 +743,6 @@ function openListSettings() {
     border-color: var(--c-primary);
     border-style: solid;
     background: var(--c-panel);
-    box-shadow: 0 0 0 3px var(--c-primary-bg);
   }
 
   /* ---------- 题干 ---------- */

@@ -61,7 +61,22 @@ function createInitialForm() {
  */
 const form = ref(loadForm() || createInitialForm());
 const activePageId = ref(form.value.pages[0].id);
-const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id);
+/**
+ * 在 form 中找到第一个题目的 id，用于初始化 activeQuestionId。
+ * 防御式遍历：localStorage 存档可能不含任何题目（如测试时删光后保存），
+ * 直接用 `pages[0].cards[0].questions[0].id` 会让 setup 在初始化阶段崩溃。
+ * 找不到时返回 ''，PropertyPanel 已有 `v-if="!question"` 兜底。
+ */
+function findFirstQuestionId(root) {
+  for (const p of root?.pages || []) {
+    for (const c of p?.cards || []) {
+      const q = (c?.questions || [])[0];
+      if (q?.id) return q.id;
+    }
+  }
+  return "";
+}
+const activeQuestionId = ref(findFirstQuestionId(form.value));
 const lastSavedAt = ref(formatSavedAt(getSavedAt()));
 
 const settingsVisible = ref(false);
@@ -209,7 +224,7 @@ function handleSelectQuestion(id) {
 }
 
 /**
- * 题目上下拖动排序（同卡内）
+ * 题目上下移动（同卡内，三点菜单触发）
  * payload: { cardIdx, fromIdx, insertAt }
  * insertAt 是 splice 索引（已扣除 fromIdx 偏移）
  */
@@ -228,16 +243,16 @@ function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
 }
 
 /**
- * 卡片拖动排序（跨卡）
+ * 卡片上下移动（三点菜单触发，跨卡）
  * payload: { fromIdx, insertAt }
- * VueDraggable 的 v-model 已直接修改 page.cards，此处只做提示/持久化
+ * EditorArea.vue 已 splice page.cards，此处只做提示/持久化
  */
 function handleReorderCard({ fromIdx, insertAt }) {
   if (!activePage.value) return;
   const cards = activePage.value.cards;
   if (fromIdx < 0 || fromIdx >= cards.length) return;
   if (fromIdx === insertAt) return;
-  const moved = cards[insertAt]; // 已经被 VueDraggable 重新排序
+  const moved = cards[insertAt]; // 已经被 EditorArea splice
   ElMessage.success(`已调整卡片顺序：${moved?.title || "未命名卡片"}`);
 }
 
@@ -463,7 +478,7 @@ async function handleReset() {
   clearForm(); // 先清 localStorage，确保下次刷新不会复活旧存档
   form.value = createInitialForm();
   activePageId.value = form.value.pages[0].id;
-  activeQuestionId.value = form.value.pages[0].cards[0].questions[0].id;
+  activeQuestionId.value = findFirstQuestionId(form.value);
   ElMessage.success("已重置");
 }
 

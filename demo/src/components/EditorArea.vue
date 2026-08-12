@@ -44,22 +44,13 @@ function handlePick(cardId, type) {
   popoverVisible[cardId] = false
 }
 
-/* -------------------- 卡片拖动排序（VueDraggable v-model 已自动 splice） -------------------- */
-/** 落位 flash 动效：拖完后被移动的卡片短暂高亮 */
+/* -------------------- 落位 flash -------------------- */
+/** 移动后被移动的卡片/题目短暂高亮 */
 const lastMovedCardId = ref('')
-
-/** VueDraggable v-model 已直接修改 page.cards，update 仅做通知/日志 + 触发 flash */
-function handleCardReorder(e) {
-  if (!e || e.oldIndex === e.newIndex) return
-  // 拿"已被重排"的那张卡片（此时位于新位置 newIndex）
-  const movedCard = props.page?.cards?.[e.newIndex]
-  flashMovedCard(movedCard?.id)
-  emit('reorder-card', { fromIdx: e.oldIndex, insertAt: e.newIndex })
-}
 
 /**
  * 触发落位 flash：
- * 先清空 class，等一帧再设上，才能在同一张卡被反复拖动时重启动画。
+ * 先清空 class，等一帧再设上，才能在同一张卡被反复移动时重启动画。
  */
 function flashMovedCard(cardId) {
   if (!cardId) return
@@ -72,80 +63,37 @@ function flashMovedCard(cardId) {
   }, 16)
 }
 
-/** 旧题目拖动按 cardIdx 索引定位；现在改 v-for="card in page.cards" 拿不到 idx → 通过 cardId 反查 */
+/* -------------------- 卡片上下移动（按钮触发） -------------------- */
+/** 通过 cardId 反查 cardIdx（用于 emit 给父级） */
 function cardLocalIdx(cardId) {
   if (!props.page) return -1
   return props.page.cards.findIndex((c) => c.id === cardId)
 }
 
-/* -------------------- 题目上下拖动排序（同卡内） -------------------- */
+/** 卡片上移/下移：splice 后 emit，事件契约对齐 Editor.vue 的 handleReorderCard */
+function moveCard(direction, cardIdx) {
+  const cards = props.page?.cards
+  if (!cards) return
+  const target = direction === 'up' ? cardIdx - 1 : cardIdx + 1
+  if (target < 0 || target >= cards.length) return
+  const [moved] = cards.splice(cardIdx, 1)
+  cards.splice(target, 0, moved)
+  flashMovedCard(moved.id)
+  emit('reorder-card', { fromIdx: cardIdx, insertAt: target })
+}
+
+/* -------------------- 题目拖动排序（同卡内，VueDraggable） -------------------- */
 /**
- * 拖动状态：{ cardIdx, fromIdx, overIdx }
- * overIdx 是「插入位置」语义（0 ~ questions.length）
+ * VueDraggable 直接 splice card.questions；update 仅做通知 + 触发 flash
+ * payload: { cardIdx, fromIdx, insertAt }（insertAt = newIndex，已是 splice 索引）
  */
-const reorderState = ref(null)
-
-/** 每张卡片内各题目 DOM 的 ref 数组（按 cardIdx 索引） */
-const questionRefsByCard = ref([])
-
-function setQuestionRef(cardIdx, qIdx, el) {
-  if (!questionRefsByCard.value[cardIdx]) {
-    questionRefsByCard.value[cardIdx] = []
-  }
-  questionRefsByCard.value[cardIdx][qIdx] = el
-}
-
-/** 在 grip 上按下：开始拖动 */
-function startReorder(e, cardIdx, fromIdx) {
-  e.preventDefault()
-  reorderState.value = { cardIdx, fromIdx, overIdx: fromIdx }
-  document.body.style.cursor = 'grabbing'
-  document.body.style.userSelect = 'none'
-  window.addEventListener('mousemove', onReorderMove)
-  window.addEventListener('mouseup', endReorder)
-}
-
-/** 拖动中：计算鼠标 Y 落在哪个题目上 */
-function onReorderMove(e) {
-  if (!reorderState.value) return
-  const { cardIdx, fromIdx } = reorderState.value
-  const refs = questionRefsByCard.value[cardIdx] || []
-  const y = e.clientY
-  let target = fromIdx
-  for (let i = 0; i < refs.length; i++) {
-    const el = refs[i]
-    if (!el) continue
-    const rect = el.getBoundingClientRect()
-    const midY = rect.top + rect.height / 2
-    if (y < midY) {
-      target = i
-      break
-    }
-    target = i + 1
-  }
-  target = Math.max(0, Math.min(refs.length, target))
-  if (target !== reorderState.value.overIdx) {
-    reorderState.value.overIdx = target
-  }
-}
-
-/** 拖动结束：执行重排，emit 给 Editor */
-function endReorder() {
-  let payload = null
-  if (reorderState.value) {
-    const { cardIdx, fromIdx, overIdx } = reorderState.value
-    // overIdx 是「插入位置」；转换为 splice 索引
-    const insertAt = overIdx > fromIdx ? overIdx - 1 : overIdx
-    if (insertAt !== fromIdx) {
-      payload = { cardIdx, fromIdx, insertAt }
-    }
-  }
-  reorderState.value = null
-  document.body.style.cursor = ''
-  document.body.style.userSelect = ''
-  window.removeEventListener('mousemove', onReorderMove)
-  window.removeEventListener('mouseup', endReorder)
-  if (payload) emit('reorder-question', payload)
+function handleQuestionReorder(e, cardId) {
+  if (!e || e.oldIndex === e.newIndex) return
+  const cardIdx = cardLocalIdx(cardId)
+  if (cardIdx < 0) return
+  const card = props.page.cards[cardIdx]
+  flashMovedCard(card?.id)
+  emit('reorder-question', { cardIdx, fromIdx: e.oldIndex, insertAt: e.newIndex })
 }
 </script>
 
@@ -181,29 +129,58 @@ function endReorder() {
             placeholder="请输入当前页主题（填写者可见）"
           />
 
-          <!-- 卡片列表（VueDraggable 接管 reorder；用 :list 避免 prop mutation 警告） -->
-          <VueDraggable
-            :list="page.cards"
-            :animation="180"
-            handle=".drag-grip"
-            class="card-list"
-            @update="handleCardReorder"
-          >
+          <!-- 卡片列表（顺序由三点菜单上移/下移调整；题目间间距由 QuestionCard 自身 margin 提供） -->
+          <div class="card-list">
             <section
-              v-for="card in page.cards"
+              v-for="(card, cardIdx) in page.cards"
               :key="card.id"
               class="form-card"
               :class="{ 'is-just-moved': lastMovedCardId === card.id }"
             >
               <header class="card-head">
-                <el-icon class="drag-grip" title="拖动排序"
-                  ><Rank
-                /></el-icon>
                 <input
                   v-model="card.title"
                   class="card-title-input"
                   placeholder="卡片标题（选填，填写者可见）"
                 />
+                <!-- 三点菜单：卡片上移 / 下移 -->
+                <el-dropdown
+                  trigger="click"
+                  class="card-more"
+                  @command="(cmd) => moveCard(cmd, cardIdx)"
+                >
+                  <button
+                    type="button"
+                    class="more-btn"
+                    title="卡片操作"
+                    @mousedown.stop
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="14"
+                      height="14"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <circle cx="8" cy="3" r="1.4" />
+                      <circle cx="8" cy="8" r="1.4" />
+                      <circle cx="8" cy="13" r="1.4" />
+                    </svg>
+                  </button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="up" :disabled="cardIdx === 0">
+                        上移
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        command="down"
+                        :disabled="cardIdx === page.cards.length - 1"
+                      >
+                        下移
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
                 <button
                   type="button"
                   class="btn-icon-ghost card-del"
@@ -219,23 +196,16 @@ function endReorder() {
                   本卡片暂无题目，点下方题型或从左侧点击插入
                 </p>
 
-                <template v-for="(q, i) in card.questions" :key="q.id">
-                  <!-- 占位条：拖到「在当前 q 之前」插入。
-                       排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」(overIdx === fromIdx + 1)，避免在被拖动项紧邻位置出现指示线。 -->
+                <!-- 题目列表：VueDraggable 接管同卡内 reorder；用 :list 避免 prop mutation 警告 -->
+                <VueDraggable
+                  :list="card.questions"
+                  class="q-list"
+                  @update="(e) => handleQuestionReorder(e, card.id)"
+                >
                   <div
-                    v-if="reorderState && reorderState.cardIdx === cardLocalIdx(card.id) && reorderState.overIdx === i && i !== reorderState.fromIdx && i !== reorderState.fromIdx + 1 "
-                    class="q-placeholder"
-                  />
-                  <!-- 包裹层：承载拖动时的漂浮样式 -->
-                  <div
-                    :ref="(el) => setQuestionRef(cardLocalIdx(card.id), i, el)"
+                    v-for="q in card.questions"
+                    :key="q.id"
                     class="q-drag-wrap"
-                    :class="{
-                      'is-dragging':
-                        reorderState &&
-                        reorderState.cardIdx === cardLocalIdx(card.id) &&
-                        reorderState.fromIdx === i
-                    }"
                   >
                     <QuestionCard
                       :question="q"
@@ -245,16 +215,9 @@ function endReorder() {
                       @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
                       @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
                       @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
-                      @grip-down="(e, qId) => startReorder(e, cardLocalIdx(card.id), i)"
                     />
                   </div>
-                </template>
-                <!-- 占位条：拖到尾行后（overIdx === N，最后一道题之后）。
-                     同样排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」的情况。 -->
-                <div
-                  v-if="reorderState && reorderState.cardIdx === cardLocalIdx(card.id) && reorderState.overIdx === card.questions.length && reorderState.overIdx !== reorderState.fromIdx && reorderState.overIdx !== reorderState.fromIdx + 1"
-                  class="q-placeholder"
-                />
+                </VueDraggable>
 
                 <el-popover
                   :model-value="popoverVisible[card.id] || false"
@@ -279,7 +242,7 @@ function endReorder() {
                 </el-popover>
               </div>
             </section>
-          </VueDraggable>
+          </div>
 
           <button type="button" class="dashed-btn is-page" @click="emit('add-card')">
             <el-icon><Plus /></el-icon>
@@ -486,53 +449,34 @@ function endReorder() {
     }
   }
 
-  /* ---------- 题目拖动排序（wrapper + 占位条）---------- */
-  /* wrapper 间距由自身 margin 提供（不再依赖 .card-body 的 flex gap） */
+  /* ---------- 题目拖动排序（VueDraggable） ---------- */
+  /* 题目 wrapper：提供题目间间距，并作为 VueDraggable item */
   .q-drag-wrap {
     margin-bottom: var(--sp-sm);
 
     &:last-of-type {
       margin-bottom: 0;
     }
-
-    /* 被拖的题：主色高亮 + 虚线外框 + 漂浮阴影 */
-    &.is-dragging {
-      opacity: 0.55;
-      outline: 1px dashed var(--c-primary);
-      outline-offset: 2px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-drag);
-      cursor: grabbing;
-    }
   }
 
-  /* 占位条：height: 0 + border-top 视觉蓝线 → 不占布局空间，题目不会因占位条出现/消失而上下跳 */
-  .q-placeholder {
-    height: 0;
-    margin: 0;
-    border-top: 3px solid var(--c-primary);
-    border-radius: 2px;
-    box-shadow: var(--shadow-drag-edge);
-    pointer-events: none;
-    margin-bottom: var(--sp-sm);
-    /* 紧跟其后的 .q-drag-wrap margin-bottom 提供与下一题的间距 */
-  }
-
-  /* ---------- 卡片拖动排序（VueDraggable） ---------- */
-  .card-list {
-    display: block;
-  }
-
-  /* placeholder（目标位置占位）：强制蓝色细横条，不再继承卡片高度 */
-  .sortable-ghost {
-    opacity: 0;
-  }
-
-  /* chosen（鼠标抓住所选卡片）：和题目拖动一致的蓝色虚线 outline + 浅蓝底 */
+  /* chosen（被选中的题目）：主色虚线 outline + 浅蓝底 + 漂浮阴影 */
   .sortable-chosen {
     outline: 1px dashed var(--c-primary);
     outline-offset: -1px;
     background: var(--c-primary-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-drag);
+    cursor: grabbing;
+  }
+
+  /* ghost（拖动时的占位）：透明，让被拖项的 chosen 样式保持可见 */
+  .sortable-ghost {
+    opacity: 0;
+  }
+
+  /* ---------- 卡片列表容器 ---------- */
+  .card-list {
+    display: block;
   }
 
   /* ---------- 底部条 ---------- */

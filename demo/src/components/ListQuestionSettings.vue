@@ -569,7 +569,7 @@ function fixedWidthStyle(width) {
       width: 22px;
       height: 22px;
       padding: 0;
-      color: var(--c-text-placeholder);
+      color: var(--c-text-regular);
       background: transparent;
       border: none;
       border-radius: var(--radius-sm);

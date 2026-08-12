@@ -220,7 +220,7 @@
 }
 
 // ============================ 拖拽手柄 ============================
-// 20×20 中性图标 + hover 主色浅底
+// 20×20 中性图标 + hover 主色浅底。题目 grip 拖动手柄的基础样式。
 .drag-grip {
   display: inline-flex;
   align-items: center;
@@ -238,6 +238,33 @@
   &:hover {
     color: var(--c-primary);
     background: var(--c-primary-bg);
+  }
+}
+
+// ============================ 三点菜单按钮 ============================
+// 22×22 中性图标按钮，hover 浅填充。用于卡片/题目的「上移/下移」菜单触发器
+.more-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--c-text-regular);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--c-fill);
+    color: var(--c-text-regular);
+    outline: none;
   }
 }
 
