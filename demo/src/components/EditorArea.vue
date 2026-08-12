@@ -84,16 +84,22 @@ function moveCard(direction, cardIdx) {
 
 /* -------------------- 题目拖动排序（同卡内，VueDraggable） -------------------- */
 /**
- * VueDraggable 直接 splice card.questions；update 仅做通知 + 触发 flash
- * payload: { cardIdx, fromIdx, insertAt }（insertAt = newIndex，已是 splice 索引）
+ * v-model 已经 splice 了 card.questions 并 emit update:modelValue，
+ * 这里 @update 只做：通知父级 + 触发落位 flash（不再做 splice）。
+ * 父级 Editor.vue 拿到 reorder-question 后弹 toast，splice 不必重复做。
  */
 function handleQuestionReorder(e, cardId) {
-  if (!e || e.oldIndex === e.newIndex) return
+  if (!e || e.oldIndex === undefined || e.newIndex === undefined) return
+  if (e.oldIndex === e.newIndex) return
   const cardIdx = cardLocalIdx(cardId)
   if (cardIdx < 0) return
   const card = props.page.cards[cardIdx]
   flashMovedCard(card?.id)
-  emit('reorder-question', { cardIdx, fromIdx: e.oldIndex, insertAt: e.newIndex })
+  emit('reorder-question', {
+    cardIdx,
+    fromIdx: e.oldIndex,
+    insertAt: e.newIndex,
+  })
 }
 </script>
 
@@ -196,10 +202,13 @@ function handleQuestionReorder(e, cardId) {
                   本卡片暂无题目，点下方题型或从左侧点击插入
                 </p>
 
-                <!-- 题目列表：VueDraggable 接管同卡内 reorder；用 :list 避免 prop mutation 警告 -->
+                <!-- 题目列表：VueDraggable 接管同卡内 reorder。
+                     用 v-model 让组件 splice modelValue 并 emit update:modelValue，
+                     父级 card.questions 直接被 Vue 接管重排（避免 :list 被 vue-draggable-plus 忽略导致 DOM 与数据脱节）。 -->
                 <VueDraggable
-                  :list="card.questions"
+                  v-model="card.questions"
                   class="q-list"
+                  :animation="180"
                   @update="(e) => handleQuestionReorder(e, card.id)"
                 >
                   <div

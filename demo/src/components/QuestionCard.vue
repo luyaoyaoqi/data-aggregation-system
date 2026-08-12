@@ -324,10 +324,10 @@ function openListSettings() {
               :content="opt.linkData?.name || ''"
             >
               <span class="option-linked">
-                <span class="link-badge">←关联</span>
                 <span class="link-name">{{
                   opt.displayName || opt.linkData?.name
                 }}</span>
+                <span class="link-badge">关联</span>
                 <el-icon
                   class="btn-icon-ghost link-clear"
                   title="删除关联"

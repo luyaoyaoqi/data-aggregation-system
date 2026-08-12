@@ -180,7 +180,7 @@ function handleOpenStandalone() {
   /* 关闭按钮：脱离 toolbar，绝对定位浮在 dialog 右上角 —— 不和独立窗口按钮挤在一起 */
   .pd-close {
     position: absolute;
-    top: 0px;
+    top: 2px;
     right: 0px;
     display: inline-flex;
     align-items: center;

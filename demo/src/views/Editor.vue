@@ -224,22 +224,19 @@ function handleSelectQuestion(id) {
 }
 
 /**
- * 题目上下移动（同卡内，三点菜单触发）
+ * 题目顺序变化（VueDraggable 触发）
  * payload: { cardIdx, fromIdx, insertAt }
- * insertAt 是 splice 索引（已扣除 fromIdx 偏移）
+ * 注意：v-model 已由 EditorArea 接管 splice，这里**不再**做 splice，
+ * 否则会把刚刚被组件 splice 的顺序再次 rollback。仅弹 toast 提示。
  */
 function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
   if (!activePage.value) return;
   const card = activePage.value.cards[cardIdx];
   if (!card) return;
-  const qs = card.questions;
-  if (fromIdx < 0 || fromIdx >= qs.length) return;
   if (fromIdx === insertAt) return;
-  const [moved] = qs.splice(fromIdx, 1);
-  // 重新夹紧 insertAt，splice 后数组长度变化，原值可能越界
-  const target = Math.max(0, Math.min(qs.length, insertAt));
-  qs.splice(target, 0, moved);
-  ElMessage.success(`已调整题目顺序：${moved.title || "未命名题目"}`);
+  // splice 后的新位置就是 insertAt（题目已就位）
+  const moved = card.questions[insertAt];
+  ElMessage.success(`已调整题目顺序：${moved?.title || "未命名题目"}`);
 }
 
 /**
