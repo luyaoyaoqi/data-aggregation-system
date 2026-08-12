@@ -1,0 +1,1437 @@
+{
+  "id": "VariableCollectionId:tokens-color-collection",
+  "name": "Tokens",
+  "modes": {
+    "1:0": "Light"
+  },
+  "variableIds": [
+    "VariableID:tokens-color-1",
+    "VariableID:tokens-color-2",
+    "VariableID:tokens-color-3",
+    "VariableID:tokens-color-4",
+    "VariableID:tokens-color-5",
+    "VariableID:tokens-color-6",
+    "VariableID:tokens-color-7",
+    "VariableID:tokens-color-8",
+    "VariableID:tokens-color-9",
+    "VariableID:tokens-color-10",
+    "VariableID:tokens-color-11",
+    "VariableID:tokens-color-12",
+    "VariableID:tokens-color-13",
+    "VariableID:tokens-color-14",
+    "VariableID:tokens-color-15",
+    "VariableID:tokens-color-16",
+    "VariableID:tokens-color-17",
+    "VariableID:tokens-color-18",
+    "VariableID:tokens-color-19",
+    "VariableID:tokens-color-20",
+    "VariableID:tokens-color-21",
+    "VariableID:tokens-color-22",
+    "VariableID:tokens-color-23",
+    "VariableID:tokens-color-24",
+    "VariableID:tokens-color-25",
+    "VariableID:tokens-color-26",
+    "VariableID:tokens-color-27",
+    "VariableID:tokens-color-28",
+    "VariableID:tokens-color-29",
+    "VariableID:tokens-color-30",
+    "VariableID:tokens-color-31",
+    "VariableID:tokens-color-32",
+    "VariableID:tokens-color-33",
+    "VariableID:tokens-color-34",
+    "VariableID:tokens-color-35",
+    "VariableID:tokens-color-36",
+    "VariableID:tokens-color-37",
+    "VariableID:tokens-color-38",
+    "VariableID:tokens-color-39",
+    "VariableID:tokens-color-40",
+    "VariableID:tokens-color-41",
+    "VariableID:tokens-color-42",
+    "VariableID:tokens-color-43",
+    "VariableID:tokens-color-44",
+    "VariableID:tokens-color-45",
+    "VariableID:tokens-color-46"
+  ],
+  "variables": [
+    {
+      "id": "VariableID:tokens-color-1",
+      "name": "Brand/Primary",
+      "description": "主色 — indigo-600 (#2563EB)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.14509804,
+          "g": 0.38823529,
+          "b": 0.92156863,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.14509804,
+            "g": 0.38823529,
+            "b": 0.92156863,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-2",
+      "name": "Brand/Primary-Hover",
+      "description": "主色悬停 — indigo-700 (#1D4ED8)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.11372549,
+          "g": 0.30588235,
+          "b": 0.84705882,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.11372549,
+            "g": 0.30588235,
+            "b": 0.84705882,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-3",
+      "name": "Brand/Primary-Active",
+      "description": "主色激活 — indigo-800 (#1E40AF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.11764706,
+          "g": 0.25098039,
+          "b": 0.68627451,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.11764706,
+            "g": 0.25098039,
+            "b": 0.68627451,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-4",
+      "name": "Brand/Primary-Bg",
+      "description": "主色背景 — blue-50 (#EFF6FF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.9372549,
+          "g": 0.96470588,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.9372549,
+            "g": 0.96470588,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-5",
+      "name": "Brand/Primary-Border",
+      "description": "主色边框 — blue-200 (#BFDBFE)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.74901961,
+          "g": 0.85882353,
+          "b": 0.99607843,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.74901961,
+            "g": 0.85882353,
+            "b": 0.99607843,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-6",
+      "name": "Brand/On-Primary",
+      "description": "主色文字 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-7",
+      "name": "Surface/Nav",
+      "description": "顶部导航底色 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-8",
+      "name": "Surface/Nav-Text",
+      "description": "顶部导航文字 (#0F172A)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.05882353,
+          "g": 0.09019608,
+          "b": 0.16470588,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.05882353,
+            "g": 0.09019608,
+            "b": 0.16470588,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-9",
+      "name": "Surface/Nav-Hover",
+      "description": "顶部导航悬停 (#F1F5F9)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.94509804,
+          "g": 0.96078431,
+          "b": 0.97647059,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.94509804,
+            "g": 0.96078431,
+            "b": 0.97647059,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-10",
+      "name": "Surface/Page",
+      "description": "页面底色 (#F8FAFC)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.97254902,
+          "g": 0.98039216,
+          "b": 0.98823529,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.97254902,
+            "g": 0.98039216,
+            "b": 0.98823529,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-11",
+      "name": "Surface/Stage",
+      "description": "预览舞台底色 (深于 page) (#EEF1F6)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.93333333,
+          "g": 0.94509804,
+          "b": 0.96470588,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.93333333,
+            "g": 0.94509804,
+            "b": 0.96470588,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-12",
+      "name": "Surface/Panel",
+      "description": "面板底色 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-13",
+      "name": "Border/Default",
+      "description": "默认边框 — slate-200 (#E2E8F0)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.88627451,
+          "g": 0.90980392,
+          "b": 0.94117647,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.88627451,
+            "g": 0.90980392,
+            "b": 0.94117647,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-14",
+      "name": "Border/Light",
+      "description": "浅色边框 — slate-100 (#F1F5F9)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.94509804,
+          "g": 0.96078431,
+          "b": 0.97647059,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.94509804,
+            "g": 0.96078431,
+            "b": 0.97647059,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-15",
+      "name": "Fill/Default",
+      "description": "默认填充 — slate-100 (#F1F5F9)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.94509804,
+          "g": 0.96078431,
+          "b": 0.97647059,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.94509804,
+            "g": 0.96078431,
+            "b": 0.97647059,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-16",
+      "name": "Fill/Hover",
+      "description": "悬停填充 — slate-50 (#F8FAFC)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.97254902,
+          "g": 0.98039216,
+          "b": 0.98823529,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.97254902,
+            "g": 0.98039216,
+            "b": 0.98823529,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-17",
+      "name": "Scroll/Thumb",
+      "description": "滚动条 — slate-300 (#CBD5E1)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.79607843,
+          "g": 0.83529412,
+          "b": 0.88235294,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.79607843,
+            "g": 0.83529412,
+            "b": 0.88235294,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-18",
+      "name": "Scroll/Thumb-Hover",
+      "description": "滚动条悬停 — slate-400 (#94A3B8)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.58039216,
+          "g": 0.63921569,
+          "b": 0.72156863,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.58039216,
+            "g": 0.63921569,
+            "b": 0.72156863,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-19",
+      "name": "Text/Strong",
+      "description": "强文本 — slate-900 (#0F172A)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.05882353,
+          "g": 0.09019608,
+          "b": 0.16470588,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.05882353,
+            "g": 0.09019608,
+            "b": 0.16470588,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-20",
+      "name": "Text/Default",
+      "description": "默认文本 — slate-800 (#1E293B)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.11764706,
+          "g": 0.16078431,
+          "b": 0.23137255,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.11764706,
+            "g": 0.16078431,
+            "b": 0.23137255,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-21",
+      "name": "Text/Regular",
+      "description": "常规文本 — slate-600 (#475569)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.27843137,
+          "g": 0.33333333,
+          "b": 0.41176471,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.27843137,
+            "g": 0.33333333,
+            "b": 0.41176471,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-22",
+      "name": "Text/Secondary",
+      "description": "次要文本 — slate-500 (#64748B)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.39215686,
+          "g": 0.45490196,
+          "b": 0.54509804,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.39215686,
+            "g": 0.45490196,
+            "b": 0.54509804,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-23",
+      "name": "Text/Placeholder",
+      "description": "占位文本 — slate-400 (#94A3B8)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.58039216,
+          "g": 0.63921569,
+          "b": 0.72156863,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.58039216,
+            "g": 0.63921569,
+            "b": 0.72156863,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-24",
+      "name": "Text/Disabled",
+      "description": "禁用文本 — slate-300 (#CBD5E1)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.79607843,
+          "g": 0.83529412,
+          "b": 0.88235294,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.79607843,
+            "g": 0.83529412,
+            "b": 0.88235294,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-25",
+      "name": "Status/Success/Success",
+      "description": "成功 — emerald-500 (#10B981)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.0627451,
+          "g": 0.7254902,
+          "b": 0.50588235,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.0627451,
+            "g": 0.7254902,
+            "b": 0.50588235,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-26",
+      "name": "Status/Success/Success-Hover",
+      "description": "成功悬停 — emerald-600 (#059669)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.01960784,
+          "g": 0.58823529,
+          "b": 0.41176471,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.01960784,
+            "g": 0.58823529,
+            "b": 0.41176471,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-27",
+      "name": "Status/Success/Success-Bg",
+      "description": "成功背景 — emerald-50 (#ECFDF5)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.9254902,
+          "g": 0.99215686,
+          "b": 0.96078431,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.9254902,
+            "g": 0.99215686,
+            "b": 0.96078431,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-28",
+      "name": "Status/Success/Success-Border",
+      "description": "成功边框 — emerald-200 (#A7F3D0)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.65490196,
+          "g": 0.95294118,
+          "b": 0.81568627,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.65490196,
+            "g": 0.95294118,
+            "b": 0.81568627,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-29",
+      "name": "Status/Success/On-Success",
+      "description": "成功文字 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-30",
+      "name": "Status/Warning/Warning",
+      "description": "警告 — amber-500 (#F59E0B)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.96078431,
+          "g": 0.61960784,
+          "b": 0.04313725,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.96078431,
+            "g": 0.61960784,
+            "b": 0.04313725,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-31",
+      "name": "Status/Warning/Warning-Hover",
+      "description": "警告悬停 — amber-600 (#D97706)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.85098039,
+          "g": 0.46666667,
+          "b": 0.02352941,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.85098039,
+            "g": 0.46666667,
+            "b": 0.02352941,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-32",
+      "name": "Status/Warning/Warning-Text",
+      "description": "警告文字 — amber-700 (#B45309)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.70588235,
+          "g": 0.3254902,
+          "b": 0.03529412,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.70588235,
+            "g": 0.3254902,
+            "b": 0.03529412,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-33",
+      "name": "Status/Warning/Warning-Bg",
+      "description": "警告背景 — amber-50 (#FFFBEB)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 0.98431373,
+          "b": 0.92156863,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 0.98431373,
+            "b": 0.92156863,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-34",
+      "name": "Status/Warning-Border",
+      "description": "警告边框 — amber-200 (#FDE68A)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.99215686,
+          "g": 0.90196078,
+          "b": 0.54117647,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.99215686,
+            "g": 0.90196078,
+            "b": 0.54117647,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-35",
+      "name": "Status/Warning/On-Warning",
+      "description": "警告文字 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-36",
+      "name": "Status/Danger/Danger",
+      "description": "危险 — red-500 (#EF4444)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.9372549,
+          "g": 0.26666667,
+          "b": 0.26666667,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.9372549,
+            "g": 0.26666667,
+            "b": 0.26666667,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-37",
+      "name": "Status/Danger/Danger-Hover",
+      "description": "危险悬停 — red-600 (#DC2626)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.8627451,
+          "g": 0.14901961,
+          "b": 0.14901961,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.8627451,
+            "g": 0.14901961,
+            "b": 0.14901961,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-38",
+      "name": "Status/Danger/Danger-Strong",
+      "description": "危险强提示 — red-600 (#DC2626)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.8627451,
+          "g": 0.14901961,
+          "b": 0.14901961,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.8627451,
+            "g": 0.14901961,
+            "b": 0.14901961,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-39",
+      "name": "Status/Danger/Danger-Bg",
+      "description": "危险背景 — red-50 (#FEF2F2)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.99607843,
+          "g": 0.94901961,
+          "b": 0.94901961,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.99607843,
+            "g": 0.94901961,
+            "b": 0.94901961,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-40",
+      "name": "Status/Danger/Danger-Border",
+      "description": "危险边框 — red-200 (#FECACA)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.99607843,
+          "g": 0.79215686,
+          "b": 0.79215686,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.99607843,
+            "g": 0.79215686,
+            "b": 0.79215686,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-41",
+      "name": "Status/Danger/On-Danger",
+      "description": "危险文字 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-42",
+      "name": "Status/Info/Info",
+      "description": "信息 — blue-500 (#3B82F6)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.23137255,
+          "g": 0.50980392,
+          "b": 0.96470588,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.23137255,
+            "g": 0.50980392,
+            "b": 0.96470588,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-43",
+      "name": "Status/Info/Info-Hover",
+      "description": "信息悬停 — blue-600 (#2563EB)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.14509804,
+          "g": 0.38823529,
+          "b": 0.92156863,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.14509804,
+            "g": 0.38823529,
+            "b": 0.92156863,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-44",
+      "name": "Status/Info/Info-Bg",
+      "description": "信息背景 — blue-50 (#EFF6FF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.9372549,
+          "g": 0.96470588,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.9372549,
+            "g": 0.96470588,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-45",
+      "name": "Status/Info/Info-Border",
+      "description": "信息边框 — blue-200 (#BFDBFE)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 0.74901961,
+          "g": 0.85882353,
+          "b": 0.99607843,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 0.74901961,
+            "g": 0.85882353,
+            "b": 0.99607843,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    },
+    {
+      "id": "VariableID:tokens-color-46",
+      "name": "Status/On-Info",
+      "description": "信息文字 (#FFFFFF)",
+      "type": "COLOR",
+      "valuesByMode": {
+        "1:0": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        }
+      },
+      "resolvedValuesByMode": {
+        "1:0": {
+          "resolvedValue": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "alias": null
+        }
+      },
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "hiddenFromPublishing": false,
+      "codeSyntax": {}
+    }
+  ]
+}

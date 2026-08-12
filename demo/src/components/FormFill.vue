@@ -55,10 +55,10 @@ function setAnswer(q, v) {
   answers.value[q.id] = v;
 }
 
-/** 列表题行容器：保证至少有 1 行 */
+/** 列表题行容器：首次进入时默认 2 行空对象 */
 function ensureRows(q) {
   if (!listRows.value[q.id]) {
-    listRows.value[q.id] = [{}];
+    listRows.value[q.id] = [{}, {}];
   }
   return listRows.value[q.id];
 }
@@ -535,7 +535,7 @@ defineExpose({
                         v-if="col.colType === 'text'"
                         :model-value="row[col.id] || ''"
                         @update:model-value="(v) => (row[col.id] = v)"
-                        :placeholder="col.name"
+                        :placeholder="'输入'"
                         :disabled="readonly"
                         size="large"
                         class="ff-cell-el-input"
@@ -547,7 +547,7 @@ defineExpose({
                         :min="q.minValue ?? undefined"
                         :max="q.maxValue ?? undefined"
                         :precision="q.precision ?? 0"
-                        :placeholder="col.name"
+                        :placeholder="'数字'"
                         controls-position="right"
                         :disabled="readonly"
                         size="large"
@@ -557,7 +557,7 @@ defineExpose({
                         v-else-if="col.colType === 'date'"
                         :model-value="row[col.id] || ''"
                         @update:model-value="(v) => (row[col.id] = v)"
-                        :placeholder="col.name"
+                        :placeholder="'日期'"
                         :type="getDatePickerType(q)"
                         :value-format="getDateFormat(q)"
                         :disabled="readonly"
@@ -569,7 +569,7 @@ defineExpose({
                         :model-value="row[col.id] || ''"
                         @update:model-value="(v) => (row[col.id] = v)"
                         :disabled="readonly"
-                        :placeholder="col.name"
+                        :placeholder="'单选'"
                         size="large"
                         class="ff-cell-el-select"
                       >
@@ -590,7 +590,7 @@ defineExpose({
                         "
                         @update:model-value="(v) => (row[col.id] = v)"
                         :disabled="readonly"
-                        :placeholder="col.name"
+                        :placeholder="'多选'"
                         size="large"
                         class="ff-cell-el-select"
                       >
