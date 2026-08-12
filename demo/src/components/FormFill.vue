@@ -272,13 +272,14 @@ defineExpose({
 
 <template>
   <div class="form-fill">
-    <p v-if="showPageInfo && pagesArr.length > 1" class="ff-pageinfo">
-      第 {{ currentPageIdx + 1 }} / {{ pagesArr.length }} 页
-    </p>
-
-    <p v-if="showTheme && page?.theme" class="ff-theme">
-      {{ page.theme }}
-    </p>
+    <div class="ff-page-header">
+      <p v-if="showTheme && page?.theme" class="ff-theme">
+        {{ page.theme }}
+      </p>
+      <p v-if="showPageInfo && pagesArr.length > 1" class="ff-pageinfo">
+        第 {{ currentPageIdx + 1 }} / {{ pagesArr.length }} 页
+      </p>
+    </div>
 
     <p
       v-if="
@@ -689,21 +690,28 @@ defineExpose({
   flex-direction: column;
 }
 
-/* ============ 页码 / 主题 / 空态 ============ */
+/* ============ 顶部：标题 + 页码（左右布局） ============ */
+.ff-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin: 0 0 var(--sp-lg);
+}
+
 .ff-pageinfo {
-  margin: 0 0 var(--sp-md);
+  margin: 0;
   font-family: var(--ff-mono);
   font-size: var(--fs-12);
   color: var(--c-text-secondary);
   font-variant-numeric: tabular-nums;
-  text-align: center;
+  flex-shrink: 0;
 }
 
 .ff-theme {
-  margin: 0 0 var(--sp-lg);
+  margin: 0;
   font-size: var(--fs-16);
   color: var(--c-text-primary);
-  text-align: center;
   line-height: 1.5;
   font-weight: 700;
 }
