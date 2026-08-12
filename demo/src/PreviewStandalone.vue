@@ -110,8 +110,9 @@ function handleSubmit() {
           :current-page-idx="currentPageIdx"
         />
 
-        <!-- 底部：分页 + 提交 -->
-        <div v-if="hasQuestions" class="fill-footer">
+        <!-- 底部：分页 + 提交
+             即使当前页没有题目也保留底部条 —— 用户能继续翻页/提交，不能因为页面空就把出口卡住 -->
+        <div v-if="allPages.length > 0" class="fill-footer">
           <div v-if="allPages.length > 1" class="fill-pager">
             <button
               v-if="!isFirstPage"
@@ -218,9 +219,9 @@ function handleSubmit() {
 
 /* ============ 底部操作 ============ */
 .fill-footer {
-  margin-top: var(--sp-xl);
+  margin-top: var(--sp-lg);
   padding: var(--sp-lg);
-  border: 1px solid var(--c-line-light);
+  border: 1px solid var(--c-line);
   border-radius: var(--radius);
   position: sticky;
   bottom: 0;

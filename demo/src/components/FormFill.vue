@@ -238,6 +238,15 @@ const pagesArr = computed(() =>
   Array.isArray(props.pages) ? props.pages : [],
 );
 
+/**
+ * 当前页需要渲染的 cards —— 过滤掉 questions 为空的 card。
+ * 空 card 只渲染一个空容器（带边框）意义不大，反而显丑；
+ * 整页为空时由 ff-empty-tip 提示，无需用空 card 占位。
+ */
+const visibleCards = computed(
+  () => (props.page?.cards || []).filter((c) => c.questions.length > 0),
+);
+
 const questionIndexMap = computed(() => {
   const map = new Map();
   const s = props.settings || {};
@@ -294,7 +303,7 @@ defineExpose({
     </p>
 
     <section
-      v-for="card in page ? page.cards : []"
+      v-for="card in visibleCards"
       :key="card.id"
       class="ff-card-group"
     >
@@ -696,7 +705,7 @@ defineExpose({
   align-items: baseline;
   justify-content: space-between;
   gap: var(--sp-md);
-  margin: 0 0 var(--sp-lg);
+  margin: 0 var(--sp-2xs) var(--sp-lg);
 }
 
 .ff-pageinfo {
@@ -710,8 +719,8 @@ defineExpose({
 
 .ff-theme {
   margin: 0;
-  font-size: var(--fs-16);
-  color: var(--c-text-primary);
+  font-size: var(--fs-18);
+  color: var(--c-text);
   line-height: 1.5;
   font-weight: 700;
 }
@@ -744,16 +753,18 @@ defineExpose({
 .ff-card-title {
   margin: 0 0 var(--sp-md);
   padding-bottom: var(--sp-sm);
-  font-size: var(--fs-14);
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--c-text-strong);
-  border-bottom: 1px dashed var(--c-line-light);
+  border-bottom: 1px solid var(--c-line);
 }
 
 /* ============ 题目 ============ */
 .ff-q {
   &:not(:last-child) {
     margin-bottom: var(--sp-lg);
+    padding-bottom: var(--sp-lg);
+    border-bottom: 1px dashed var(--c-line);
   }
 }
 
