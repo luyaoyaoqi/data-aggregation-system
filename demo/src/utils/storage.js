@@ -50,3 +50,15 @@ export function clearForm() {
     /* noop */
   }
 }
+
+/** 读取上次保存的时间戳（ms）。无存档 / 解析失败 → null */
+export function getSavedAt() {
+  try {
+    const raw = localStorage.getItem(KEY_FORM)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed?.savedAt ?? null
+  } catch {
+    return null
+  }
+}

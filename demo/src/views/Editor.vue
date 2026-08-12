@@ -7,7 +7,15 @@ import ComponentLibrary, {
 import EditorArea from "../components/EditorArea.vue";
 import PropertyPanel from "../components/PropertyPanel.vue";
 import FormSettingsDialog from "../components/FormSettingsDialog.vue";
-import { loadForm, saveForm, clearForm } from "../utils/storage";
+import { loadForm, saveForm, clearForm, getSavedAt } from "../utils/storage";
+
+/** 把时间戳格式化为 "YYYY-MM-DD HH:mm"。无值 → '' */
+function formatSavedAt(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 /* ------------------------------ 表单数据 ------------------------------ */
 function createInitialForm() {
@@ -53,7 +61,7 @@ function createInitialForm() {
 const form = ref(loadForm() || createInitialForm());
 const activePageId = ref(form.value.pages[0].id);
 const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id);
-const lastSavedAt = ref("2026-07-22 18:15");
+const lastSavedAt = ref(formatSavedAt(getSavedAt()));
 
 const settingsVisible = ref(false);
 
@@ -418,9 +426,7 @@ function handleSave() {
   }
   const now = new Date();
   const pad = (n) => String(n).padStart(2, "0");
-  lastSavedAt.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate(),
-  )} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  lastSavedAt.value = formatSavedAt(now.getTime());
   ElMessage.success("保存成功");
 }
 
