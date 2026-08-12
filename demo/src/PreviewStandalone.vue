@@ -30,7 +30,8 @@ function loadSnapshot() {
       return;
     }
     form.value = snap.form;
-    localStorage.removeItem(STORAGE_KEY);
+    /* 不再读后即删 —— 让 dialog 形态的 PreviewDialog 能稳定复用同一份快照
+       （父页面打开 dialog 前会重写一次，保证拿到最新 form） */
   } catch (e) {
     loadError.value = "解析快照失败：" + (e?.message || "未知错误");
   }

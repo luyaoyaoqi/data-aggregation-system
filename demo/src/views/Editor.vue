@@ -7,6 +7,7 @@ import ComponentLibrary, {
 import EditorArea from "../components/EditorArea.vue";
 import PropertyPanel from "../components/PropertyPanel.vue";
 import FormSettingsDialog from "../components/FormSettingsDialog.vue";
+import PreviewDialog from "../components/PreviewDialog.vue";
 import { loadForm, saveForm, clearForm, getSavedAt } from "../utils/storage";
 
 /** 把时间戳格式化为 "YYYY-MM-DD HH:mm"。无值 → '' */
@@ -64,6 +65,7 @@ const activeQuestionId = ref(form.value.pages[0].cards[0].questions[0].id);
 const lastSavedAt = ref(formatSavedAt(getSavedAt()));
 
 const settingsVisible = ref(false);
+const effectPreviewVisible = ref(false);
 
 const activePage = computed(
   () => form.value.pages.find((p) => p.id === activePageId.value) || null,
@@ -453,16 +455,35 @@ async function handleReset() {
 
 /**
  * 在独立窗口中打开预览（最终用户填表端）
- * - 把当前 form 快照写入 localStorage,新窗口读取后清除(避免遗留)
+ * - 复用 writeSnapshot 写入 localStorage
  * - /preview.html 是 Vite 多入口构建的独立预览页
  */
 function openStandalone() {
+  writeSnapshot();
+  window.open("/preview.html", "_blank", "noopener,noreferrer");
+}
+
+/**
+ * 把当前 form 深拷贝快照写入 localStorage。
+ * - 独立预览窗口与 dialog 形态的效果预览共用同一份快照（key: preview-form-snapshot）
+ * - 每次打开预览入口都会重写，保证拿到最新 form
+ */
+function writeSnapshot() {
   const snapshot = {
     ts: Date.now(),
     form: JSON.parse(JSON.stringify(form.value)),
   };
   localStorage.setItem("preview-form-snapshot", JSON.stringify(snapshot));
-  window.open("/preview.html", "_blank", "noopener,noreferrer");
+}
+
+/**
+ * 在编辑器内以 dialog 形态打开效果预览
+ * - 每次打开都重写快照，让 iframe 内 PreviewStandalone 拿到当前 form
+ * - PreviewStandalone 现在不再 removeItem，dialog 重开时通过 src 时间戳强制 reload
+ */
+function openEffectPreview() {
+  writeSnapshot();
+  effectPreviewVisible.value = true;
 }
 </script>
 
@@ -491,6 +512,7 @@ function openStandalone() {
         @save="handleSave"
         @reset="handleReset"
         @preview="openStandalone"
+        @effect-preview="openEffectPreview"
         @settings="settingsVisible = true"
       />
 
@@ -498,6 +520,8 @@ function openStandalone() {
     </div>
 
     <FormSettingsDialog v-model="settingsVisible" :settings="form.settings" />
+
+    <PreviewDialog v-model="effectPreviewVisible" :form="form" />
   </div>
 </template>
 

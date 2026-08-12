@@ -29,6 +29,7 @@ const emit = defineEmits([
   'save',
   'reset',
   'preview',
+  'effect-preview',
   'settings'
 ])
 
@@ -251,7 +252,8 @@ function endReorder() {
       <div class="footer-right">
         <span class="save-time">{{ lastSavedAt ? `最近保存：${lastSavedAt}` : '尚未保存' }}</span>
         <el-button :icon="Setting" title="表单高级设置" @click="emit('settings')" />
-        <el-button @click="emit('preview')">预览</el-button>
+        <el-button @click="emit('preview')">预览体检</el-button>
+        <el-button @click="emit('effect-preview')">效果预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>
     </footer>
@@ -275,7 +277,7 @@ function endReorder() {
   .canvas {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--sp-xl) var(--sp-xl) 48px;
+    padding: var(--sp-lg) var(--sp-xl);
   }
 
   /* ---------- 标题 ---------- */
