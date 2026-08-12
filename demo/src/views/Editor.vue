@@ -511,7 +511,6 @@ function openEffectPreview() {
         @reorder-question="handleReorderQuestion"
         @save="handleSave"
         @reset="handleReset"
-        @preview="openStandalone"
         @effect-preview="openEffectPreview"
         @settings="settingsVisible = true"
       />
@@ -521,7 +520,11 @@ function openEffectPreview() {
 
     <FormSettingsDialog v-model="settingsVisible" :settings="form.settings" />
 
-    <PreviewDialog v-model="effectPreviewVisible" :form="form" />
+    <PreviewDialog
+      v-model="effectPreviewVisible"
+      :form="form"
+      @open-standalone="openStandalone"
+    />
   </div>
 </template>
 

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { Cellphone, Monitor, Close } from '@element-plus/icons-vue'
+import { Cellphone, Monitor, Close, FullScreen,TopRight } from '@element-plus/icons-vue'
 
 /**
  * 效果预览 Dialog —— 在编辑器内以 dialog 形态预览表单
@@ -15,7 +15,7 @@ const props = defineProps({
   form: { type: Object, default: null },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'open-standalone'])
 
 const visible = computed({
   get: () => props.modelValue,
@@ -54,6 +54,11 @@ watch(visible, (v) => {
 function handleClose() {
   visible.value = false
 }
+
+/* 「独立窗口」：触发父页面 window.open 新窗口，不关闭 dialog（便于对照） */
+function handleOpenStandalone() {
+  emit('open-standalone')
+}
 </script>
 
 <template>
@@ -81,15 +86,25 @@ function handleClose() {
           </el-radio-button>
         </el-radio-group>
 
-        <button
-          type="button"
-          class="pd-close"
-          title="关闭"
-          @click="handleClose"
-        >
-          <el-icon><Close /></el-icon>
-        </button>
+        <div class="pd-actions">
+          <el-button
+            type="default"
+            :icon="TopRight"
+            class="pd-open-standalone"
+            title="在新窗口中打开预览"
+            @click="handleOpenStandalone"
+          >独立窗口</el-button>
+        </div>
       </div>
+
+      <button
+        type="button"
+        class="pd-close"
+        title="关闭"
+        @click="handleClose"
+      >
+        <el-icon><Close /></el-icon>
+      </button>
     </template>
 
     <div class="pd-frame-wrap">
@@ -105,7 +120,7 @@ function handleClose() {
 
 <style lang="less">
 .preview-dialog {
-  /* toolbar：左标题 / 中设备切换 / 右关闭 */
+  /* dialog 内部：纵向 flex 让 body 撑高 */
   display: flex;
   flex-direction: column;
   .el-dialog__body{
@@ -113,14 +128,18 @@ function handleClose() {
     display: flex;
     flex-direction: column;
   }
+  .el-dialog__header {
+    /* 让关闭按钮以它为定位锚点浮在右上角 */
+    position: relative;
+    padding-right: var(--sp-2xl);
+  }
+
+  /* toolbar：左标题 / 中设备切换 / 右独立窗口（关闭按钮独立浮在外层） */
   .pd-toolbar {
     display: grid;
-    /* 三列等分：左 1fr 给 title，中 auto 给 device，右 1fr 给 close
-       —— 这样 device 在水平中点严格居中，与 title/close 宽度无关 */
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     width: 100%;
-    padding-right: var(--sp-xs);
   }
 
   .pd-title {
@@ -151,8 +170,18 @@ function handleClose() {
     }
   }
 
-  .pd-close {
+  /* toolbar 右侧：独立窗口按钮（右对齐到第三列右沿） */
+  .pd-actions {
     justify-self: end;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 关闭按钮：脱离 toolbar，绝对定位浮在 dialog 右上角 —— 不和独立窗口按钮挤在一起 */
+  .pd-close {
+    position: absolute;
+    top: 0px;
+    right: 0px;
     display: inline-flex;
     align-items: center;
     justify-content: center;

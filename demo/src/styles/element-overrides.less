@@ -87,9 +87,15 @@
 
 // ============ Dropdown menu (teleport 到 body,scoped 进不去) ============
 // 原在 QuestionCard.vue scoped 内 → 永不匹配,这里全局生效
+// 题型切换下拉里 SVG 必须显式 width/height,否则按 viewBox 默认渲染
+// → 与触发器里被 scoped 约束的 14×14 不一致,"样式丢了"
 .el-dropdown-menu {
   .q-type-icon {
-    vertical-align: -2px;
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    vertical-align: -3px;
     margin-right: var(--sp-xs);
+    flex-shrink: 0;
   }
 }

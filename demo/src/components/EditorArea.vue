@@ -28,7 +28,6 @@ const emit = defineEmits([
   'reorder-question',
   'save',
   'reset',
-  'preview',
   'effect-preview',
   'settings'
 ])
@@ -245,14 +244,13 @@ function endReorder() {
     <!-- 底部操作条 -->
     <footer class="editor-footer">
       <div class="footer-left">
-        <el-button @click="emit('exit')">退出编辑</el-button>
+        <!-- <el-button @click="emit('exit')">退出编辑</el-button> -->
         <el-button @click="emit('reset')">重置</el-button>
       </div>
 
       <div class="footer-right">
         <span class="save-time">{{ lastSavedAt ? `最近保存：${lastSavedAt}` : '尚未保存' }}</span>
         <el-button :icon="Setting" title="表单高级设置" @click="emit('settings')" />
-        <el-button @click="emit('preview')">预览体检</el-button>
         <el-button @click="emit('effect-preview')">效果预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>

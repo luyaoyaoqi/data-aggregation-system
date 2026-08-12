@@ -729,7 +729,7 @@ defineExpose({
   padding: var(--sp-lg);
   margin-bottom: var(--sp-lg);
   background: var(--c-panel);
-  border: 1px solid var(--c-line-light);
+  border: 1px solid var(--c-line);
   border-radius: var(--radius);
   transition:
     border-color var(--dur) var(--ease),

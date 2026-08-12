@@ -249,7 +249,7 @@ function handleSubmit() {
   cursor: pointer;
   transition: all var(--dur) var(--ease);
   white-space: nowrap;
-  height: 40px;
+  height: 36px;
   font-family: inherit;
   font-size: var(--fs-14);
   flex: 0 0 120px;
@@ -272,7 +272,7 @@ function handleSubmit() {
 .fill-submit {
   display: block;
   flex: 0 0 120px;
-  height: 40px;
+  height: 36px;
   font-family: inherit;
   font-size: var(--fs-14);
   font-weight: 500;
