@@ -227,6 +227,20 @@ function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
   ElMessage.success(`已调整题目顺序：${moved.title || "未命名题目"}`);
 }
 
+/**
+ * 卡片拖动排序（跨卡）
+ * payload: { fromIdx, insertAt }
+ * VueDraggable 的 v-model 已直接修改 page.cards，此处只做提示/持久化
+ */
+function handleReorderCard({ fromIdx, insertAt }) {
+  if (!activePage.value) return;
+  const cards = activePage.value.cards;
+  if (fromIdx < 0 || fromIdx >= cards.length) return;
+  if (fromIdx === insertAt) return;
+  const moved = cards[insertAt]; // 已经被 VueDraggable 重新排序
+  ElMessage.success(`已调整卡片顺序：${moved?.title || "未命名卡片"}`);
+}
+
 async function handleRemoveQuestion({ cardId, questionId }) {
   const card = activePage.value?.cards.find((c) => c.id === cardId);
   if (!card) return;
@@ -509,6 +523,7 @@ function openEffectPreview() {
         @duplicate-question="handleDuplicateQuestion"
         @switch-question-type="handleSwitchQuestionType"
         @reorder-question="handleReorderQuestion"
+        @reorder-card="handleReorderCard"
         @save="handleSave"
         @reset="handleReset"
         @effect-preview="openEffectPreview"

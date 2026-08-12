@@ -1,6 +1,7 @@
 <script setup>
-import { Delete, Plus, Setting } from '@element-plus/icons-vue'
+import { Delete, Plus, Setting, Rank } from '@element-plus/icons-vue'
 import { reactive, ref } from 'vue'
+import { VueDraggable } from 'vue-draggable-plus'
 import { TYPE_GROUPS } from './ComponentLibrary.vue'
 import CardTabs from './CardTabs.vue'
 import QuestionCard from './QuestionCard.vue'
@@ -26,6 +27,7 @@ const emit = defineEmits([
   'duplicate-question',
   'switch-question-type',
   'reorder-question',
+  'reorder-card',
   'save',
   'reset',
   'effect-preview',
@@ -40,6 +42,40 @@ const popoverVisible = reactive({})
 function handlePick(cardId, type) {
   emit('pick-type', { cardId, type })
   popoverVisible[cardId] = false
+}
+
+/* -------------------- 卡片拖动排序（VueDraggable v-model 已自动 splice） -------------------- */
+/** 落位 flash 动效：拖完后被移动的卡片短暂高亮 */
+const lastMovedCardId = ref('')
+
+/** VueDraggable v-model 已直接修改 page.cards，update 仅做通知/日志 + 触发 flash */
+function handleCardReorder(e) {
+  if (!e || e.oldIndex === e.newIndex) return
+  // 拿"已被重排"的那张卡片（此时位于新位置 newIndex）
+  const movedCard = props.page?.cards?.[e.newIndex]
+  flashMovedCard(movedCard?.id)
+  emit('reorder-card', { fromIdx: e.oldIndex, insertAt: e.newIndex })
+}
+
+/**
+ * 触发落位 flash：
+ * 先清空 class，等一帧再设上，才能在同一张卡被反复拖动时重启动画。
+ */
+function flashMovedCard(cardId) {
+  if (!cardId) return
+  lastMovedCardId.value = ''
+  setTimeout(() => {
+    lastMovedCardId.value = cardId
+    setTimeout(() => {
+      if (lastMovedCardId.value === cardId) lastMovedCardId.value = ''
+    }, 600)
+  }, 16)
+}
+
+/** 旧题目拖动按 cardIdx 索引定位；现在改 v-for="card in page.cards" 拿不到 idx → 通过 cardId 反查 */
+function cardLocalIdx(cardId) {
+  if (!props.page) return -1
+  return props.page.cards.findIndex((c) => c.id === cardId)
 }
 
 /* -------------------- 题目上下拖动排序（同卡内） -------------------- */
@@ -145,93 +181,105 @@ function endReorder() {
             placeholder="请输入当前页主题（填写者可见）"
           />
 
-          <!-- 卡片列表 -->
-          <section
-            v-for="(card, cardIdx) in page.cards"
-            :key="card.id"
-            class="form-card"
+          <!-- 卡片列表（VueDraggable 接管 reorder；用 :list 避免 prop mutation 警告） -->
+          <VueDraggable
+            :list="page.cards"
+            :animation="180"
+            handle=".drag-grip"
+            class="card-list"
+            @update="handleCardReorder"
           >
-            <header class="card-head">
-              <input
-                v-model="card.title"
-                class="card-title-input"
-                placeholder="卡片标题（选填，填写者可见）"
-              />
-              <button
-                type="button"
-                class="btn-icon-ghost card-del"
-                @click="emit('remove-card', card.id)"
-              >
-                <el-icon><Delete /></el-icon>
-                <span>删除卡片</span>
-              </button>
-            </header>
+            <section
+              v-for="card in page.cards"
+              :key="card.id"
+              class="form-card"
+              :class="{ 'is-just-moved': lastMovedCardId === card.id }"
+            >
+              <header class="card-head">
+                <el-icon class="drag-grip" title="拖动排序"
+                  ><Rank
+                /></el-icon>
+                <input
+                  v-model="card.title"
+                  class="card-title-input"
+                  placeholder="卡片标题（选填，填写者可见）"
+                />
+                <button
+                  type="button"
+                  class="btn-icon-ghost card-del"
+                  @click="emit('remove-card', card.id)"
+                >
+                  <el-icon><Delete /></el-icon>
+                  <span>删除卡片</span>
+                </button>
+              </header>
 
-            <div class="card-body">
-              <p v-if="card.questions.length === 0" class="card-empty">
-                本卡片暂无题目，点下方题型或从左侧点击插入
-              </p>
+              <div class="card-body">
+                <p v-if="card.questions.length === 0" class="card-empty">
+                  本卡片暂无题目，点下方题型或从左侧点击插入
+                </p>
 
-              <template v-for="(q, i) in card.questions" :key="q.id">
-                <!-- 占位条：拖到「在当前 q 之前」插入。
-                     排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」(overIdx === fromIdx + 1)，避免在被拖动项紧邻位置出现指示线。 -->
+                <template v-for="(q, i) in card.questions" :key="q.id">
+                  <!-- 占位条：拖到「在当前 q 之前」插入。
+                       排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」(overIdx === fromIdx + 1)，避免在被拖动项紧邻位置出现指示线。 -->
+                  <div
+                    v-if="reorderState && reorderState.cardIdx === cardLocalIdx(card.id) && reorderState.overIdx === i && i !== reorderState.fromIdx && i !== reorderState.fromIdx + 1 "
+                    class="q-placeholder"
+                  />
+                  <!-- 包裹层：承载拖动时的漂浮样式 -->
+                  <div
+                    :ref="(el) => setQuestionRef(cardLocalIdx(card.id), i, el)"
+                    class="q-drag-wrap"
+                    :class="{
+                      'is-dragging':
+                        reorderState &&
+                        reorderState.cardIdx === cardLocalIdx(card.id) &&
+                        reorderState.fromIdx === i
+                    }"
+                  >
+                    <QuestionCard
+                      :question="q"
+                      :index="indexMap.get(q.id) ?? null"
+                      :active="q.id === activeQuestionId"
+                      @select="emit('select-question', $event)"
+                      @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
+                      @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
+                      @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
+                      @grip-down="(e, qId) => startReorder(e, cardLocalIdx(card.id), i)"
+                    />
+                  </div>
+                </template>
+                <!-- 占位条：拖到尾行后（overIdx === N，最后一道题之后）。
+                     同样排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」的情况。 -->
                 <div
-                  v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === i && i !== reorderState.fromIdx && i !== reorderState.fromIdx + 1 "
+                  v-if="reorderState && reorderState.cardIdx === cardLocalIdx(card.id) && reorderState.overIdx === card.questions.length && reorderState.overIdx !== reorderState.fromIdx && reorderState.overIdx !== reorderState.fromIdx + 1"
                   class="q-placeholder"
                 />
-                <!-- 包裹层：承载拖动时的漂浮样式 -->
-                <div
-                  :ref="(el) => setQuestionRef(cardIdx, i, el)"
-                  class="q-drag-wrap"
-                  :class="{
-                    'is-dragging':
-                      reorderState &&
-                      reorderState.cardIdx === cardIdx &&
-                      reorderState.fromIdx === i
-                  }"
-                >
-                  <QuestionCard
-                    :question="q"
-                    :index="indexMap.get(q.id) ?? null"
-                    :active="q.id === activeQuestionId"
-                    @select="emit('select-question', $event)"
-                    @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
-                    @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
-                    @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
-                    @grip-down="(e, qId) => startReorder(e, cardIdx, i)"
-                  />
-                </div>
-              </template>
-              <!-- 占位条：拖到尾行后（overIdx === N，最后一道题之后）。
-                   同样排除「原地」(overIdx === fromIdx) 和「紧邻原位之后」的情况。 -->
-              <div
-                v-if="reorderState && reorderState.cardIdx === cardIdx && reorderState.overIdx === card.questions.length && reorderState.overIdx !== reorderState.fromIdx && reorderState.overIdx !== reorderState.fromIdx + 1"
-                class="q-placeholder"
-              />
 
-              <el-popover
-                :model-value="popoverVisible[card.id] || false"
-                @update:model-value="popoverVisible[card.id] = $event"
-                :width="480"
-                placement="bottom"
-                trigger="click"
-                :show-arrow="false"
-                popper-class="add-question-popover"
-              >
-                <template #reference>
-                  <button type="button" class="dashed-btn">
-                    <el-icon><Plus /></el-icon>
-                    <span>添加题目</span>
-                  </button>
-                </template>
-                <p class="popover-tip">选择一个题型，插入到当前卡片末尾</p>
-                <TypeChipGrid
-                  :groups="groups"
-                  @pick="(type) => handlePick(card.id, type)"
-                />
-              </el-popover>
-            </div>
-          </section>
+                <el-popover
+                  :model-value="popoverVisible[card.id] || false"
+                  @update:model-value="popoverVisible[card.id] = $event"
+                  :width="480"
+                  placement="bottom"
+                  trigger="click"
+                  :show-arrow="false"
+                  popper-class="add-question-popover"
+                >
+                  <template #reference>
+                    <button type="button" class="dashed-btn">
+                      <el-icon><Plus /></el-icon>
+                      <span>添加题目</span>
+                    </button>
+                  </template>
+                  <p class="popover-tip">选择一个题型，插入到当前卡片末尾</p>
+                  <TypeChipGrid
+                    :groups="groups"
+                    @pick="(type) => handlePick(card.id, type)"
+                  />
+                </el-popover>
+              </div>
+            </section>
+          </VueDraggable>
 
           <button type="button" class="dashed-btn is-page" @click="emit('add-card')">
             <el-icon><Plus /></el-icon>
@@ -468,6 +516,23 @@ function endReorder() {
     pointer-events: none;
     margin-bottom: var(--sp-sm);
     /* 紧跟其后的 .q-drag-wrap margin-bottom 提供与下一题的间距 */
+  }
+
+  /* ---------- 卡片拖动排序（VueDraggable） ---------- */
+  .card-list {
+    display: block;
+  }
+
+  /* placeholder（目标位置占位）：强制蓝色细横条，不再继承卡片高度 */
+  .sortable-ghost {
+    opacity: 0;
+  }
+
+  /* chosen（鼠标抓住所选卡片）：和题目拖动一致的蓝色虚线 outline + 浅蓝底 */
+  .sortable-chosen {
+    outline: 1px dashed var(--c-primary);
+    outline-offset: -1px;
+    background: var(--c-primary-bg);
   }
 
   /* ---------- 底部条 ---------- */
