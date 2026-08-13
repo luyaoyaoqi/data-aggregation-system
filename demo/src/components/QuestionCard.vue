@@ -222,6 +222,7 @@ function openListSettings() {
   <section
     class="question-card"
     :class="{ 'is-active': active }"
+    :data-qid="question.id"
     @click="emit('select', question.id)"
   >
     <!-- 题干行 -->

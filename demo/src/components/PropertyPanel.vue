@@ -261,9 +261,16 @@ watch(
             />
           </el-form-item>
           <el-form-item label="默认值">
-            <el-input
+            <el-input-number
               v-model="question.defaultValue"
-              placeholder="请输入默认值"
+              :min="question.minValue ?? undefined"
+              :max="question.maxValue ?? undefined"
+              :precision="question.precision ?? undefined"
+              :step="1"
+              controls-position="right"
+              class="w-full"
+              placeholder="留空不限"
+              :value-on-clear="null"
             />
           </el-form-item>
           <div class="form-row">

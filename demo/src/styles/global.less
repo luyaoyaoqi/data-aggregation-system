@@ -104,7 +104,7 @@
     background var(--dur) var(--ease);
 
   &:hover {
-    color: var(--c-danger);
+    color: var(--c-danger) !important;
   }
 }
 
@@ -569,4 +569,12 @@
   color: var(--c-on-primary);
   background: var(--c-primary);
   font-weight: 500;
+}
+
+// ============================ 校验失败高亮 ============================
+// 保存校验 / 提交校验失败时给目标元素临时加 .is-error,
+// 由调用方在 600ms 后移除(见 Editor.vue handleSave / FormFill highlight)
+.is-error {
+  outline: 2px solid var(--c-danger);
+  outline-offset: 2px;
 }

@@ -276,6 +276,19 @@ defineExpose({
     answers: { ...answers.value },
     listRows: JSON.parse(JSON.stringify(listRows.value)),
   }),
+  /**
+   * 校验失败时高亮并滚动到指定题目。
+   * - 滚动到视图中心
+   * - 添加 .is-error class 闪 600ms（样式见 global.less）
+   */
+  highlight(qid) {
+    if (!qid) return;
+    const el = document.querySelector(`[data-qid="${qid}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("is-error");
+    setTimeout(() => el.classList.remove("is-error"), 600);
+  },
 });
 </script>
 
@@ -309,7 +322,7 @@ defineExpose({
     >
       <p v-if="card.title" class="ff-card-title">{{ card.title }}</p>
 
-      <div v-for="q in card.questions" :key="q.id" class="ff-q">
+      <div v-for="q in card.questions" :key="q.id" class="ff-q" :data-qid="q.id">
         <p class="ff-q-title">
           <span v-if="questionIndexMap.get(q.id)" class="ff-q-index"
             >{{ questionIndexMap.get(q.id) }}.</span
@@ -430,12 +443,12 @@ defineExpose({
 
           <el-date-picker
             v-else-if="q.type === 'datetime'"
-            type="datetime"
+            :type="getDatePickerType(q)"
             :model-value="getAnswer(q) || ''"
             @update:model-value="(v) => setAnswer(q, v)"
             :placeholder="q.placeholder || '请选择日期时间'"
             :disabled="readonly"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            :value-format="getDateFormat(q)"
             class="ff-input ff-date-input"
             style="width: 100%"
           >

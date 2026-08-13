@@ -77,12 +77,113 @@ function goNext() {
 const fillRef = ref(null);
 const submitting = ref(false);
 
+/** 收集当前所有答案（跨页扁平化） */
+function collectAnswers() {
+  return fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} };
+}
+
+/**
+ * 提交前校验：遍历 form.pages/cards/questions，对 required 题按题型规则校验。
+ * - 返回 { ok: true } 或 { ok: false, firstQuestionId, errors: [{qid, reason}] }
+ * - 校验失败的题目保留 qid，提交失败时通知 FormFill 高亮定位
+ */
+function validateSubmit(form, answersData) {
+  const errors = [];
+  let firstQuestionId = "";
+  const answers = answersData?.answers || {};
+
+  function pushError(q, reason) {
+    if (!firstQuestionId) firstQuestionId = q.id;
+    errors.push({ qid: q.id, reason });
+  }
+
+  for (const page of form?.pages || []) {
+    for (const card of page.cards || []) {
+      for (const q of card.questions || []) {
+        if (!q.required) continue;
+        const v = answers[q.id];
+        const t = q.type;
+        // 选项类
+        if (t === "radio" || t === "radio-rate") {
+          if (v == null || v === "") pushError(q, "请选择");
+          continue;
+        }
+        if (t === "checkbox" || t === "checkbox-rate") {
+          const arr = Array.isArray(v) ? v : [];
+          if (arr.length < 1) {
+            pushError(q, "请至少选择 1 项");
+          } else {
+            if (q.minSelect != null && arr.length < q.minSelect) {
+              pushError(q, `至少需要选择 ${q.minSelect} 项`);
+            } else if (q.maxSelect != null && arr.length > q.maxSelect) {
+              pushError(q, `最多只能选择 ${q.maxSelect} 项`);
+            }
+          }
+          continue;
+        }
+        // 文本类
+        if (t === "text" || t === "textarea") {
+          const s = (v || "").toString().trim();
+          if (!s) {
+            pushError(q, "请填写内容");
+          } else if (q.maxLength > 0 && s.length > q.maxLength) {
+            pushError(q, `内容长度不能超过 ${q.maxLength}`);
+          }
+          continue;
+        }
+        // 数字
+        if (t === "number") {
+          if (v == null || v === "") {
+            pushError(q, "请填写数字");
+          } else {
+            const n = typeof v === "number" ? v : Number(v);
+            if (Number.isNaN(n)) {
+              pushError(q, "请填写数字");
+            } else {
+              if (q.minValue != null && n < q.minValue) {
+                pushError(q, `不能小于最小值 ${q.minValue}`);
+              } else if (q.maxValue != null && n > q.maxValue) {
+                pushError(q, `不能大于最大值 ${q.maxValue}`);
+              }
+            }
+          }
+          continue;
+        }
+        // 日期时间
+        if (t === "datetime") {
+          if (v == null || v === "") pushError(q, "请选择日期时间");
+          continue;
+        }
+        // 图片
+        if (t === "image") {
+          const arr = Array.isArray(v) ? v : [];
+          if (arr.length < 1) pushError(q, "请上传至少 1 张图片");
+          continue;
+        }
+      }
+    }
+  }
+
+  if (errors.length) return { ok: false, firstQuestionId, errors };
+  return { ok: true };
+}
+
 async function handleSubmit() {
   if (submitting.value) return;
+  const data = collectAnswers();
+  const result = validateSubmit(form.value, data);
+  if (!result.ok) {
+    ElMessage.warning(
+      `校验未通过：${result.errors[0].reason}（共 ${result.errors.length} 处）`,
+    );
+    if (result.firstQuestionId) {
+      fillRef.value?.highlight?.(result.firstQuestionId);
+    }
+    return;
+  }
   submitting.value = true;
   try {
     // 预收集数据（调试用,真实场景未来接接口）
-    const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} };
     await ElMessageBox.alert(
       "这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 " +
         Object.keys(data.answers).length +

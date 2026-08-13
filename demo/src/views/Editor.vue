@@ -1,4 +1,12 @@
 <script setup>
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from "vue";
 import ComponentLibrary, {
   createPage,
   createCard,
@@ -79,6 +87,111 @@ function findFirstQuestionId(root) {
 const activeQuestionId = ref(findFirstQuestionId(form.value));
 const lastSavedAt = ref(formatSavedAt(getSavedAt()));
 
+/* ---------------- 自动保存 + 离开拦截 ---------------- */
+/** 表单是否有未保存改动；save/reset 完成后归 false */
+const dirty = ref(false);
+let autoSaveTimer = null;
+function scheduleAutoSave() {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    autoSaveTimer = null;
+    if (!dirty.value) return;
+    const result = saveForm(JSON.parse(JSON.stringify(form.value)));
+    if (!result.ok) {
+      console.error("[Editor] 自动保存失败：", result.error);
+      return;
+    }
+    lastSavedAt.value = formatSavedAt(Date.now());
+  }, 300);
+}
+watch(
+  form,
+  () => {
+    dirty.value = true;
+    scheduleAutoSave();
+  },
+  { deep: true },
+);
+function beforeUnload(e) {
+  if (dirty.value) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+}
+onMounted(() => {
+  window.addEventListener("beforeunload", beforeUnload);
+  checkCorruptBackup();
+});
+
+/* ---------------- corrupt 存档恢复 ---------------- */
+/**
+ * 检测上次解析失败时留存的 corrupt 备份。
+ * - 仅在 loadForm() 未命中当前合法存档时触发提示（避免每次启动都打扰）
+ * - 确认恢复：尝试 JSON.parse(corruptRaw).data 注入 form；失败则 clearForm
+ * - 检测完无论分支都清理 corrupt key，避免重复提示
+ */
+function checkCorruptBackup() {
+  const corruptRaw = localStorage.getItem("maijing:form:v1:corrupt");
+  if (!corruptRaw) return;
+  const hadValidForm = !!loadForm();
+  if (hadValidForm) {
+    // 当前已有合法存档 → corrupt 已无意义，静默清掉
+    try {
+      localStorage.removeItem("maijing:form:v1:corrupt");
+    } catch {
+      /* noop */
+    }
+    return;
+  }
+  ElMessageBox.confirm(
+    "检测到上一次保存的表单数据解析失败（可能因浏览器存储被外部修改导致）。是否尝试恢复？",
+    "存档损坏",
+    { type: "warning", confirmButtonText: "尝试恢复", cancelButtonText: "丢弃" },
+  )
+    .then(() => {
+      let recovered = null;
+      try {
+        recovered = JSON.parse(corruptRaw)?.data || null;
+      } catch {
+        recovered = null;
+      }
+      try {
+        localStorage.removeItem("maijing:form:v1:corrupt");
+      } catch {
+        /* noop */
+      }
+      if (recovered && recovered.pages) {
+        form.value = recovered;
+        activePageId.value = form.value.pages[0].id;
+        activeQuestionId.value = findFirstQuestionId(form.value);
+        dirty.value = true; // 恢复出的数据未真正"已保存"，等用户再保存一次
+        ElMessage.success("已从损坏的备份中恢复，请尽快重新保存");
+      } else {
+        clearForm();
+        form.value = createInitialForm();
+        activePageId.value = form.value.pages[0].id;
+        activeQuestionId.value = findFirstQuestionId(form.value);
+        ElMessage.warning("损坏备份无法解析，已重置为空表单");
+      }
+    })
+    .catch(() => {
+      // 用户选择「丢弃」
+      try {
+        localStorage.removeItem("maijing:form:v1:corrupt");
+      } catch {
+        /* noop */
+      }
+      ElMessage.info("已忽略损坏的备份，可继续编辑");
+    });
+}
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", beforeUnload);
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = null;
+  }
+});
+
 const settingsVisible = ref(false);
 const effectPreviewVisible = ref(false);
 
@@ -135,6 +248,7 @@ function handleAddPage() {
   const page = createPage(form.value.pages.length + 1);
   form.value.pages.push(page);
   activePageId.value = page.id;
+  dirty.value = true;
   ElMessage.success(`已新增「${page.name}」`);
 }
 
@@ -162,6 +276,7 @@ async function handleRemovePage(id) {
   if (activePageId.value === id) {
     activePageId.value = form.value.pages[Math.max(0, index - 1)].id;
   }
+  dirty.value = true;
   ElMessage.success("已删除该页");
 }
 
@@ -169,6 +284,7 @@ async function handleRemovePage(id) {
 function handleAddCard() {
   if (!activePage.value) return;
   activePage.value.cards.push(createCard());
+  dirty.value = true;
   ElMessage.success("已新增卡片");
 }
 
@@ -193,6 +309,7 @@ async function handleRemoveCard(cardId) {
   }
   const i = activePage.value.cards.findIndex((c) => c.id === cardId);
   if (i > -1) activePage.value.cards.splice(i, 1);
+  dirty.value = true;
   ElMessage.success("已删除卡片");
 }
 
@@ -218,6 +335,7 @@ function insertQuestion(card, type) {
   const q = createQuestion(type);
   card.questions.push(q);
   activeQuestionId.value = q.id;
+  dirty.value = true;
 }
 
 function handleSelectQuestion(id) {
@@ -237,6 +355,7 @@ function handleReorderQuestion({ cardIdx, fromIdx, insertAt }) {
   if (fromIdx === insertAt) return;
   // splice 后的新位置就是 insertAt（题目已就位）
   const moved = card.questions[insertAt];
+  dirty.value = true;
   ElMessage.success(`已调整题目顺序：${moved?.title || "未命名题目"}`);
 }
 
@@ -251,6 +370,7 @@ function handleReorderCard({ fromIdx, insertAt }) {
   if (fromIdx < 0 || fromIdx >= cards.length) return;
   if (fromIdx === insertAt) return;
   const moved = cards[insertAt]; // 已经被 EditorArea splice
+  dirty.value = true;
   ElMessage.success(`已调整卡片顺序：${moved?.title || "未命名卡片"}`);
 }
 
@@ -271,6 +391,7 @@ async function handleRemoveQuestion({ cardId, questionId }) {
   const i = card.questions.findIndex((x) => x.id === questionId);
   if (i > -1) card.questions.splice(i, 1);
   if (activeQuestionId.value === questionId) activeQuestionId.value = "";
+  dirty.value = true;
   ElMessage.success("已删除题目");
 }
 
@@ -326,6 +447,7 @@ function handleDuplicateQuestion({ cardId, questionId }) {
   }));
   card.questions.splice(i + 1, 0, copy);
   activeQuestionId.value = copy.id;
+  dirty.value = true;
   ElMessage.success("已复制题目");
 }
 
@@ -346,6 +468,7 @@ function handleSwitchQuestionType({ cardId, questionId, newType }) {
   if (oldIsRadio !== newIsRadio && q.options?.length) {
     q.options.forEach((o) => (o.isDefault = false));
   }
+  dirty.value = true;
   ElMessage.success("已切换题型");
 }
 
@@ -370,6 +493,7 @@ function handleSave() {
           const { minValue, maxValue } = q;
           if (minValue != null && maxValue != null && maxValue <= minValue) {
             bad.push({
+              qid: q.id,
               title: qName,
               reason: `最大值 ${maxValue} 不大于最小值 ${minValue}`,
             });
@@ -378,25 +502,26 @@ function handleSave() {
         // 图片：必填项不能为空（maxImageCount / maxImageSize 已有默认值 9 / 5，但仍校验兜底）
         if (q.type === "image") {
           if (!q.maxImageCount || q.maxImageCount < 1) {
-            bad.push({ title: qName, reason: "数量上限未填写或不合法" });
+            bad.push({ qid: q.id, title: qName, reason: "数量上限未填写或不合法" });
           }
           if (!q.maxImageSize || q.maxImageSize < 1) {
-            bad.push({ title: qName, reason: "单张大小上限未填写或不合法" });
+            bad.push({ qid: q.id, title: qName, reason: "单张大小上限未填写或不合法" });
           }
         }
         // 列表：至少 1 列；列名必填且 ≤ 20 字；下拉列至少 1 个选项；列宽 80-600
         if (q.type === "list") {
           const cols = q.listColumns || [];
           if (cols.length < 1) {
-            bad.push({ title: qName, reason: "至少保留 1 列" });
+            bad.push({ qid: q.id, title: qName, reason: "至少保留 1 列" });
           }
           for (let ci = 0; ci < cols.length; ci++) {
             const c = cols[ci];
             const name = (c.name || "").trim();
             if (!name) {
-              bad.push({ title: qName, reason: `第 ${ci + 1} 列名称为空` });
+              bad.push({ qid: q.id, title: qName, reason: `第 ${ci + 1} 列名称为空` });
             } else if (name.length > 20) {
               bad.push({
+                qid: q.id,
                 title: qName,
                 reason: `第 ${ci + 1} 列名称超过 20 字`,
               });
@@ -406,12 +531,14 @@ function handleSave() {
               (!c.options || c.options.length < 1)
             ) {
               bad.push({
+                qid: q.id,
                 title: qName,
                 reason: `第 ${ci + 1} 列（下拉）至少 1 个选项`,
               });
             }
             if (c.width != null && (c.width < 80 || c.width > 600)) {
               bad.push({
+                qid: q.id,
                 title: qName,
                 reason: `第 ${ci + 1} 列宽需在 80-600 之间`,
               });
@@ -428,6 +555,7 @@ function handleSave() {
           (maxSelect != null && maxSelect > len)
         ) {
           bad.push({
+            qid: q.id,
             title: qName,
             reason: "选择数超出选项数量",
           });
@@ -435,6 +563,7 @@ function handleSave() {
         // 填空类：默认值 超出最大长度（仅 maxLength > 0 时校验）
         if (maxLength > 0 && defaultValue && defaultValue.length > maxLength) {
           bad.push({
+            qid: q.id,
             title: qName,
             reason: `默认值长度 ${defaultValue.length} 超过 ${maxLength}`,
           });
@@ -443,8 +572,33 @@ function handleSave() {
     }
   }
   if (bad.length) {
-    const msg = bad.map((b) => `${b.title}（${b.reason}）`).join("；");
-    ElMessage.error(`保存校验未通过：${msg}，请调整后再保存`);
+    const first = bad[0];
+    ElMessage.error(
+      `保存校验未通过：${first.title}（${first.reason}），共 ${bad.length} 处问题，请调整后再保存`,
+    );
+    // 定位首个错误题：跳转页 + 选中 + 滚动高亮
+    let firstPageId = "";
+    if (first.qid) {
+      for (const page of form.value.pages) {
+        for (const card of page.cards) {
+          if (card.questions.some((qq) => qq.id === first.qid)) {
+            firstPageId = page.id;
+            break;
+          }
+        }
+        if (firstPageId) break;
+      }
+      activeQuestionId.value = first.qid;
+      if (firstPageId) activePageId.value = firstPageId;
+      nextTick(() => {
+        const el = document.querySelector(`[data-qid="${first.qid}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("is-error");
+          setTimeout(() => el.classList.remove("is-error"), 600);
+        }
+      });
+    }
     return;
   }
   // 写入 localStorage（校验已通过，深拷贝后再写，避免 Vue Proxy / 循环引用被序列化）
@@ -454,9 +608,8 @@ function handleSave() {
     ElMessage.error("保存失败：本地存储空间不足，请清理浏览器数据后重试");
     return;
   }
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  lastSavedAt.value = formatSavedAt(now.getTime());
+  dirty.value = false;
+  lastSavedAt.value = formatSavedAt(Date.now());
   ElMessage.success("保存成功");
 }
 
@@ -478,6 +631,7 @@ async function handleReset() {
   form.value = createInitialForm();
   activePageId.value = form.value.pages[0].id;
   activeQuestionId.value = findFirstQuestionId(form.value);
+  dirty.value = false;
   ElMessage.success("已重置");
 }
 
