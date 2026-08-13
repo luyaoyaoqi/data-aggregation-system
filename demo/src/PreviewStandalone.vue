@@ -30,10 +30,12 @@ function loadSnapshot() {
       return;
     }
     form.value = snap.form;
+    loadError.value = "";
     /* 不再读后即删 —— 让 dialog 形态的 PreviewDialog 能稳定复用同一份快照
        （父页面打开 dialog 前会重写一次，保证拿到最新 form） */
   } catch (e) {
-    loadError.value = "解析快照失败：" + (e?.message || "未知错误");
+    console.error("[PreviewStandalone] 解析快照失败：", e);
+    loadError.value = "表单数据已失效，请从编辑器重新打开预览";
   }
 }
 
@@ -73,21 +75,28 @@ function goNext() {
 
 /* -------------------- 提交 -------------------- */
 const fillRef = ref(null);
+const submitting = ref(false);
 
-function handleSubmit() {
-  // 预收集数据（调试用,真实场景未来接接口）
-  const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} };
-  ElMessageBox.alert(
-    "这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 " +
-      Object.keys(data.answers).length +
-      " 道题目的答案。",
-    "预览模式",
-    {
-      type: "warning",
-      confirmButtonText: "我知道了",
-      customClass: "fill-msgbox",
-    },
-  ).catch(() => {});
+async function handleSubmit() {
+  if (submitting.value) return;
+  submitting.value = true;
+  try {
+    // 预收集数据（调试用,真实场景未来接接口）
+    const data = fillRef.value?.getAnswers?.() || { answers: {}, listRows: {} };
+    await ElMessageBox.alert(
+      "这是表单填写端的预览页面，填写的数据不会被提交。\n\n已收集到 " +
+        Object.keys(data.answers).length +
+        " 道题目的答案。",
+      "预览模式",
+      {
+        type: "warning",
+        confirmButtonText: "我知道了",
+        customClass: "fill-msgbox",
+      },
+    ).catch(() => {});
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 
@@ -97,6 +106,9 @@ function handleSubmit() {
     <div v-if="loadError" class="fill-empty">
       <p class="fill-empty__title">暂无法加载表单</p>
       <p class="fill-empty__desc">{{ loadError }}</p>
+      <button type="button" class="fill-retry" @click="loadSnapshot">
+        重新加载
+      </button>
     </div>
 
     <!-- 主区：响应式居中卡片,内嵌 FormFill -->
@@ -137,6 +149,7 @@ function handleSubmit() {
               v-else
               type="button"
               class="fill-submit"
+              :disabled="submitting"
               @click="handleSubmit"
             >
               提交
@@ -146,6 +159,7 @@ function handleSubmit() {
             v-else
             type="button"
             class="fill-submit"
+            :disabled="submitting"
             @click="handleSubmit"
           >
             提交
@@ -225,7 +239,7 @@ function handleSubmit() {
   border-radius: var(--radius);
   position: sticky;
   bottom: 0;
-  background: #fff;
+  background: var(--c-panel);
   display: flex;
 }
 
@@ -274,6 +288,32 @@ function handleSubmit() {
   display: block;
   flex: 0 0 120px;
   height: 36px;
+  font-family: inherit;
+  font-size: var(--fs-14);
+  font-weight: 500;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+
+  &:hover {
+    background: var(--c-primary-hover);
+  }
+
+  &:disabled {
+    background: var(--c-fill);
+    color: var(--c-text-placeholder);
+    cursor: not-allowed;
+  }
+}
+
+/* 空态里的「重新加载」按钮：与提交按钮同款主色样式，但更紧凑 */
+.fill-retry {
+  margin-top: var(--sp-sm);
+  height: 36px;
+  padding: 0 var(--sp-lg);
   font-family: inherit;
   font-size: var(--fs-14);
   font-weight: 500;

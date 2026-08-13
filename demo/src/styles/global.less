@@ -307,6 +307,19 @@
   border-radius: var(--radius);
   background: #fff;
   cursor: pointer;
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+
+  &:hover {
+    border-color: var(--c-primary);
+    background: var(--c-fill-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--c-primary);
+    outline-offset: 2px;
+  }
 
   &.is-readonly {
     cursor: default;

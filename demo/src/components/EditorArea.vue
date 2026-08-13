@@ -114,6 +114,7 @@ function handleQuestionReorder(e, cardId) {
           class="form-title-input"
           placeholder="请输入表单标题（填写者不可见）"
           maxlength="20"
+          aria-label="表单标题"
         />
 
         <!-- 分页 Tab -->
@@ -133,6 +134,8 @@ function handleQuestionReorder(e, cardId) {
             v-model="page.theme"
             class="page-theme-input"
             placeholder="请输入当前页主题（填写者可见）"
+            maxlength="30"
+            aria-label="当前页主题"
           />
 
           <!-- 卡片列表（顺序由三点菜单上移/下移调整；题目间间距由 QuestionCard 自身 margin 提供） -->
@@ -148,6 +151,8 @@ function handleQuestionReorder(e, cardId) {
                   v-model="card.title"
                   class="card-title-input"
                   placeholder="卡片标题（选填，填写者可见）"
+                  maxlength="30"
+                  aria-label="卡片标题"
                 />
                 <!-- 三点菜单：卡片上移 / 下移 -->
                 <el-dropdown
@@ -270,7 +275,7 @@ function handleQuestionReorder(e, cardId) {
 
       <div class="footer-right">
         <span class="save-time">{{ lastSavedAt ? `最近保存：${lastSavedAt}` : '尚未保存' }}</span>
-        <el-button :icon="Setting" title="表单高级设置" @click="emit('settings')" />
+        <el-button :icon="Setting" title="表单高级设置" aria-label="表单高级设置" @click="emit('settings')" />
         <el-button @click="emit('effect-preview')">效果预览</el-button>
         <el-button type="primary" @click="emit('save')">保存</el-button>
       </div>
@@ -506,6 +511,8 @@ function handleQuestionReorder(e, cardId) {
 
     .save-time {
       font-size: var(--fs-12);
+      font-family: var(--ff-mono);
+      font-variant-numeric: tabular-nums;
       color: var(--c-text-secondary);
       margin-right: var(--sp-lg);
     }

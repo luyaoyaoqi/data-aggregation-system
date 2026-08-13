@@ -101,6 +101,7 @@ function handleOpenStandalone() {
         type="button"
         class="pd-close"
         title="关闭"
+        aria-label="关闭预览"
         @click="handleClose"
       >
         <el-icon><Close /></el-icon>
@@ -215,7 +216,7 @@ function handleOpenStandalone() {
     align-items: stretch;
     width: 100%;
     padding: 0;
-    background: #fff;
+    background: var(--c-panel);
     border-radius: var(--radius);
   }
 

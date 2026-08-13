@@ -11,7 +11,8 @@ export default defineConfig({
   plugins: [
     vue(),
     UnoCSS(),
-    vueDevTools(),
+    // Vue DevTools 仅在 dev 启用，prod 构建产物不带（构建时 NODE_ENV=production 自动剔除）
+    ...(process.env.NODE_ENV !== 'production' ? [vueDevTools()] : []),
     // 自动引入 Vue / Element Plus 的组合式 API 与 ElMessage、ElMessageBox 等
     AutoImport({
       imports: ['vue'],

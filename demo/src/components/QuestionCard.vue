@@ -234,6 +234,8 @@ function openListSettings() {
         v-model="question.title"
         class="q-title-input"
         placeholder="请输入题目标题"
+        maxlength="50"
+        aria-label="题目标题"
       />
       <span v-if="question.required" class="q-required">*</span>
       <!-- 选项类 4 种：题型可点击下拉切换 -->
@@ -331,7 +333,12 @@ function openListSettings() {
                 <el-icon
                   class="btn-icon-ghost link-clear"
                   title="删除关联"
+                  role="button"
+                  tabindex="0"
+                  aria-label="删除关联"
                   @click="clearLink(opt)"
+                  @keydown.enter.prevent="clearLink(opt)"
+                  @keydown.space.prevent="clearLink(opt)"
                 >
                   <Close />
                 </el-icon>
@@ -344,6 +351,8 @@ function openListSettings() {
               v-model="opt.label"
               class="option-input"
               placeholder="请输入选项"
+              :maxlength="40"
+              :aria-label="`选项${i + 1}`"
             />
 
             <el-input-number
@@ -400,7 +409,12 @@ function openListSettings() {
             <el-icon
               class="btn-icon-ghost option-del"
               title="删除选项"
+              role="button"
+              tabindex="0"
+              aria-label="删除选项"
               @click="removeOption(opt.id)"
+              @keydown.enter.prevent="removeOption(opt.id)"
+              @keydown.space.prevent="removeOption(opt.id)"
             >
               <Close />
             </el-icon>
@@ -492,6 +506,7 @@ function openListSettings() {
                   : question.placeholder || '输入后回车添加'
               "
               :maxlength="40"
+              aria-label="添加标签"
               @keydown.enter.prevent="commitTag"
               @keydown="handleTagKeydown"
               @blur="commitTag"
@@ -527,7 +542,12 @@ function openListSettings() {
             <!-- 列表预览图：与 FormFill 列表同结构 —— 表头 + 2 行 × 真实 EP 控件（disabled）；点击进入列设置 -->
             <div
               class="table-preview list-table-preview"
+              role="button"
+              tabindex="0"
+              aria-label="打开列表设置"
               @click="openListSettings"
+              @keydown.enter.prevent="openListSettings"
+              @keydown.space.prevent="openListSettings"
             >
               <div class="table-preview__head">
                 <div
@@ -635,6 +655,8 @@ function openListSettings() {
               <button
                 type="button"
                 class="rte__btn"
+                title="加粗"
+                aria-label="加粗"
                 @mousedown.prevent
                 @click="exec('bold')"
               >
@@ -643,6 +665,8 @@ function openListSettings() {
               <button
                 type="button"
                 class="rte__btn is-italic"
+                title="斜体"
+                aria-label="斜体"
                 @mousedown.prevent
                 @click="exec('italic')"
               >
@@ -651,6 +675,8 @@ function openListSettings() {
               <button
                 type="button"
                 class="rte__btn is-blue"
+                title="蓝色文字"
+                aria-label="蓝色文字"
                 @mousedown.prevent
                 @click="exec('foreColor', '#2563EB')"
               >
@@ -659,6 +685,8 @@ function openListSettings() {
               <button
                 type="button"
                 class="rte__btn is-red"
+                title="红色文字"
+                aria-label="红色文字"
                 @mousedown.prevent
                 @click="exec('foreColor', '#dc2626')"
               >
@@ -667,6 +695,8 @@ function openListSettings() {
               <button
                 type="button"
                 class="rte__btn is-list"
+                title="项目列表"
+                aria-label="项目列表"
                 @mousedown.prevent
                 @click="exec('insertUnorderedList')"
               >
@@ -676,6 +706,9 @@ function openListSettings() {
             <div
               class="rte__area"
               contenteditable="true"
+              role="textbox"
+              aria-multiline="true"
+              aria-label="题目说明"
               data-ph="请输入内容（支持加粗、颜色等）"
             />
           </div>
@@ -1014,7 +1047,7 @@ function openListSettings() {
       &.is-focus {
         box-shadow: 0 0 0 1px
           var(--el-input-border-color, var(--el-border-color)) inset !important;
-        background: #fff !important;
+        background: var(--c-panel) !important;
       }
     }
 

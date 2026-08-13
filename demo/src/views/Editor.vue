@@ -169,6 +169,7 @@ async function handleRemovePage(id) {
 function handleAddCard() {
   if (!activePage.value) return;
   activePage.value.cards.push(createCard());
+  ElMessage.success("已新增卡片");
 }
 
 async function handleRemoveCard(cardId) {
@@ -449,7 +450,8 @@ function handleSave() {
   // 写入 localStorage（校验已通过，深拷贝后再写，避免 Vue Proxy / 循环引用被序列化）
   const result = saveForm(JSON.parse(JSON.stringify(form.value)));
   if (!result.ok) {
-    ElMessage.error(`保存失败：${result.error}`);
+    console.error("[Editor] 保存失败：", result.error);
+    ElMessage.error("保存失败：本地存储空间不足，请清理浏览器数据后重试");
     return;
   }
   const now = new Date();

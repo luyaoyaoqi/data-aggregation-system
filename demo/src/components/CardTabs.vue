@@ -6,29 +6,53 @@ defineProps({
   activeId: { type: String, default: '' }
 })
 
-defineEmits(['change', 'add', 'remove'])
+const emit = defineEmits(['change', 'add', 'remove'])
+
+function selectPage(pageId) {
+  emit('change', pageId)
+}
+
+function removePage(pageId) {
+  emit('remove', pageId)
+}
 </script>
 
 <template>
   <div class="card-tabs">
     <div
-      v-for="page in pages"
+      v-for="(page, i) in pages"
       :key="page.id"
       class="tab-item"
       :class="{ 'pill-active': page.id === activeId }"
-      @click="$emit('change', page.id)"
+      role="button"
+      tabindex="0"
+      :aria-label="`切换到第${i + 1}页：${page.name}`"
+      @click="selectPage(page.id)"
+      @keydown.enter.prevent="selectPage(page.id)"
+      @keydown.space.prevent="selectPage(page.id)"
     >
       <span class="tab-label">{{ page.name }}</span>
       <el-icon
         v-if="page.id !== activeId"
         class="tab-close"
-        @click.stop="$emit('remove', page.id)"
+        role="button"
+        tabindex="0"
+        :aria-label="`删除第${i + 1}页：${page.name}`"
+        @click.stop="removePage(page.id)"
+        @keydown.enter.stop.prevent="removePage(page.id)"
+        @keydown.space.stop.prevent="removePage(page.id)"
       >
         <Close />
       </el-icon>
     </div>
 
-    <button type="button" class="tab-add" title="新增一页" @click="$emit('add')">
+    <button
+      type="button"
+      class="tab-add"
+      title="新增一页"
+      aria-label="新增一页"
+      @click="$emit('add')"
+    >
       <el-icon><Plus /></el-icon>
     </button>
   </div>

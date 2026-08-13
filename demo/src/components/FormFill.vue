@@ -453,13 +453,22 @@ defineExpose({
                 type="button"
                 class="ff-image-remove"
                 title="移除"
+                aria-label="移除图片"
                 @click="removeImage(q, idx)"
               >
                 ×
               </button>
             </div>
             <div v-if="canUploadMore(q)" class="ff-image-uploader">
-              <div class="upload-box" role="button" @click="pickImage(q)">
+              <div
+                class="upload-box"
+                role="button"
+                tabindex="0"
+                aria-label="上传图片"
+                @click="pickImage(q)"
+                @keydown.enter.prevent="pickImage(q)"
+                @keydown.space.prevent="pickImage(q)"
+              >
                 <el-icon><Plus /></el-icon>
                 <span>上传图片</span>
               </div>
@@ -499,6 +508,7 @@ defineExpose({
                 getTags(q).length ? '' : q.placeholder || '输入后回车添加'
               "
               :maxlength="40"
+              aria-label="添加标签"
               @keydown.enter.prevent="addTag(q)"
               @keydown="(e) => handleTagKeydown(q, e)"
               @blur="addTag(q)"
@@ -546,6 +556,7 @@ defineExpose({
                         :model-value="row[col.id] || ''"
                         @update:model-value="(v) => (row[col.id] = v)"
                         :placeholder="'输入'"
+                        :maxlength="col.maxLength || 100"
                         :disabled="readonly"
                         size="large"
                         class="ff-cell-el-input"
@@ -631,6 +642,8 @@ defineExpose({
               <button
                 type="button"
                 class="rte__btn"
+                title="加粗"
+                aria-label="加粗"
                 @mousedown.prevent
                 @click="exec('bold')"
               >
@@ -639,6 +652,8 @@ defineExpose({
               <button
                 type="button"
                 class="rte__btn is-italic"
+                title="斜体"
+                aria-label="斜体"
                 @mousedown.prevent
                 @click="exec('italic')"
               >
@@ -647,6 +662,8 @@ defineExpose({
               <button
                 type="button"
                 class="rte__btn is-blue"
+                title="蓝色文字"
+                aria-label="蓝色文字"
                 @mousedown.prevent
                 @click="exec('foreColor', '#2563EB')"
               >
@@ -655,6 +672,8 @@ defineExpose({
               <button
                 type="button"
                 class="rte__btn is-red"
+                title="红色文字"
+                aria-label="红色文字"
                 @mousedown.prevent
                 @click="exec('foreColor', '#dc2626')"
               >
@@ -663,6 +682,8 @@ defineExpose({
               <button
                 type="button"
                 class="rte__btn is-list"
+                title="项目列表"
+                aria-label="项目列表"
                 @mousedown.prevent
                 @click="exec('insertUnorderedList')"
               >
@@ -672,6 +693,9 @@ defineExpose({
             <div
               class="rte__area"
               :contenteditable="!readonly"
+              role="textbox"
+              aria-multiline="true"
+              aria-label="富文本填写"
               data-ph="请输入内容（支持加粗、颜色等）"
               @input="(e) => setAnswer(q, e.target.innerHTML)"
               v-html="getAnswer(q) || ''"
@@ -907,7 +931,7 @@ defineExpose({
     }
 
     &.is-square::after {
-      border-radius: 2px;
+      border-radius: var(--radius-xs);
     }
   }
 }
@@ -968,10 +992,10 @@ defineExpose({
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.6);
-  color: #fff;
+  background: var(--c-overlay-strong);
+  color: var(--c-on-primary);
   border: none;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1;
   cursor: pointer;
   display: flex;

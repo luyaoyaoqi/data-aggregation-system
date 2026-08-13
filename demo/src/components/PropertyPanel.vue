@@ -141,7 +141,7 @@ watch(
             <el-input-number
               v-model="question.minSelect"
               :min="1"
-              :max="optionCount"
+              :max="question.maxSelect ?? optionCount"
               placeholder="留空不限"
               class="w-full"
               controls-position="right"
@@ -150,7 +150,7 @@ watch(
           <el-form-item label="最多选择数">
             <el-input-number
               v-model="question.maxSelect"
-              :min="1"
+              :min="question.minSelect ?? 1"
               :max="optionCount"
               placeholder="留空不限"
               class="w-full"
@@ -271,6 +271,7 @@ watch(
               <el-input-number
                 v-model="question.minValue"
                 :step="1"
+                :max="question.maxValue ?? undefined"
                 controls-position="right"
                 class="w-full"
                 placeholder="留空不限"
@@ -280,6 +281,7 @@ watch(
               <el-input-number
                 v-model="question.maxValue"
                 :step="1"
+                :min="question.minValue ?? undefined"
                 controls-position="right"
                 class="w-full"
                 placeholder="留空不限"

@@ -112,6 +112,7 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 | `fill` | `#F1F5F9` | hover 浅底 |
 | `fill-hover` | `#F8FAFC` | 更浅的悬浮态（消除 `--c-fill` 在白底上的对比不足） |
 | `panel` | `#FFFFFF` | 卡片、表单背景 |
+| `overlay-strong` | `rgba(15,23,42,.6)` | 图片/媒体上的半透明遮罩按钮底（派生自 `text-strong`） |
 | `page` | `#F8FAFC` | 画布底 |
 | `stage` | `#EEF1F6` | 预览舞台底色（深于 page，区分"嵌入式预览"） |
 | `scroll-thumb` | `#CBD5E1` | 滚动条滑块 |
