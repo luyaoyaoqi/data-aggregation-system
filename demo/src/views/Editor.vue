@@ -86,6 +86,8 @@ function findFirstQuestionId(root) {
 }
 const activeQuestionId = ref(findFirstQuestionId(form.value));
 const lastSavedAt = ref(formatSavedAt(getSavedAt()));
+/** 新插入题目 ID：该 ID 对应的题目挂载后需自动聚焦标题输入框，聚焦 ack 后清空 */
+const focusQuestionId = ref('');
 
 /* ---------------- 自动保存 + 离开拦截 ---------------- */
 /** 表单是否有未保存改动；save/reset 完成后归 false */
@@ -335,7 +337,14 @@ function insertQuestion(card, type) {
   const q = createQuestion(type);
   card.questions.push(q);
   activeQuestionId.value = q.id;
+  // 标记新插入的题目，等其挂载后聚焦题目标题输入框
+  focusQuestionId.value = q.id;
   dirty.value = true;
+}
+
+/** 子组件聚焦 ack：清空标记，避免重复触发或误触发其它题目 */
+function handleQuestionTitleFocused(id) {
+  if (focusQuestionId.value === id) focusQuestionId.value = '';
 }
 
 function handleSelectQuestion(id) {
@@ -680,6 +689,7 @@ function openEffectPreview() {
         :active-question-id="activeQuestionId"
         :last-saved-at="lastSavedAt"
         :index-map="questionIndexMap"
+        :focus-question-id="focusQuestionId"
         @change-page="handleChangePage"
         @add-page="handleAddPage"
         @remove-page="handleRemovePage"
@@ -696,6 +706,7 @@ function openEffectPreview() {
         @reset="handleReset"
         @effect-preview="openEffectPreview"
         @settings="settingsVisible = true"
+        @focused-question-title="handleQuestionTitleFocused"
       />
 
       <PropertyPanel :question="activeQuestion" />

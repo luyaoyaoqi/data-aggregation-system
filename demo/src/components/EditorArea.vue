@@ -12,7 +12,9 @@ const props = defineProps({
   page: { type: Object, default: null },
   activeQuestionId: { type: String, default: '' },
   lastSavedAt: { type: String, default: '' },
-  indexMap: { type: Map, default: () => new Map() }
+  indexMap: { type: Map, default: () => new Map() },
+  /** 新插入题目的 ID：该题目挂载后需自动聚焦标题输入框 */
+  focusQuestionId: { type: String, default: '' },
 })
 
 const emit = defineEmits([
@@ -31,7 +33,8 @@ const emit = defineEmits([
   'save',
   'reset',
   'effect-preview',
-  'settings'
+  'settings',
+  'focused-question-title',
 ])
 
 const groups = TYPE_GROUPS
@@ -41,7 +44,10 @@ const popoverVisible = reactive({})
 
 function handlePick(cardId, type) {
   emit('pick-type', { cardId, type })
-  popoverVisible[cardId] = false
+  // 延迟关闭 popover：先让 QuestionCard 挂载并完成标题聚焦，避免被 popover 关闭时机抢走焦点
+  requestAnimationFrame(() => {
+    popoverVisible[cardId] = false
+  })
 }
 
 /* -------------------- 落位 flash -------------------- */
@@ -153,8 +159,16 @@ function handleQuestionReorder(e, cardId) {
                   placeholder="卡片标题（选填，填写者可见）"
                   maxlength="30"
                   aria-label="卡片标题"
-                />
-                <!-- 三点菜单：卡片上移 / 下移 -->
+                />               
+                <button
+                  type="button"
+                  class="btn-icon-ghost card-del"
+                  @click="emit('remove-card', card.id)"
+                >
+                  <el-icon><Delete /></el-icon>
+                  <span>删除卡片</span>
+                </button>
+                 <!-- 三点菜单：卡片上移 / 下移 -->
                 <el-dropdown
                   trigger="click"
                   class="card-more"
@@ -192,14 +206,6 @@ function handleQuestionReorder(e, cardId) {
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>
-                <button
-                  type="button"
-                  class="btn-icon-ghost card-del"
-                  @click="emit('remove-card', card.id)"
-                >
-                  <el-icon><Delete /></el-icon>
-                  <span>删除卡片</span>
-                </button>
               </header>
 
               <div class="card-body">
@@ -225,10 +231,12 @@ function handleQuestionReorder(e, cardId) {
                       :question="q"
                       :index="indexMap.get(q.id) ?? null"
                       :active="q.id === activeQuestionId"
+                      :focus-title="q.id === focusQuestionId"
                       @select="emit('select-question', $event)"
                       @remove="emit('remove-question', { cardId: card.id, questionId: $event })"
                       @duplicate="emit('duplicate-question', { cardId: card.id, questionId: $event })"
                       @switch-type="(newType) => emit('switch-question-type', { cardId: card.id, questionId: q.id, newType })"
+                      @focused-title="emit('focused-question-title', $event)"
                     />
                   </div>
                 </VueDraggable>

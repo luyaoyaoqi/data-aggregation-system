@@ -21,6 +21,7 @@ defineEmits(['pick'])
           :key="item.type"
           type="button"
           class="type-chip"
+          @mousedown.prevent
           @click="$emit('pick', item.type)"
         >
           <svg

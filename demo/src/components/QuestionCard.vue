@@ -38,6 +38,8 @@ const props = defineProps({
   question: { type: Object, required: true },
   index: { type: Number, default: 1 },
   active: { type: Boolean, default: false },
+  /** 新插入题目时父级置 true，要求聚焦标题输入框；聚焦后由父级重置 */
+  focusTitle: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -45,7 +47,26 @@ const emit = defineEmits([
   "remove",
   "duplicate",
   "switch-type",
+  "focused-title",
 ]);
+
+/** 题干输入框 DOM 引用 */
+const titleInputEl = ref(null);
+
+/** 新插入时聚焦标题：等一帧让 DOM 挂载/激活 class 生效再 focus。
+ *  回调里再次校验 flag：避免快速连点插入时，前一个题目的延迟回调抢走当前焦点。 */
+watch(
+  () => props.focusTitle,
+  (v) => {
+    if (!v) return
+    nextTick(() => {
+      if (!props.focusTitle) return
+      titleInputEl.value?.focus()
+      emit("focused-title", props.question.id)
+    })
+  },
+  { immediate: true },
+)
 
 const hasOptions = computed(() => OPTION_TYPES.includes(props.question.type));
 const isRate = computed(() => props.question.type.endsWith("-rate"));
@@ -232,6 +253,7 @@ function openListSettings() {
       /></el-icon>
       <span v-if="index != null" class="q-index">{{ index }}.</span>
       <input
+        ref="titleInputEl"
         v-model="question.title"
         class="q-title-input"
         placeholder="请输入题目标题"
