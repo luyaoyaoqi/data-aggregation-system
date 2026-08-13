@@ -146,7 +146,7 @@ function handleCancel() {
             v-for="it in filteredSymptoms"
             :key="it.name"
             :label="it.name"
-            :value="it"
+            :value="it.name"
           />
         </el-select>
         <p v-if="errorTip" class="link-error">{{ errorTip }}</p>
@@ -169,7 +169,7 @@ function handleCancel() {
             v-for="it in filteredDiseases"
             :key="it.name"
             :label="it.name"
-            :value="it"
+            :value="it.name"
           />
         </el-select>
       </el-form-item>
