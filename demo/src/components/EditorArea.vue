@@ -1,6 +1,6 @@
 <script setup>
 import { Delete, Plus, Setting, Rank } from '@element-plus/icons-vue'
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { TYPE_GROUPS } from './ComponentLibrary.vue'
 import CardTabs from './CardTabs.vue'
@@ -39,16 +39,57 @@ const emit = defineEmits([
 
 const groups = TYPE_GROUPS
 
-/** 每个卡片维护自己的 popover 显隐状态 */
-const popoverVisible = reactive({})
+/** 当前打开 popover 的卡片 id（同一时刻最多一个）+ el-popover 实例引用。
+ * 同时维护「状态变量」和「实例 ref」：
+ *  - 状态变量用于判定 :model-value 和再次点击 reference 的 toggle
+ *  - 实例 ref 用于直接调 hide()，因为 el-popover trigger="click" 在 controlled 模式下
+ *    对外部 model-value 变更响应不稳定（这是 el-popover 的已知边界），用实例方法最稳。
+ */
+const openPopoverCardId = ref('')
+const popoverRefs = ref({})
+
+function setPopoverRef(cardId, el) {
+  if (el) popoverRefs.value[cardId] = el
+  else delete popoverRefs.value[cardId]
+}
 
 function handlePick(cardId, type) {
   emit('pick-type', { cardId, type })
-  // 延迟关闭 popover：先让 QuestionCard 挂载并完成标题聚焦，避免被 popover 关闭时机抢走焦点
-  requestAnimationFrame(() => {
-    popoverVisible[cardId] = false
-  })
+  // chip 按钮有 @mousedown.prevent，点击时 chip 不会被聚焦，
+  // 所以关闭 popover 移除 chip DOM 不会导致焦点丢失。
+  openPopoverCardId.value = ''
+  popoverRefs.value[cardId]?.hide()
 }
+
+/* -------------------- 新加题目滚动 -------------------- */
+/**
+ * 监听 focusQuestionId：新题目挂载后滚动到可视区域。
+ * 同时也是从左侧组件库添加题目的兜底滚动通道（不走 popover，但仍走 insertQuestion → focusQuestionId）。
+ *
+ * 不直接用 scrollIntoView：el-scrollbar 内部嵌套滚动容器时，scrollIntoView 行为不一致。
+ * 改用 .canvas-scroll 的 .el-scrollbar__wrap 手动 scrollTo，更可靠。
+ */
+watch(
+  () => props.focusQuestionId,
+  async (newId, oldId) => {
+    if (!newId || newId === oldId) return
+    // 等两拍：QuestionCard 挂载 + 标题 focus 完成
+    await nextTick()
+    await nextTick()
+    const wrap = document.querySelector('.canvas-scroll .el-scrollbar__wrap')
+    const target = document.querySelector(`[data-qid="${newId}"]`)
+    if (!wrap || !target) return
+    const wrapRect = wrap.getBoundingClientRect()
+    const targetRect = target.getBoundingClientRect()
+    // 目标在 wrap 内当前的 scrollTop = (target.top - wrap.top) + wrap.scrollTop
+    const targetOffsetInWrap = targetRect.top - wrapRect.top + wrap.scrollTop
+    // 让目标中心对齐 wrap 视口中心
+    const targetCenter = targetOffsetInWrap + targetRect.height / 2
+    const wrapCenter = wrapRect.height / 2
+    const nextTop = Math.max(0, targetCenter - wrapCenter)
+    wrap.scrollTo({ top: nextTop, behavior: 'smooth' })
+  },
+)
 
 /* -------------------- 落位 flash -------------------- */
 /** 移动后被移动的卡片/题目短暂高亮 */
@@ -225,6 +266,7 @@ function handleQuestionReorder(e, cardId) {
                   <div
                     v-for="q in card.questions"
                     :key="q.id"
+                    :data-qid="q.id"
                     class="q-drag-wrap"
                   >
                     <QuestionCard
@@ -242,8 +284,9 @@ function handleQuestionReorder(e, cardId) {
                 </VueDraggable>
 
                 <el-popover
-                  :model-value="popoverVisible[card.id] || false"
-                  @update:model-value="popoverVisible[card.id] = $event"
+                  :ref="(el) => setPopoverRef(card.id, el)"
+                  :model-value="openPopoverCardId === card.id"
+                  @update:model-value="(v) => { if (v) openPopoverCardId = card.id; else if (openPopoverCardId === card.id) openPopoverCardId = '' }"
                   :width="480"
                   placement="bottom"
                   trigger="click"
