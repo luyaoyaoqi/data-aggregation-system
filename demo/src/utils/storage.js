@@ -1,11 +1,11 @@
 /**
  * localStorage 持久化工具
- * - 命名空间：caijtong:*
+ * - 命名空间：maijing:*
  * - 字段版本：v1（未来 schema 变化时升 v2，load 时按 version 分支处理或丢弃）
  * - 与预览快照 key（preview-form-snapshot）完全隔离，不冲突
  */
 
-const KEY_FORM = 'caijtong:form:v1'
+const KEY_FORM = 'maijing:form:v1'
 
 /** 读取表单数据。返回 null 表示：未存过 / 解析失败 / 版本不匹配 */
 export function loadForm() {
