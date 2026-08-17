@@ -358,7 +358,7 @@ defineExpose({
                 />
                 <span class="ff-option-label">{{
                   opt.linkType
-                    ? opt.displayName || opt.linkData?.name
+                    ? opt.displayName || opt.linkData
                     : opt.label
                 }}</span>
                 <span
@@ -388,7 +388,7 @@ defineExpose({
                 <span class="option-mark is-square" />
                 <span class="ff-option-label">{{
                   opt.linkType
-                    ? opt.displayName || opt.linkData?.name
+                    ? opt.displayName || opt.linkData
                     : opt.label
                 }}</span>
                 <span

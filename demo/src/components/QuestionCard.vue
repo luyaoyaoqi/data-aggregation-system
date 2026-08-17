@@ -396,6 +396,17 @@ function openListSettings() {
               </template>
             </el-input-number>
 
+             <!-- 关联按钮（仅 linkField 开启） -->
+            <button
+              v-if="question.linkField && !opt.linkType"
+              type="button"
+              class="btn-outline-dashed-primary opt-link-btn"
+              @click="openLinkDialog(opt)"
+            >
+              <el-icon><Link /></el-icon>
+              <span>关联</span>
+            </button>
+
             <!-- 默认项标签（radio/radio-rate 启用 defaultOption 后展示） -->
             <span
               v-if="
@@ -404,7 +415,7 @@ function openListSettings() {
               class="opt-default-tag"
             >
               默认
-            </span>
+            </span>           
 
             <!-- 设为默认按钮（仅 defaultOption 开启） -->
             <button
@@ -417,18 +428,7 @@ function openListSettings() {
             >
               设为默认
             </button>
-
-            <!-- 关联按钮（仅 linkField 开启） -->
-            <button
-              v-if="question.linkField && !opt.linkType"
-              type="button"
-              class="btn-outline-dashed-primary opt-link-btn"
-              @click="openLinkDialog(opt)"
-            >
-              <el-icon><Link /></el-icon>
-              <span>关联</span>
-            </button>
-
+            
             <el-icon
               class="btn-icon-ghost option-del"
               title="删除选项"
@@ -759,13 +759,13 @@ function openListSettings() {
 
       <template v-if="hasOptions">
         <span class="tool-divider" />
+        <span class="tool-label">选项关联字段</span>
+        <el-switch v-model="question.linkField" size="small" />
         <!-- 「设为默认选项」仅 radio / radio-rate 展示 -->
         <template v-if="showDefaultSwitch">
           <span class="tool-label">设为默认选项</span>
           <el-switch v-model="question.defaultOption" size="small" />
         </template>
-        <span class="tool-label">选项关联字段</span>
-        <el-switch v-model="question.linkField" size="small" />
       </template>
     </div>
 
