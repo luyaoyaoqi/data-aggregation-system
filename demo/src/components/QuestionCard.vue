@@ -407,15 +407,17 @@ function openListSettings() {
               <span>关联</span>
             </button>
 
-            <!-- 默认项标签（radio/radio-rate 启用 defaultOption 后展示） -->
-            <span
+            <!-- 当前默认标签（radio/radio-rate 启用 defaultOption 后展示） -->
+            <button
               v-if="
                 showDefaultSwitch && question.defaultOption && opt.isDefault
               "
-              class="opt-default-tag"
+              type="button"
+              class="btn-solid-primary-sm"
+              disabled
             >
-              默认
-            </span>           
+              当前默认
+            </button>           
 
             <!-- 设为默认按钮（仅 defaultOption 开启） -->
             <button
@@ -1033,13 +1035,7 @@ function openListSettings() {
     }
   }
 
-  /* 默认项标签 */
-  .opt-default-tag {
-    flex-shrink: 0;
-    font-size: var(--fs-12);
-    color: var(--c-primary);
-    font-weight: 500;
-  }
+  /* 当前默认按钮走全局 .btn-solid-primary-sm;无需额外样式 */
 
   /* .opt-set-default / .opt-link-btn 走全局 .btn-outline-dashed-primary;此处仅强制 flex-shrink:0 */
 
