@@ -41,16 +41,16 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 
 | 角色 | 字体 | 来源 | 备注 |
 |---|---|---|---|
-| **Display / 标题** | Instrument Sans | Google Fonts | 工业感 sans，区别于 Inter / Space Grotesk |
-| **Body / 正文** | Satoshi | Fontshare | 圆润但专业，14-16px 长时间阅读不疲劳 |
-| **Data / 数字** | JetBrains Mono | Google Fonts | 开 `tabular-nums`，表格/统计列对齐 |
+| **Display / 标题** | PingFang SC | 系统 | macOS / iOS 系统中文，默认；标题字重 600 + letter-spacing -0.01em 强化层级 |
+| **Body / 正文** | PingFang SC | 系统 | 同上；正文 400/500，长时间阅读不疲劳 |
+| **Data / 数字** | JetBrains Mono | Google Fonts | 开 `tabular-nums`，表格/统计列对齐（**不改**，对齐需求远超中文字体选择） |
 | **Code** | JetBrains Mono | Google Fonts | 等宽 |
-| **中文回退** | PingFang SC → Microsoft YaHei | 系统 | Windows / macOS 兜底 |
+| **跨平台兜底** | PingFang SC → Hiragino Sans GB → Microsoft YaHei → system-ui | 系统 | macOS / iOS → Windows / Linux 安然回退 |
 
 **Loading 策略**:
-- Google Fonts CDN（`<link rel="preconnect">` 提前握手）
-- `&display=swap` 避免 FOIT
-- 一次性加载 ~80KB（gzipped），缓存后 0 成本
+- 主字体走系统字体（PingFang SC），**零网络成本**，无 FOIT
+- 仅 JetBrains Mono（数字 / 代码）走 Google Fonts CDN，`display=swap`
+- 不再加载 Instrument Sans / Satoshi
 
 ### Type scale
 
@@ -69,10 +69,10 @@ memorable thing "5 分钟搭出专业表单" 暗示：
 
 ### 字体使用规则
 
-- 所有标题/数字/Logo  → `Instrument Sans`，`font-weight: 600`，`letter-spacing: -0.01em`
-- 数字/统计/时间戳    → `JetBrains Mono`，**必开** `font-variant-numeric: tabular-nums`
-- 一切正文/按钮        → `Satoshi`，`font-weight: 400` 或 `500`
-- **不用** `system-ui` / `-apple-system` 作主字体（"AI 偷懒"信号）
+- 所有标题 / Logo / 数据卡片头 → `var(--ff-display)`（PingFang SC），`font-weight: 600`，`letter-spacing: -0.01em`
+- 一切正文 / 按钮 / 输入 / 提示文字 → `var(--ff-body)`（PingFang SC），`font-weight: 400` 或 `500`
+- 数字 / 统计 / 时间戳 / 代码 → `var(--ff-mono)`（JetBrains Mono），**必开** `font-variant-numeric: tabular-nums`
+- 跨平台保证：Windows / Linux 没有 PingFang SC 时自动落到 Microsoft YaHei，无需额外配置
 
 ---
 
@@ -382,9 +382,11 @@ CSS 分三层,职责严格分离。新增样式必须先判断归属,不要混�
    - 代价：与原型截图视觉有偏差
    - 对应：DEVELOPER 在 demo 阶段已替换 tokens.css
 
-2. **字体从 system-ui → Instrument Sans + Satoshi + JetBrains Mono**
-   - 收益：拉开层级，告别 AI 收敛陷阱，数字真正对齐
-   - 代价：~80KB CDN 加载（一次缓存）
+2. ~~**字体从 system-ui → Instrument Sans + Satoshi + JetBrains Mono**~~
+   - 历史状态：2026-08-07 锚定的 RISK 2
+   - 翻转（2026-08-17）：主字体切回 PingFang SC（系统中文），仅保留 JetBrains Mono 用于数字 / 代码
+   - 翻转原因：业务用户多在中文环境，Satoshi + Instrument Sans 的"工业感差异化"对中文渲染 0 增益，反而引入 ~80KB CDN 成本和 FOIT 风险
+   - 数字对齐仍是约束：JetBrains Mono + `tabular-nums` 不动
 
 3. **键盘优先**（Tab / ↑↓ / Enter 直接编辑）
    - 收益：业务用户搭表单快 2x，对应 memorable thing
@@ -403,6 +405,7 @@ CSS 分三层,职责严格分离。新增样式必须先判断归属,不要混�
 | 2026-08-07 | 顶部导航白底 + 1px 边框 | 轻量化、不抢内容 |
 | 2026-08-07 | 单列填写端、max 640px | 移动端优先、可读性 |
 | 2026-08-07 | 设计文件位于 `demo/preview/d5.html` | 预览基线 |
+| 2026-08-17 | 主字体切回 PingFang SC（移除 Instrument Sans / Satoshi） | 中文环境下系统字体验最优、零 CDN 成本；数字仍走 JetBrains Mono |
 
 ---
 
