@@ -350,7 +350,7 @@ function openListSettings() {
             >
               <span class="option-linked">
                 <span class="link-name">{{
-                  opt.displayName || opt.linkData?.name
+                  opt.displayName || opt.linkData
                 }}</span>
                 <span class="link-badge">关联</span>
                 <el-icon
