@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "cd demo && pnpm install --frozen-lockfile && pnpm build",
-  "installCommand": "cd demo && pnpm install --frozen-lockfile",
+  "buildCommand": "cd demo && pnpm install --frozen-lockfile --config.confirmModulesPurge=false && pnpm build",
+  "installCommand": "cd demo && pnpm install --frozen-lockfile --config.confirmModulesPurge=false",
   "outputDirectory": "demo/dist",
   "cleanUrls": true,
   "trailingSlash": false,
