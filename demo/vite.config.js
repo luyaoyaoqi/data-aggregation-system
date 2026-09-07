@@ -8,6 +8,9 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import vueDevTools from 'vite-plugin-vue-devtools';
 
 export default defineConfig({
+  // GitHub Pages 项目页路径前缀（https://<user>.github.io/<repo>/）
+  // 自托管/用户名页改为 '/' 或删除本行
+  base: '/data-aggregation-system/',
   plugins: [
     vue(),
     UnoCSS(),
