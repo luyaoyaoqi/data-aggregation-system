@@ -651,7 +651,7 @@ async function handleReset() {
  */
 function openStandalone() {
   writeSnapshot();
-  window.open("/preview.html", "_blank", "noopener,noreferrer");
+  window.open(`${import.meta.env.BASE_URL}preview.html`, "_blank", "noopener,noreferrer");
 }
 
 /**
